@@ -140,6 +140,7 @@ public class CommonProxy {
     public static void init() {
         GTCEu.LOGGER.info("GTCEu common proxy init!");
         GTRegistries.COMPASS_NODES.unfreeze();
+        GTRegistration.REGISTRATE.registerRegistrate(modBus);
 
         UIFactory.register(MachineUIFactory.INSTANCE);
         UIFactory.register(CoverUIFactory.INSTANCE);
@@ -172,9 +173,6 @@ public class CommonProxy {
         GTItems.init();
         AddonFinder.getAddons().forEach(IGTAddon::initializeAddon);
         GTIngredientTypes.INGREDIENT_TYPES.register(modBus);
-
-        // fabric exclusive, squeeze this in here to register before stuff is used
-        GTRegistration.REGISTRATE.registerRegistrate(modBus);
 
         GregTechDatagen.init();
         // Register all material manager registries, for materials with mod ids.
