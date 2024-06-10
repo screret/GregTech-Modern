@@ -9,6 +9,15 @@ import com.lowdragmc.lowdraglib.utils.ResourceHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
+import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.integration.kjs.GTRegistryInfo;
+
+import com.lowdragmc.lowdraglib.Platform;
+import com.lowdragmc.lowdraglib.utils.ResourceHelper;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
