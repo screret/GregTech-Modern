@@ -15,8 +15,6 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 import com.google.gson.JsonObject;
 
-import com.google.gson.JsonObject;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
