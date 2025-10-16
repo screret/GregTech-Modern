@@ -1,15 +1,10 @@
 dependencies {
     compileOnly(libs.jetbrains.annotations)
 
-    // LDLib
+    // JIJ dependencies
     jarJar(modApi(forge.ldlib.get()))
-
-    // Registrate
     jarJar(modApi(forge.registrate.get()))
-
-    // Configuration
     jarJar(modApi(forge.configuration.get()))
-
     // Mixin (& Extras)
     annotationProcessor(variantOf(libs.mixin) { classifier("processor") })
     compileOnly(annotationProcessor(forge.mixinExtras.common.get()))
@@ -26,6 +21,11 @@ dependencies {
     modCompileOnly(forge.theoneprobe)
     modCompileOnly(forge.jade)
 
+    // KJS
+    modCompileOnly(forge.kubejs)
+    modCompileOnly(forge.architectury)
+    modCompileOnly(forge.rhino)
+
     // Curios
     modCompileOnly(variantOf(forge.curios) { classifier("api") })
 
@@ -38,23 +38,19 @@ dependencies {
     modCompileOnly(variantOf(forge.create) { classifier("slim") })
     modCompileOnly(forge.flywheel.forge.api)
 
-    // KJS
-    modCompileOnly(forge.kubejs)
-    modCompileOnly(forge.architectury)
-    modCompileOnly(forge.rhino)
-
     // Rendering & Optimizations
     modCompileOnly(forge.embeddium)
     modCompileOnly(forge.oculus)
     modCompileOnly(forge.modernfix)
 
-    // Teams
+    // Teams / Quests / Gamestages
     modCompileOnly(forge.ftblibrary)
     modCompileOnly(forge.ftbteams)
     modCompileOnly(forge.ftbquests)
     modCompileOnly(forge.resourcefullib)
     modCompileOnly(forge.argonauts)
     modCompileOnly(forge.heracles)
+    modCompileOnly(forge.gamestages)
 
     // Maps
     modCompileOnly(forge.ftbchunks)
@@ -62,9 +58,6 @@ dependencies {
     modCompileOnly(forge.xaerosworldmap)
     modCompileOnly(forge.journeymap.api)
     modCompileOnly(forge.journeymap.forge)
-
-    // GameStages
-    modCompileOnly(forge.gamestages)
 
     // CC: Tweaked
     modCompileOnly(forge.cc.tweaked.core.api)
@@ -92,7 +85,6 @@ dependencies {
     modExtraLocalRuntime(forge.javd)
     modExtraLocalRuntime(forge.trenzalore)
     modExtraLocalRuntime(forge.curios)
-//    modExtraLocalRuntime(forge.worldstripper)
 //    modExtraLocalRuntime(forge.cc.tweaked.forge.impl) for some reason this breaks create
 
     modExtraLocalRuntime(forge.bundles.kjs)
