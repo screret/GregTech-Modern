@@ -38,35 +38,6 @@ public interface IGTAddon {
     default void registerTagPrefixes() {}
 
     /**
-     * Call init on your custom Element class(es) here
-     */
-    default void registerElements() {}
-
-    /**
-     * Call init on your custom Material class(es) here
-     * 
-     * @deprecated use {@link com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent} and
-     *             {@link com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent} instead.
-     */
-    @Deprecated(forRemoval = true, since = "1.0.21")
-    default void registerMaterials() {}
-
-    /**
-     * Call init on your custom Sound class(es) here
-     */
-    default void registerSounds() {}
-
-    /**
-     * Call init on your custom Cover class(es) here
-     */
-    default void registerCovers() {}
-
-    /**
-     * Call init on your custom Recipe Capabilities here
-     */
-    default void registerRecipeCapabilities() {}
-
-    /**
      * Call init on your custom IWorldGenLayer class(es) here
      */
     default void registerWorldgenLayers() {}

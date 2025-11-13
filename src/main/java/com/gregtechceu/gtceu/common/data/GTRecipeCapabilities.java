@@ -29,7 +29,6 @@ public class GTRecipeCapabilities {
         GTRegistries.RECIPE_CAPABILITIES.register(EU.name, EU);
         GTRegistries.RECIPE_CAPABILITIES.register(CWU.name, CWU);
 
-        AddonFinder.getAddons().forEach(IGTAddon::registerRecipeCapabilities);
         ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.RECIPE_CAPABILITIES,
                 (Class<RecipeCapability<?>>) (Class<?>) RecipeCapability.class));
         GTRegistries.RECIPE_CAPABILITIES.freeze();
