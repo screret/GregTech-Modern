@@ -31,13 +31,12 @@ import static com.gregtechceu.gtceu.api.recipe.condition.ConditionSerializeUtils
 import static com.gregtechceu.gtceu.api.recipe.condition.ConditionSerializeUtils.encodeHolderSets;
 
 @NoArgsConstructor
-public class AdjacentFluidCondition extends RecipeCondition {
+public class AdjacentFluidCondition extends RecipeCondition<AdjacentFluidCondition> {
 
     // spotless:off
-    public static final Codec<AdjacentFluidCondition> CODEC =
-            RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
-                    Codec.STRING.fieldOf("fluidString").forGetter(AdjacentFluidCondition::getFluidString)
-            ).apply(instance, AdjacentFluidCondition::new));
+    public static final Codec<AdjacentFluidCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
+            Codec.STRING.fieldOf("fluidString").forGetter(AdjacentFluidCondition::getFluidString)
+    ).apply(instance, AdjacentFluidCondition::new));
     // spotless:on
 
     @Getter
@@ -94,7 +93,7 @@ public class AdjacentFluidCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeConditionType<?> getType() {
+    public RecipeConditionType<AdjacentFluidCondition> getType() {
         return GTRecipeConditions.ADJACENT_FLUID;
     }
 
@@ -148,7 +147,7 @@ public class AdjacentFluidCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeCondition createTemplate() {
+    public AdjacentFluidCondition createTemplate() {
         return new AdjacentFluidCondition();
     }
 }

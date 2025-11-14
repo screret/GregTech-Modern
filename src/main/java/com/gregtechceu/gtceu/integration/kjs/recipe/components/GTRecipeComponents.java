@@ -1,8 +1,10 @@
 package com.gregtechceu.gtceu.integration.kjs.recipe.components;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.events.KJSRecipeKeyEvent;
 import com.gregtechceu.gtceu.api.capability.recipe.*;
+import com.gregtechceu.gtceu.api.codec.GTCodecUtils;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.ingredient.EnergyStack;
@@ -12,6 +14,9 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTRecipeCapabilities;
 import com.gregtechceu.gtceu.integration.kjs.recipe.KJSHelpers;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -175,7 +180,7 @@ public class GTRecipeComponents {
         }
     };
 
-    public static final RecipeComponent<RecipeCondition> RECIPE_CONDITION = new RecipeComponent<>() {
+    public static final RecipeComponent<RecipeCondition<?>> RECIPE_CONDITION = new RecipeComponent<>() {
 
         @Override
         public String componentType() {
@@ -188,15 +193,20 @@ public class GTRecipeComponents {
         }
 
         @Override
-        public JsonElement write(RecipeJS recipe, RecipeCondition value) {
+        public JsonElement write(RecipeJS recipe, RecipeCondition<?> condition) {
             JsonObject object = new JsonObject();
-            object.addProperty("type", GTRegistries.RECIPE_CONDITIONS.getKey(value.getType()));
-            object.add("data", value.serialize());
+            object.addProperty("type", GTRegistries.RECIPE_CONDITIONS.getKey(condition.getType()).toString());
+
+            var ops = RegistryOps.create(JsonOps.INSTANCE, GTRegistries.builtinRegistry());
+            var condJson = RecipeCondition.CODEC.encodeStart(ops, condition).getOrThrow(false, error -> {
+                throw new RecipeExceptionJS("Failed to encode: " + error + " " + condition);
+            });
+            object.add("data", condJson);
             return object;
         }
 
         @Override
-        public RecipeCondition read(RecipeJS recipe, Object from) {
+        public RecipeCondition<?> read(RecipeJS recipe, Object from) {
             if (from instanceof CharSequence) {
                 var conditionKey = from.toString();
                 var type = GTRegistries.RECIPE_CONDITIONS.get(conditionKey);

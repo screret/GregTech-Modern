@@ -1349,7 +1349,7 @@ public interface GTRecipeSchema {
     RecipeKey<ResourceLocation> ID = GTRecipeComponents.RESOURCE_LOCATION.key("id");
     RecipeKey<Long> DURATION = TimeComponent.TICKS.key("duration").optional(100L);
     RecipeKey<CompoundTag> DATA = GTRecipeComponents.TAG.key("data").optional((CompoundTag) null);
-    RecipeKey<RecipeCondition[]> CONDITIONS = GTRecipeComponents.RECIPE_CONDITION.asArray().key("recipeConditions")
+    RecipeKey<RecipeCondition<?>[]> CONDITIONS = GTRecipeComponents.RECIPE_CONDITION.asArray().key("recipeConditions")
             .optional(new RecipeCondition[0]);
     RecipeKey<ResourceLocation> CATEGORY = GTRecipeComponents.RESOURCE_LOCATION.key("category").defaultOptional();
 

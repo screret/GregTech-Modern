@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.condition.RecipeConditionType;
 import com.gregtechceu.gtceu.common.data.GTRecipeConditions;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
@@ -15,14 +17,15 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 @NoArgsConstructor
-public class ThunderCondition extends RecipeCondition {
+public class ThunderCondition extends RecipeCondition<ThunderCondition> {
 
-    public static final Codec<ThunderCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(Codec.FLOAT.fieldOf("level").forGetter(val -> val.level))
-                    .apply(instance, ThunderCondition::new));
+    // spotless:off
+    public static final Codec<ThunderCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
+            Codec.FLOAT.fieldOf("level").forGetter(ThunderCondition::getLevel)
+    ).apply(instance, ThunderCondition::new));
+    // spotless:off
 
-    public final static ThunderCondition INSTANCE = new ThunderCondition();
+    @Getter
     private float level;
 
     public ThunderCondition(boolean isReverse, float level) {
@@ -35,17 +38,13 @@ public class ThunderCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeConditionType<?> getType() {
+    public RecipeConditionType<ThunderCondition> getType() {
         return GTRecipeConditions.THUNDER;
     }
 
     @Override
     public Component getTooltips() {
         return Component.translatable("recipe.condition.thunder.tooltip", level);
-    }
-
-    public float getLevel() {
-        return level;
     }
 
     @Override
@@ -55,7 +54,7 @@ public class ThunderCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeCondition createTemplate() {
+    public ThunderCondition createTemplate() {
         return new ThunderCondition();
     }
 }

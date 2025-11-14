@@ -31,13 +31,12 @@ import static com.gregtechceu.gtceu.api.recipe.condition.ConditionSerializeUtils
 import static com.gregtechceu.gtceu.api.recipe.condition.ConditionSerializeUtils.encodeHolderSets;
 
 @NoArgsConstructor
-public class AdjacentBlockCondition extends RecipeCondition {
+public class AdjacentBlockCondition extends RecipeCondition<AdjacentBlockCondition> {
 
     // spotless:off
-    public static final Codec<AdjacentBlockCondition> CODEC =
-            RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
-                    Codec.STRING.fieldOf("blockString").forGetter(AdjacentBlockCondition::getBlockString)
-            ).apply(instance, AdjacentBlockCondition::new));
+    public static final Codec<AdjacentBlockCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
+            Codec.STRING.fieldOf("blockString").forGetter(AdjacentBlockCondition::getBlockString)
+    ).apply(instance, AdjacentBlockCondition::new));
     // spotless:on
 
     @Getter
@@ -94,7 +93,7 @@ public class AdjacentBlockCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeConditionType<?> getType() {
+    public RecipeConditionType<AdjacentBlockCondition> getType() {
         return GTRecipeConditions.ADJACENT_BLOCK;
     }
 
@@ -146,7 +145,7 @@ public class AdjacentBlockCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeCondition createTemplate() {
+    public AdjacentBlockCondition createTemplate() {
         return new AdjacentBlockCondition();
     }
 }

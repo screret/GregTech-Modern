@@ -30,15 +30,16 @@ import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
 @Accessors(chain = true)
-public abstract class RecipeCondition {
+public abstract class RecipeCondition<T extends RecipeCondition<T>> {
 
-    public static final Codec<RecipeCondition> CODEC = GTRegistries.RECIPE_CONDITIONS.codec()
+    public static final Codec<RecipeCondition<?>> CODEC = GTRegistries.RECIPE_CONDITIONS.codec()
             .dispatch(RecipeCondition::getType, RecipeConditionType::getCodec);
-
-    public static <
-            RC extends RecipeCondition> Products.P1<RecordCodecBuilder.Mu<RC>, Boolean> isReverse(RecordCodecBuilder.Instance<RC> instance) {
+    // spotless:off
+    public static <RC extends RecipeCondition<?>> Products.P1<RecordCodecBuilder.Mu<RC>, Boolean> isReverse(RecordCodecBuilder.Instance<RC> instance) {
         return instance.group(Codec.BOOL.optionalFieldOf("reverse", false).forGetter(val -> val.isReverse));
     }
+    // spotless:on
+    private static final Gson GSON = new Gson();
 
     @Getter
     @Setter
@@ -52,7 +53,7 @@ public abstract class RecipeCondition {
         this.isReverse = isReverse;
     }
 
-    public abstract RecipeConditionType<?> getType();
+    public abstract RecipeConditionType<T> getType();
 
     public String getTranslationKey() {
         return "gtceu.recipe.condition." + getType();
@@ -80,7 +81,7 @@ public abstract class RecipeCondition {
 
     protected abstract boolean testCondition(@NotNull GTRecipe recipe, @NotNull RecipeLogic recipeLogic);
 
-    public abstract RecipeCondition createTemplate();
+    public abstract T createTemplate();
 
     @NotNull
     public final JsonObject serialize() {
@@ -88,7 +89,7 @@ public abstract class RecipeCondition {
         return CODEC.encodeStart(ops, this).getOrThrow(false, GTCEu.LOGGER::error).getAsJsonObject();
     }
 
-    public static RecipeCondition deserialize(@NotNull JsonObject config) {
+    public static RecipeCondition<?> deserialize(@NotNull JsonObject config) {
         var ops = RegistryOps.create(JsonOps.INSTANCE, GTRegistries.builtinRegistry());
         return CODEC.decode(ops, config).getOrThrow(false, GTCEu.LOGGER::error).getFirst();
     }
@@ -96,17 +97,16 @@ public abstract class RecipeCondition {
     public final void toNetwork(FriendlyByteBuf buf) {
         var ops = RegistryOps.create(JsonOps.INSTANCE, GTRegistries.builtinRegistry());
         // Code below was taken from buf.writeJsonWithCodec to include our RegistryOps
-        DataResult<JsonElement> dataresult = CODEC.encodeStart(ops, this);
-        buf.writeUtf(new Gson().toJson((JsonElement) Util.getOrThrow(dataresult,
-                (p_261421_) -> new EncoderException("Failed to encode: " + p_261421_ + " " + String.valueOf(this)))));
+        DataResult<JsonElement> result = CODEC.encodeStart(ops, this);
+        buf.writeUtf(GSON.toJson(Util.getOrThrow(result,
+                (error) -> new EncoderException("Failed to encode: " + error + " " + this))));
     }
 
-    public static RecipeCondition fromNetwork(FriendlyByteBuf buf) {
+    public static RecipeCondition<?> fromNetwork(FriendlyByteBuf buf) {
         var ops = RegistryOps.create(JsonOps.INSTANCE, GTRegistries.builtinRegistry());
         // Code below was taken from buf.readJsonWithCodec to include our RegistryOps
-        JsonElement jsonelement = (JsonElement) GsonHelper.fromJson(new Gson(), buf.readUtf(), JsonElement.class);
-        DataResult<RecipeCondition> dataresult = CODEC.parse(ops, jsonelement);
-        return (RecipeCondition) Util.getOrThrow(dataresult,
-                (p_272382_) -> new DecoderException("Failed to decode json: " + p_272382_));
+        JsonElement json = GsonHelper.fromJson(GSON, buf.readUtf(), JsonElement.class);
+        DataResult<RecipeCondition<?>> result = CODEC.parse(ops, json);
+        return Util.getOrThrow(result, (error) -> new DecoderException("Failed to decode json: " + error));
     }
 }

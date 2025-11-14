@@ -12,15 +12,16 @@ import net.minecraft.resources.ResourceLocation;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collection;
 
-public abstract class MaterialRegistry extends GTRegistry.String<Material> {
+public abstract class MaterialRegistry extends GTRegistry<Material> {
 
     @Getter
     private final GTRegistrate registrate;
 
-    public MaterialRegistry(java.lang.String modId) {
+    public MaterialRegistry(String modId) {
         super(new ResourceLocation(modId, "material"));
         IGTAddon addon = AddonFinder.getAddon(modId);
         this.registrate = addon != null ? addon.getRegistrate() :
@@ -30,6 +31,10 @@ public abstract class MaterialRegistry extends GTRegistry.String<Material> {
     public abstract void register(Material material);
 
     @NotNull
+    public abstract Material get(String name);
+
+    @NotNull
+    @UnmodifiableView
     public abstract Collection<Material> getAllMaterials();
 
     /**
@@ -54,5 +59,5 @@ public abstract class MaterialRegistry extends GTRegistry.String<Material> {
     public abstract int getNetworkId();
 
     @NotNull
-    public abstract java.lang.String getModid();
+    public abstract String getModid();
 }

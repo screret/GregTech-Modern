@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.data.DimensionMarker;
 import com.gregtechceu.gtceu.api.data.chemical.Element;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
@@ -39,19 +41,20 @@ import org.jetbrains.annotations.ApiStatus;
 public final class GTRegistries {
 
     // GT Registry
-    public static final GTRegistry.String<Element> ELEMENTS = new GTRegistry.String<>(GTCEu.id("element"));
+    public static final GTRegistry<Element> ELEMENTS = new GTRegistry.String<>(GTCEu.id("element"));
+    public static final GTRegistry<Material> MATERIALS = new MaterialRegistry();
 
     public static final GTRegistry.RL<GTRecipeType> RECIPE_TYPES = new GTRegistry.RL<>(GTCEu.id("recipe_type"));
     public static final GTRegistry.RL<GTRecipeCategory> RECIPE_CATEGORIES = new GTRegistry.RL<>(
             GTCEu.id("recipe_category"));
-    public static final GTRegistry.RL<CoverDefinition> COVERS = new GTRegistry.RL<>(GTCEu.id("cover"));
+    public static final GTRegistry<CoverDefinition> COVERS = new GTRegistry.RL<>(GTCEu.id("cover"));
 
-    public static final GTRegistry.RL<MachineDefinition> MACHINES = new GTRegistry.RL<>(GTCEu.id("machine"));
-    public static final GTRegistry.String<RecipeCapability<?>> RECIPE_CAPABILITIES = new GTRegistry.String<>(
+    public static final GTRegistry<MachineDefinition> MACHINES = new GTRegistry.RL<>(GTCEu.id("machine"));
+    public static final GTRegistry<RecipeCapability<?>> RECIPE_CAPABILITIES = new GTRegistry.String<>(
             GTCEu.id("recipe_capability"));
-    public static final GTRegistry.String<RecipeConditionType<?>> RECIPE_CONDITIONS = new GTRegistry.String<>(
+    public static final GTRegistry.RL<RecipeConditionType<?>> RECIPE_CONDITIONS = new GTRegistry.String<>(
             GTCEu.id("recipe_condition"));
-    public static final GTRegistry.String<ChanceLogic> CHANCE_LOGICS = new GTRegistry.String<>(
+    public static final GTRegistry<ChanceLogic> CHANCE_LOGICS = new GTRegistry.String<>(
             GTCEu.id("chance_logic"));
     public static final GTRegistry.RL<SoundEntry> SOUNDS = new GTRegistry.RL<>(GTCEu.id("sound"));
     public static final GTRegistry.RL<BedrockFluidDefinition> BEDROCK_FLUID_DEFINITIONS = new GTRegistry.RL<>(

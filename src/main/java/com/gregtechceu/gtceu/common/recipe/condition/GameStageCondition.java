@@ -7,6 +7,8 @@ import com.gregtechceu.gtceu.api.recipe.condition.RecipeConditionType;
 import com.gregtechceu.gtceu.common.data.GTRecipeConditions;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.darkhax.gamestages.data.GameStageSaveHandler;
 import net.minecraft.network.chat.Component;
 
@@ -16,13 +18,15 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 @NoArgsConstructor
-public class GameStageCondition extends RecipeCondition {
+public class GameStageCondition extends RecipeCondition<GameStageCondition> {
 
-    public static final Codec<GameStageCondition> CODEC = RecordCodecBuilder
-            .create(instance -> RecipeCondition.isReverse(instance)
-                    .and(Codec.STRING.fieldOf("stageName").forGetter(val -> val.stageName))
-                    .apply(instance, GameStageCondition::new));
+    // spotless:off
+    public static final Codec<GameStageCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
+            Codec.STRING.fieldOf("stageName").forGetter(GameStageCondition::getStageName)
+    ).apply(instance, GameStageCondition::new));
+    // spotless:off
 
+    @Getter(AccessLevel.PRIVATE)
     private String stageName;
 
     public final static GameStageCondition INSTANCE = new GameStageCondition();
@@ -37,7 +41,7 @@ public class GameStageCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeConditionType<?> getType() {
+    public RecipeConditionType<GameStageCondition> getType() {
         return GTRecipeConditions.GAMESTAGE;
     }
 
@@ -61,7 +65,7 @@ public class GameStageCondition extends RecipeCondition {
     }
 
     @Override
-    public RecipeCondition createTemplate() {
+    public GameStageCondition createTemplate() {
         return new GameStageCondition();
     }
 }

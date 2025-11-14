@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.item.tool.MaterialToolTier;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.registry.registrate.BuilderBase;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
@@ -150,7 +151,7 @@ public class Material implements Comparable<Material> {
     }
 
     protected void registerMaterial() {
-        GTCEuAPI.materialManager.getRegistry(getModid()).register(this);
+        GTRegistries.MATERIALS.register(getResourceLocation(), this);
     }
 
     public String getName() {
@@ -561,7 +562,7 @@ public class Material implements Comparable<Material> {
 
     @RemapPrefixForJS("kjs$")
     @SuppressWarnings("unused") // API, need to treat all of these as used
-    public static class Builder extends BuilderBase<Material> {
+    public static class Builder {
 
         private final MaterialInfo materialInfo;
         private final MaterialProperties properties;
@@ -596,7 +597,6 @@ public class Material implements Comparable<Material> {
          * @since GTCEu 2.0.0
          */
         public Builder(ResourceLocation resourceLocation) {
-            super(resourceLocation);
             String name = resourceLocation.getPath();
             if (name.charAt(name.length() - 1) == '_')
                 throw new IllegalArgumentException("Material name cannot end with a '_'!");
@@ -1871,12 +1871,6 @@ public class Material implements Comparable<Material> {
                 ignoredTagPrefixes.forEach(p -> p.setIgnored(mat));
             }
             return mat;
-        }
-
-        @Override
-        @HideFromJS
-        public Material register() {
-            return value = buildAndRegister();
         }
     }
 
