@@ -49,7 +49,7 @@ public final class GTRecipeConditions {
             HERACLES_QUEST = register("heracles_quest", HeraclesQuestCondition::new, HeraclesQuestCondition.CODEC);
         }
         // fix the rock breaker condition's ID
-        GTRegistries.RECIPE_CONDITIONS.remap("rock_breaker", "adjacent_fluid");
+        GTRegistries.RECIPE_CONDITIONS.remap(GTCEu.id("rock_breaker"), GTCEu.id("adjacent_fluid"));
 
         // noinspection unchecked
         ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.RECIPE_CONDITIONS,
@@ -57,9 +57,9 @@ public final class GTRecipeConditions {
         GTRegistries.RECIPE_CONDITIONS.freeze();
     }
 
-    private static <T extends RecipeCondition> RecipeConditionType<T> register(String name,
-                                                                               RecipeConditionType.ConditionFactory<T> factory,
-                                                                               Codec<T> codec) {
-        return GTRegistries.RECIPE_CONDITIONS.register(name, new RecipeConditionType<>(factory, codec));
+    private static <T extends RecipeCondition<T>> RecipeConditionType<T> register(String name,
+                                                                                  RecipeConditionType.ConditionFactory<T> factory,
+                                                                                  Codec<T> codec) {
+        return GTRegistries.RECIPE_CONDITIONS.register(GTCEu.id(name), new RecipeConditionType<>(factory, codec));
     }
 }
