@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 @Accessors(chain = true)
 public abstract class RecipeCondition<T extends RecipeCondition<T>> {
 
-    public static final Codec<RecipeCondition<?>> CODEC = GTRegistries.RECIPE_CONDITIONS.get().getCodec()
+    public static final Codec<RecipeCondition<?>> CODEC = GTRegistries.RECIPE_CONDITIONS.codec()
             .dispatch(RecipeCondition::getType, RecipeConditionType::getCodec);
 
     // spotless:off

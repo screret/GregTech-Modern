@@ -49,8 +49,6 @@ public class BedrockOreDefinition {
                              biomeWeightModifier, dimensionFilter) -> new BedrockOreDefinition(weight, size, yield,
                                      depletionAmount, depletionChance, depletedYield, materials, biomeWeightModifier,
                                      new HashSet<>(dimensionFilter))));
-    public static final Codec<Holder<BedrockOreDefinition>> CODEC = RegistryFileCodec
-            .create(GTRegistries.BEDROCK_ORE_REGISTRY, DIRECT_CODEC);
 
     @Getter
     @Setter

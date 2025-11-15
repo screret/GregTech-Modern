@@ -7,11 +7,15 @@ import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.block.IFilterType;
 import com.gregtechceu.gtceu.api.data.chemical.material.IMaterialRegistryManager;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
+import com.gregtechceu.gtceu.api.registry.GTRegistry;
 import com.gregtechceu.gtceu.common.block.BatteryBlock;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.eventbus.api.GenericEvent;
+import net.minecraftforge.fml.event.IModBusEvent;
 
 import lombok.Getter;
 import org.jetbrains.annotations.ApiStatus;
@@ -48,5 +52,33 @@ public class GTCEuAPI {
 
         if (isHighTier()) GTCEu.LOGGER.info("High-Tier is Enabled.");
         else GTCEu.LOGGER.info("High-Tier is Disabled.");
+    }
+
+    public static class RegisterEvent<K, V> extends GenericEvent<V> implements IModBusEvent {
+
+        private final GTRegistry<K, V> registry;
+
+        public RegisterEvent(GTRegistry<K, V> registry, Class<V> clazz) {
+            super(clazz);
+            this.registry = registry;
+        }
+
+        public void register(K key, V value) {
+            if (registry != null) registry.register(key, value);
+        }
+
+        public static class RL<V> extends RegisterEvent<ResourceLocation, V> {
+
+            public RL(GTRegistry<ResourceLocation, V> registry, Class<V> clazz) {
+                super(registry, clazz);
+            }
+        }
+
+        public static class String<V> extends RegisterEvent<java.lang.String, V> {
+
+            public String(GTRegistry<java.lang.String, V> registry, Class<V> clazz) {
+                super(registry, clazz);
+            }
+        }
     }
 }

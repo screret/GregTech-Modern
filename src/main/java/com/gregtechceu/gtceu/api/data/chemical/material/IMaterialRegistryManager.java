@@ -1,84 +1,85 @@
 package com.gregtechceu.gtceu.api.data.chemical.material;
 
-import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 
 import net.minecraft.resources.ResourceLocation;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collection;
-import java.util.stream.Stream;
+import java.util.Optional;
 
-public interface IMaterialRegistryManager extends Iterable<Material> {
+public interface IMaterialRegistryManager {
 
     /**
-     * @return all namespaces the registered materials use
+     * Create a registry for a modid. Accessible when in phase {@link Phase#PRE}.
+     *
+     * @param modid the mod id for the registry
+     * @return the registry for the mod
      */
     @NotNull
-    @UnmodifiableView
-    Collection<String> getUsedNamespaces();
+    MaterialRegistry createRegistry(@NotNull String modid);
 
     /**
-     * Register a material.<br>
-     * You must register any materials in a registration event
-     * with {@link net.minecraftforge.eventbus.api.EventPriority#HIGHEST priority=HIGHEST},
-     * as anything else may be skipped if your mod is loaded after GT.
+     * Get a mod's registry. Accessible during all phases.
      *
-     * @param material the material to register
-     * @return the same material.
+     * @param modid the modid of the mod
+     * @return the registry associated with the mod, or the GregTech registry if it does not have one
      */
-    Material register(Material material);
+    @NotNull
+    MaterialRegistry getRegistry(@NotNull String modid);
+
+    /**
+     * Get a mod's registry. Accessible during all phases.
+     *
+     * @param networkId the network ID of the registry
+     * @return the registry associated with the network ID, or the GregTech registry if it does not have one
+     */
+    @NotNull
+    MaterialRegistry getRegistry(int networkId);
+
+    /**
+     * Accessible when in phases:
+     * <ul>
+     * <li>{@link Phase#OPEN}</li>
+     * <li>{@link Phase#CLOSED}</li>
+     * <li>{@link Phase#FROZEN}</li>
+     * </ul>
+     *
+     * @return all the Material Registries
+     */
+    @NotNull
+    Collection<MaterialRegistry> getRegistries();
+
+    /**
+     * Accessible when in phases:
+     * <ul>
+     * <li>{@link Phase#CLOSED}</li>
+     * <li>{@link Phase#FROZEN}</li>
+     * </ul>
+     *
+     * @return all registered materials.
+     */
+    @NotNull
+    Collection<Material> getRegisteredMaterials();
 
     /**
      * Get a material from a String in formats:
      * <ul>
      * <li>{@code "modid:registry_name"}</li>
-     * <li>{@code "registry_name"} - where modid is inferred to be {@link GTCEu#MOD_ID}</li>
+     * <li>{@code "registry_name"} - where modid is inferred to be {@link com.gregtechceu.gtceu.GTCEu#MOD_ID}</li>
      * </ul>
-     * Generally, you should use {@linkplain IMaterialRegistryManager#getMaterial(ResourceLocation)} instead.
      *
-     * @param name the name of the material in the above format
-     * @return the material associated with the name
-     * @see IMaterialRegistryManager#getMaterial(ResourceLocation)
-     */
-    default Material getMaterial(String name) {
-        return getMaterial(GTCEu.id(name));
-    }
-
-    /**
-     * Get a material from a ResourceLocation<br>
      * Intended for use in reading/writing materials from/to NBT tags.
      *
      * @param name the name of the material in the above format
      * @return the material associated with the name
-     * @see IMaterialRegistryManager#getMaterial(String)
      */
-    Material getMaterial(ResourceLocation name);
+    Material getMaterial(String name);
 
     ResourceLocation getKey(Material material);
-
-    /**
-     * Set the fallback material for a namespace.
-     * This is only for manual fallback usage.
-     *
-     * @param namespace the namespace to set the fallback for
-     * @param material  the fallback material
-     */
-    void setFallbackMaterial(@NotNull String namespace, @NotNull Material material);
-
-    /**
-     * This is only for manual fallback usage.
-     *
-     * @param namespace the namespace to get the fallback for
-     * @return the fallback material, used for when another material does not exist
-     */
-    @NotNull
-    Material getFallbackMaterial(@NotNull String namespace);
-
-    Stream<Material> stream();
 
     /**
      * @return the current phase in the material registration process
@@ -88,11 +89,17 @@ public interface IMaterialRegistryManager extends Iterable<Material> {
     Phase getPhase();
 
     default boolean canModifyMaterials() {
-        return this.getPhase() != Phase.FROZEN;
+        return this.getPhase() != Phase.FROZEN && this.getPhase() != Phase.PRE;
     }
 
     default Codec<Material> codec() {
-        return GTRegistries.MATERIALS.get().getCodec();
+        return ResourceLocation.CODEC
+                .flatXmap(
+                        id -> Optional.ofNullable(this.getRegistry(id.getNamespace()).get(id.getPath()))
+                                .map(DataResult::success)
+                                .orElseGet(() -> DataResult
+                                        .error(() -> "Unknown registry key in material registry: " + id)),
+                        obj -> DataResult.success(obj.getResourceLocation()));
     }
 
     enum Phase {

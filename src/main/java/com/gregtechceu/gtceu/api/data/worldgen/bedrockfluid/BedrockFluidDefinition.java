@@ -51,8 +51,6 @@ public class BedrockFluidDefinition {
                                      yield.getFirst(), yield.getSecond(), depletionAmount, depletionChance,
                                      depletedYield, () -> storedFluid, biomeWeightModifier,
                                      new HashSet<>(dimensionFilter))));
-    public static final Codec<Holder<BedrockFluidDefinition>> CODEC = RegistryFileCodec
-            .create(GTRegistries.BEDROCK_FLUID_REGISTRY, DIRECT_CODEC);
 
     @Getter
     @Setter
