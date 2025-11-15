@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorUtils;
-import com.gregtechceu.gtceu.core.IFireImmuneEntity;
+import com.gregtechceu.gtceu.core.extensions.IFireImmuneEntity;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.client.gui.GuiGraphics;

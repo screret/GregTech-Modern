@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.core.mixins.client;
 
-import com.gregtechceu.gtceu.core.IGTBakedQuad;
+import com.gregtechceu.gtceu.core.extensions.IGTBakedQuad;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
 

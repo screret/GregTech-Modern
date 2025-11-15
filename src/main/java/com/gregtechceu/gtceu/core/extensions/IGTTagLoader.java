@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.core;
+package com.gregtechceu.gtceu.core.extensions;
 
 import net.minecraft.core.Registry;
 
