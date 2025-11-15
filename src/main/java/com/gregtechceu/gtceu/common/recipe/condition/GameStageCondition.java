@@ -7,13 +7,13 @@ import com.gregtechceu.gtceu.api.recipe.condition.RecipeConditionType;
 import com.gregtechceu.gtceu.common.data.GTRecipeConditions;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import net.darkhax.gamestages.data.GameStageSaveHandler;
 import net.minecraft.network.chat.Component;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ public class GameStageCondition extends RecipeCondition<GameStageCondition> {
     public static final Codec<GameStageCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
             Codec.STRING.fieldOf("stageName").forGetter(GameStageCondition::getStageName)
     ).apply(instance, GameStageCondition::new));
-    // spotless:off
+    // spotless:on
 
     @Getter(AccessLevel.PRIVATE)
     private String stageName;

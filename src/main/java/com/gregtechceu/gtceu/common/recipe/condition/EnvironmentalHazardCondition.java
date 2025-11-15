@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EnvironmentalHazardCondition extends RecipeCondition<EnvironmentalHazardCondition> {
+
     // spotless:off
     public static final Codec<EnvironmentalHazardCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
             MedicalCondition.CODEC.fieldOf("condition").forGetter(EnvironmentalHazardCondition::getCondition)

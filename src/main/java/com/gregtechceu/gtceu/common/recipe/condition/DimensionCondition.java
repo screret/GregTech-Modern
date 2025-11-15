@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
-import lombok.Getter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -24,15 +23,17 @@ import net.minecraft.world.level.block.Blocks;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 @NoArgsConstructor
 public class DimensionCondition extends RecipeCondition<DimensionCondition> {
+
     // spotless:off
-    public static final Codec<DimensionCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance)
-            .and(ResourceKey.codec(Registries.DIMENSION).fieldOf("dimension").forGetter(DimensionCondition::getDimension)
-            ).apply(instance, DimensionCondition::new));
+    public static final Codec<DimensionCondition> CODEC = RecordCodecBuilder.create(instance -> RecipeCondition.isReverse(instance).and(
+            ResourceKey.codec(Registries.DIMENSION).fieldOf("dimension").forGetter(DimensionCondition::getDimension)
+    ).apply(instance, DimensionCondition::new));
     // spotless:on
 
     public final static DimensionCondition INSTANCE = new DimensionCondition();
