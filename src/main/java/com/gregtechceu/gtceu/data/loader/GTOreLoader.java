@@ -105,7 +105,7 @@ public class GTOreLoader extends SimpleJsonResourceReloadListener {
     }
 
     public static GTOreDefinition fromJson(ResourceLocation id, JsonObject json, RegistryOps<JsonElement> ops) {
-        return GTOreDefinition.FULL_CODEC.parse(ops, json).getOrThrow(false, LOGGER::error);
+        return GTOreDefinition.DIRECT_CODEC.parse(ops, json).getOrThrow(false, LOGGER::error);
     }
 
     public static final class KJSCallWrapper {
