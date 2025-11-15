@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.utils.RegistryUtil;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -32,7 +31,7 @@ import java.util.*;
 @Accessors(fluent = true, chain = true)
 public class BedrockOreDefinition {
 
-    public static final Codec<BedrockOreDefinition> DIRECT_CODEC = RecordCodecBuilder.create(
+    public static final Codec<BedrockOreDefinition> FULL_CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
                     Codec.INT.fieldOf("weight").forGetter(ft -> ft.weight),
                     Codec.INT.fieldOf("size").forGetter(ft -> ft.size),
@@ -86,6 +85,7 @@ public class BedrockOreDefinition {
                                 List<BiomeWeightModifier> originalModifiers, Set<ResourceKey<Level>> dimensionFilter) {
         this(weight, size, yield, depletionAmount, depletionChance, depletedYield, materials, originalModifiers,
                 dimensionFilter);
+        GTRegistries.BEDROCK_ORE_DEFINITIONS.register(name, this);
     }
 
     public BedrockOreDefinition(int weight, int size, IntProvider yield, int depletionAmount, int depletionChance,

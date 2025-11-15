@@ -12,7 +12,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -24,6 +23,7 @@ import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.latvian.mods.rhino.util.HideFromJS;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
@@ -48,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Accessors(chain = true, fluent = true)
 public class GTOreDefinition {
 
-    public static final Codec<GTOreDefinition> DIRECT_CODEC = RecordCodecBuilder.create(
+    public static final Codec<GTOreDefinition> FULL_CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
                     IntProvider.NON_NEGATIVE_CODEC.fieldOf("cluster_size").forGetter(ft -> ft.clusterSize),
                     Codec.floatRange(0.0F, 1.0F).fieldOf("density").forGetter(ft -> ft.density),

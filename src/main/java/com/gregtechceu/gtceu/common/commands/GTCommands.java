@@ -83,17 +83,17 @@ public class GTCommands {
                                 .then(literal("bedrock_fluid_veins")
                                         .executes(context -> dumpDataRegistry(context,
                                                 GTRegistries.BEDROCK_FLUID_DEFINITIONS,
-                                                BedrockFluidDefinition.DIRECT_CODEC,
+                                                BedrockFluidDefinition.FULL_CODEC,
                                                 BedrockFluidLoader.FOLDER)))
                                 .then(literal("bedrock_ore_veins")
                                         .executes(context -> dumpDataRegistry(context,
                                                 GTRegistries.BEDROCK_ORE_DEFINITIONS,
-                                                BedrockOreDefinition.DIRECT_CODEC,
+                                                BedrockOreDefinition.FULL_CODEC,
                                                 BedrockOreLoader.FOLDER)))
                                 .then(literal("ore_veins")
                                         .executes(context -> dumpDataRegistry(context,
                                                 GTRegistries.ORE_VEINS,
-                                                GTOreDefinition.DIRECT_CODEC,
+                                                GTOreDefinition.FULL_CODEC,
                                                 GTOreLoader.FOLDER))))
                         .then(literal("place_vein")
                                 .requires(ctx -> ctx.hasPermission(LEVEL_ADMINS))

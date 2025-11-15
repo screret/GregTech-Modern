@@ -8,7 +8,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.RegistryFileCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -34,7 +33,7 @@ public class BedrockFluidDefinition {
     public static final MapCodec<Pair<Integer, Integer>> YIELD = Codec.mapPair(Codec.INT.fieldOf("min"),
             Codec.INT.fieldOf("max"));
 
-    public static final Codec<BedrockFluidDefinition> DIRECT_CODEC = RecordCodecBuilder.create(
+    public static final Codec<BedrockFluidDefinition> FULL_CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
                     Codec.INT.fieldOf("weight").forGetter(ft -> ft.weight),
                     YIELD.fieldOf("yield").forGetter(ft -> Pair.of(ft.minimumYield, ft.maximumYield)),
