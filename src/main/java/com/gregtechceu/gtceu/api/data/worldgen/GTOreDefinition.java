@@ -48,13 +48,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Accessors(chain = true, fluent = true)
 public class GTOreDefinition {
 
-    public static final Codec<GTOreDefinition> CODEC = ResourceLocation.CODEC
-            .flatXmap(rl -> Optional.ofNullable(GTRegistries.ORE_VEINS.get(rl))
-                    .map(DataResult::success)
-                    .orElseGet(() -> DataResult.error(() -> "No GTOreDefinition with id " + rl + " registered")),
-                    obj -> Optional.ofNullable(GTRegistries.ORE_VEINS.getKey(obj))
-                            .map(DataResult::success)
-                            .orElseGet(() -> DataResult.error(() -> "GTOreDefinition " + obj + " not registered")));
     public static final Codec<GTOreDefinition> FULL_CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
                     IntProvider.NON_NEGATIVE_CODEC.fieldOf("cluster_size").forGetter(ft -> ft.clusterSize),
@@ -79,6 +72,8 @@ public class GTOreDefinition {
                                      clusterSize, density, weight, layer, new HashSet<>(dimensionFilter), range,
                                      discardChanceOnAirExposure, biomes == null ? HolderSet::direct : () -> biomes,
                                      biomeWeightModifier, veinGenerator, indicatorGenerators)));
+    public static final Codec<Holder<GTOreDefinition>> CODEC = RegistryFileCodec.create(GTRegistries.ORE_VEIN_REGISTRY,
+            DIRECT_CODEC);
 
     private final InferredProperties inferredProperties = new InferredProperties();
 

@@ -17,7 +17,6 @@ import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.item.tool.MaterialToolTier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.api.registry.registrate.BuilderBase;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
 import com.gregtechceu.gtceu.integration.kjs.helpers.MaterialStackWrapper;
@@ -151,7 +150,7 @@ public class Material implements Comparable<Material> {
     }
 
     protected void registerMaterial() {
-        GTRegistries.MATERIALS.register(getResourceLocation(), this);
+        GTRegistries.MATERIALS.get().register(getResourceLocation(), this);
     }
 
     public String getName() {

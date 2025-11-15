@@ -31,10 +31,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.RegisterEvent;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.fml.javafmlmod.FMLModContainer;
+import net.minecraftforge.registries.*;
 
 import com.tterrag.registrate.AbstractRegistrate;
 import com.tterrag.registrate.builders.Builder;
@@ -46,13 +47,16 @@ import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.apache.commons.lang3.function.TriFunction;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -64,23 +68,62 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
 
+    private static final Map<String, GTRegistrate> EXISTING_REGISTRATES = new Object2ObjectOpenHashMap<>();
+
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
     protected GTRegistrate(String modId) {
         super(modId);
     }
 
-    public static IGTFluidBuilder fluid(GTRegistrate parent, Material material, String name, String langKey,
-                                        ResourceLocation stillTexture, ResourceLocation flowingTexture) {
-        return parent.entry(name,
-                callback -> new GTFluidBuilder<>(parent, parent, material, name, langKey, callback, stillTexture,
-                        flowingTexture, GTFluidBuilder::defaultFluidType).defaultLang().defaultSource()
-                        .setData(ProviderType.LANG, NonNullBiConsumer.noop()));
+    /**
+     * Get or create a new {@link GTRegistrate} and register event listeners for registration and data generation.
+     * A new {@code GTRegistrate} instance is only made if one doesn't already exist in the cache.
+     *
+     * @param modId The mod ID for which objects will be registered
+     * @return The {@link GTRegistrate} instance
+     */
+    public static GTRegistrate create(String modId) {
+        return innerCreate(modId, true);
     }
 
-    @NotNull
-    public static GTRegistrate create(String modId) {
-        return new GTRegistrate(modId);
+    /**
+     * Get or create a new {@link GTRegistrate} and register event listeners for registration and data generation.
+     * A new {@code GTRegistrate} instance is only made if one doesn't already exist in the cache.
+     * <br>
+     * Completely skips all mod id validity messages and defaults to GT's bus instead. <b>ADDON DEVS DO NOT USE.</b>
+     *
+     * @param modId The mod ID for which objects will be registered
+     * @return The {@link GTRegistrate} instance
+     */
+    @ApiStatus.Internal
+    public static GTRegistrate createIgnoringListenerErrors(String modId) {
+        return innerCreate(modId, false);
+    }
+
+    private static GTRegistrate innerCreate(String modId, boolean strict) {
+        if (EXISTING_REGISTRATES.containsKey(modId)) {
+            return EXISTING_REGISTRATES.get(modId);
+        }
+        var registrate = new GTRegistrate(modId);
+        Optional<IEventBus> modEventBus = ModList.get().getModContainerById(modId)
+                .filter(FMLModContainer.class::isInstance)
+                .map(FMLModContainer.class::cast)
+                .map(FMLModContainer::getEventBus);
+        if (strict) {
+            modEventBus.ifPresentOrElse(registrate::registerEventListeners, () -> {
+                String message = "# [GTRegistrate] Failed to register eventListeners for mod " + modId +
+                        ", This should be reported to this mod's dev #";
+                String hashtags = "#".repeat(message.length());
+                GTCEu.LOGGER.fatal(hashtags);
+                GTCEu.LOGGER.fatal(message);
+                GTCEu.LOGGER.fatal(hashtags);
+            });
+        } else {
+            registrate.registerEventListeners(modEventBus.orElse(GTCEu.gtModBus));
+        }
+        EXISTING_REGISTRATES.put(modId, registrate);
+        return registrate;
     }
 
     public void registerRegistrate() {
@@ -110,6 +153,30 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
         return this;
     }
 
+    /**
+     * Helper to create a new registry for custom objects. The returned {@link ResourceKey} can be used immediately in
+     * methods like {@link #simple(ResourceKey, NonNullSupplier) simple} or
+     * {@link #generic(ResourceKey, NonNullSupplier) generic}.
+     * <p>
+     * Alternatively, a custom {@link Builder builder} can be created.
+     * <p>
+     * This method will automatically subscribe to the {@link NewRegistryEvent} and create the registry at the proper
+     * time. Thus, the new registry will not exist immediately after this is called.
+     *
+     * @param <R>        The type of object the new registry will contain
+     * @param registryId The ID of this registry
+     * @param builder    A function to create the {@link RegistryBuilder} that defines the other properties/behaviors of
+     *                   the created registry
+     * @return A {@link Supplier} referencing the (yet-)to-be-created registry.
+     */
+    public <R> Supplier<IForgeRegistry<R>> createRegistry(final ResourceKey<Registry<R>> registryId,
+                                                          Supplier<RegistryBuilder<R>> builder) {
+        AtomicReference<Supplier<IForgeRegistry<R>>> ref = new AtomicReference<>(() -> null);
+        OneTimeEventReceiver.addModListener(this, NewRegistryEvent.class,
+                e -> ref.set(e.create(builder.get().setName(registryId.location()))));
+        return () -> ref.get().get();
+    }
+
     protected <P> NoConfigBuilder<CreativeModeTab, CreativeModeTab, P> createCreativeModeTab(P parent, String name,
                                                                                              Consumer<CreativeModeTab.Builder> config) {
         return this.generic(parent, name, Registries.CREATIVE_MODE_TAB, () -> {
@@ -121,9 +188,12 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
         });
     }
 
-    public IGTFluidBuilder createFluid(String name, String langKey, Material material, ResourceLocation stillTexture,
-                                       ResourceLocation flowingTexture) {
-        return fluid(this, material, name, langKey, stillTexture, flowingTexture);
+    public IGTFluidBuilder fluid(String name, String langKey, Material material,
+                                 ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+        return this.entry(name,
+                callback -> new GTFluidBuilder<>(this, this, material, name, langKey, callback, stillTexture,
+                        flowingTexture, GTFluidBuilder::defaultFluidType).defaultLang().defaultSource()
+                        .setData(ProviderType.LANG, NonNullBiConsumer.noop()));
     }
 
     public <DEFINITION extends MachineDefinition> MachineBuilder<DEFINITION> machine(String name,

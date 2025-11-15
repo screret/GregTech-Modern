@@ -9,9 +9,11 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -21,6 +23,7 @@ import dev.emi.emi.config.EmiConfig;
 import me.shedaniel.rei.api.client.REIRuntime;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.nio.file.Path;
 
@@ -32,9 +35,14 @@ public class GTCEu {
     public static final String NAME = "GregTechCEu";
     public static final Logger LOGGER = LogManager.getLogger(NAME);
 
+    @ApiStatus.Internal
+    public static IEventBus gtModBus;
+
     public GTCEu() {
         GTCEu.init();
         GTCEuAPI.instance = this;
+        GTCEu.gtModBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         DistExecutor.unsafeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
     }
 

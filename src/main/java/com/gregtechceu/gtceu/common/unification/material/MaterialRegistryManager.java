@@ -3,36 +3,31 @@ package com.gregtechceu.gtceu.common.unification.material;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.IMaterialRegistryManager;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.registries.IForgeRegistryInternal;
+import net.minecraftforge.registries.RegistryManager;
 
-import com.google.common.base.Preconditions;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public final class MaterialRegistryManager implements IMaterialRegistryManager {
 
     private static MaterialRegistryManager INSTANCE;
 
-    private final Object2ObjectMap<String, MaterialRegistryImpl> registries = new Object2ObjectOpenHashMap<>();
-    private final Int2ObjectMap<MaterialRegistryImpl> networkIds = new Int2ObjectOpenHashMap<>();
+    private final Set<String> usedNamespaces = new HashSet<>();
+    private final Map<String, Material> fallbackMaterials = new HashMap<>();
 
-    @Nullable
-    private Collection<Material> registeredMaterials;
-
-    private final MaterialRegistryImpl gregtechRegistry = createInternalRegistry();
-
-    private Phase registrationPhase = Phase.PRE;
+    @Getter
+    private Phase phase = Phase.PRE;
 
     private MaterialRegistryManager() {}
 
@@ -43,112 +38,92 @@ public final class MaterialRegistryManager implements IMaterialRegistryManager {
         return INSTANCE;
     }
 
-    @NotNull
-    @Override
-    public MaterialRegistry createRegistry(@NotNull String modid) {
-        if (getPhase() != Phase.PRE) {
-            throw new IllegalStateException("Cannot create registries in phase " + getPhase());
+    @SuppressWarnings("unused")
+    public void onRegister(IForgeRegistryInternal<Material> registry, RegistryManager stage, int id,
+                           ResourceKey<Material> key, @NotNull Material value, @Nullable Material oldValue) {
+        if (getPhase() == Phase.CLOSED || getPhase() == Phase.FROZEN) {
+            throw new IllegalStateException(
+                    "Materials cannot be registered in the PostMaterialEvent (or after)! Must be added in the RegisterEvent. Skipping material %s..."
+                            .formatted(key.location()));
         }
-
-        Preconditions.checkArgument(!registries.containsKey(modid),
-                "Material registry already exists for modid %s", modid);
-        MaterialRegistryImpl registry = new MaterialRegistryImpl(modid);
-        registries.put(modid, registry);
-        networkIds.put(registry.getNetworkId(), registry);
-        return registry;
+        usedNamespaces.add(key.location().getNamespace());
     }
 
-    @NotNull
-    @Override
-    public MaterialRegistry getRegistry(@NotNull String modid) {
-        MaterialRegistry registry = registries.get(modid);
-        return registry != null ? registry : gregtechRegistry;
+    @SuppressWarnings("unused")
+    public void onCreate(IForgeRegistryInternal<Material> registry, RegistryManager stage) {
+        this.phase = Phase.OPEN;
     }
 
-    @NotNull
-    @Override
-    public MaterialRegistry getRegistry(int networkId) {
-        MaterialRegistry registry = networkIds.get(networkId);
-        return registry != null ? registry : gregtechRegistry;
-    }
-
-    @NotNull
-    @Override
-    public Collection<MaterialRegistry> getRegistries() {
-        if (getPhase() == Phase.PRE) {
-            throw new IllegalStateException("Cannot get all material registries during phase " + getPhase());
-        }
-        return Collections.unmodifiableCollection(registries.values());
-    }
-
-    @NotNull
-    @Override
-    public Collection<Material> getRegisteredMaterials() {
-        if (registeredMaterials == null ||
-                (getPhase() != Phase.CLOSED && getPhase() != Phase.FROZEN)) {
-            throw new IllegalStateException("Cannot retrieve all materials before registration");
-        }
-        return registeredMaterials;
+    @SuppressWarnings("unused")
+    public void onFreeze(IForgeRegistryInternal<Material> registry, RegistryManager stage) {
+        this.phase = Phase.FROZEN;
     }
 
     @Override
-    public Material getMaterial(@NotNull String name) {
-        if (!name.isEmpty()) {
-            String modid;
-            String materialName;
-            int index = name.indexOf(':');
-            if (index >= 0) {
-                modid = name.substring(0, index);
-                materialName = name.substring(index + 1);
-            } else {
-                modid = GTCEu.MOD_ID;
-                materialName = name;
-            }
-            return getRegistry(modid).get(materialName);
-        }
-        return GTMaterials.NULL;
+    public @UnmodifiableView @NotNull Collection<String> getUsedNamespaces() {
+        return Collections.unmodifiableSet(usedNamespaces);
+    }
+
+    @Override
+    public Material register(Material material) {
+        GTRegistries.MATERIALS.get().register(material.getResourceLocation(), material);
+        return material;
+    }
+
+    @Override
+    public Material getMaterial(ResourceLocation name) {
+        return GTRegistries.MATERIALS.get().getValue(name);
     }
 
     @Override
     public ResourceLocation getKey(Material material) {
-        return material.getResourceLocation();
+        return GTRegistries.MATERIALS.get().getKey(material);
     }
 
-    @NotNull
     @Override
-    public Phase getPhase() {
-        return registrationPhase;
+    public Stream<Material> stream() {
+        return StreamSupport.stream(GTRegistries.MATERIALS.get().spliterator(), false);
     }
 
-    public void unfreezeRegistries() {
-        registries.values().forEach(MaterialRegistryImpl::unfreeze);
-        registrationPhase = Phase.OPEN;
+    @Override
+    public @NotNull Iterator<Material> iterator() {
+        return GTRegistries.MATERIALS.get().iterator();
     }
 
-    public void closeRegistries() {
-        registries.values().forEach(MaterialRegistryImpl::closeRegistry);
-        Collection<Material> collection = new ArrayList<>();
-        for (MaterialRegistry registry : registries.values()) {
-            collection.addAll(registry.getAllMaterials());
-        }
-        registeredMaterials = Collections.unmodifiableCollection(collection);
-        registrationPhase = Phase.CLOSED;
+    /**
+     * Set the fallback material for a namespace.
+     * This is only for manual fallback usage.
+     *
+     * @param namespace the namespace to set the fallback for
+     * @param material  the fallback material
+     */
+    @Override
+    public void setFallbackMaterial(@NotNull String namespace, @NotNull Material material) {
+        fallbackMaterials.put(namespace, material);
     }
 
-    public void freezeRegistries() {
-        registries.values().forEach(MaterialRegistryImpl::freeze);
-        registrationPhase = Phase.FROZEN;
-    }
-
+    /**
+     * This is only for manual fallback usage.
+     *
+     * @param namespace the namespace to get the fallback for
+     * @return the fallback material, used for when another material does not exist
+     */
+    @Override
     @NotNull
-    private MaterialRegistryImpl createInternalRegistry() {
-        MaterialRegistryImpl registry = new MaterialRegistryImpl(GTCEu.MOD_ID);
-        this.registries.put(GTCEu.MOD_ID, registry);
-        return registry;
+    public Material getFallbackMaterial(@NotNull String namespace) {
+        return fallbackMaterials.getOrDefault(namespace, getDefaultFallback());
     }
 
     @NotNull
     public Material getDefaultFallback() {
-        return gregtechRegistry.getFallbackMaterial();
+        return fallbackMaterials.get(GTCEu.MOD_ID);
+    }
+
+    public void unfreezeRegistries() {
+        phase = Phase.OPEN;
+    }
+
+    public void closeRegistries() {
+        phase = Phase.CLOSED;
     }
 }
