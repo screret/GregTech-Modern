@@ -1,5 +1,8 @@
 {
     "net/minecraft/client/renderer/block/model/BakedQuad": [
         "com/gregtechceu/gtceu/core/IGTBakedQuad"
+    ],
+    "net/minecraft/core/MappedRegistry": [
+      "com/gregtechceu/gtceu/core/mixins/MappedRegistryAccessor<T>"
     ]
 }

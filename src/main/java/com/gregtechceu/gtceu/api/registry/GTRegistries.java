@@ -40,30 +40,47 @@ import org.jetbrains.annotations.ApiStatus;
 
 public final class GTRegistries {
 
+    public static final ResourceLocation ROOT_GT_REGISTRY_NAME = GTCEu.id("root");
+    public static final GTRegistry<GTRegistry<?>> ROOT = new GTRegistry<>(ROOT_GT_REGISTRY_NAME);
+    // spotless:off
+    public static final ResourceKey<Registry<GTOreDefinition>> ORE_VEIN_REGISTRY = makeRegistryKey(GTCEu.id("ore_vein"));
+    public static final ResourceKey<Registry<BedrockFluidDefinition>> BEDROCK_FLUID_REGISTRY = makeRegistryKey(GTCEu.id("bedrock_fluid"));
+    public static final ResourceKey<Registry<BedrockOreDefinition>> BEDROCK_ORE_REGISTRY = makeRegistryKey(GTCEu.id("bedrock_ore"));
+
+    public static final ResourceKey<Registry<Material>> MATERIAL_REGISTRY = makeRegistryKey(GTCEu.id("material"));
+    public static final ResourceKey<Registry<Element>> ELEMENT_REGISTRY = makeRegistryKey(GTCEu.id("element"));
+    public static final ResourceKey<Registry<MachineDefinition>> MACHINE_REGISTRY = makeRegistryKey(GTCEu.id("machine"));
+    public static final ResourceKey<Registry<CoverDefinition>> COVER_REGISTRY = makeRegistryKey(GTCEu.id("cover"));
+
+    public static final ResourceKey<Registry<GTRecipeType>> RECIPE_TYPE_REGISTRY = makeRegistryKey(GTCEu.id("recipe_type"));
+    public static final ResourceKey<Registry<GTRecipeCategory>> RECIPE_CATEGORY_REGISTRY = makeRegistryKey(GTCEu.id("recipe_category"));
+    public static final ResourceKey<Registry<RecipeCapability<?>>> RECIPE_CAPABILITY_REGISTRY = makeRegistryKey(GTCEu.id("recipe_capability"));
+    public static final ResourceKey<Registry<RecipeConditionType<?>>> RECIPE_CONDITION_REGISTRY = makeRegistryKey(GTCEu.id("recipe_condition"));
+    public static final ResourceKey<Registry<ChanceLogic>> CHANCE_LOGIC_REGISTRY = makeRegistryKey(GTCEu.id("chance_logic"));
+
+    public static final ResourceKey<Registry<SoundEntry>> SOUND_REGISTRY = makeRegistryKey(GTCEu.id("sound"));
+    public static final ResourceKey<Registry<DimensionMarker>> DIMENSION_MARKER_REGISTRY = makeRegistryKey(GTCEu.id("dimension_marker"));
+
     // GT Registry
-    public static final GTRegistry<Element> ELEMENTS = new GTRegistry.String<>(GTCEu.id("element"));
-    public static final GTRegistry<Material> MATERIALS = new MaterialRegistry();
+    public static final GTRegistry<Material> MATERIALS = new GTRegistry<>(MATERIAL_REGISTRY);
+    public static final GTRegistry<Element> ELEMENTS = new GTRegistry<>(ELEMENT_REGISTRY);
+    public static final GTRegistry<MachineDefinition> MACHINES = new GTRegistry<>(MACHINE_REGISTRY);
+    public static final GTRegistry<CoverDefinition> COVERS = new GTRegistry<>(COVER_REGISTRY);
 
-    public static final GTRegistry.RL<GTRecipeType> RECIPE_TYPES = new GTRegistry.RL<>(GTCEu.id("recipe_type"));
-    public static final GTRegistry.RL<GTRecipeCategory> RECIPE_CATEGORIES = new GTRegistry.RL<>(
-            GTCEu.id("recipe_category"));
-    public static final GTRegistry<CoverDefinition> COVERS = new GTRegistry.RL<>(GTCEu.id("cover"));
+    public static final GTRegistry<GTRecipeType> RECIPE_TYPES = new GTRegistry<>(RECIPE_TYPE_REGISTRY);
+    public static final GTRegistry<GTRecipeCategory> RECIPE_CATEGORIES = new GTRegistry<>(RECIPE_CATEGORY_REGISTRY);
+    public static final GTRegistry<RecipeCapability<?>> RECIPE_CAPABILITIES = new GTRegistry<>(RECIPE_CAPABILITY_REGISTRY);
+    public static final GTRegistry<RecipeConditionType<?>> RECIPE_CONDITIONS = new GTRegistry<>(RECIPE_CONDITION_REGISTRY);
+    public static final GTRegistry<ChanceLogic> CHANCE_LOGICS = new GTRegistry<>(CHANCE_LOGIC_REGISTRY);
 
-    public static final GTRegistry<MachineDefinition> MACHINES = new GTRegistry.RL<>(GTCEu.id("machine"));
-    public static final GTRegistry<RecipeCapability<?>> RECIPE_CAPABILITIES = new GTRegistry.String<>(
-            GTCEu.id("recipe_capability"));
-    public static final GTRegistry.RL<RecipeConditionType<?>> RECIPE_CONDITIONS = new GTRegistry.String<>(
-            GTCEu.id("recipe_condition"));
-    public static final GTRegistry<ChanceLogic> CHANCE_LOGICS = new GTRegistry.String<>(
-            GTCEu.id("chance_logic"));
-    public static final GTRegistry.RL<SoundEntry> SOUNDS = new GTRegistry.RL<>(GTCEu.id("sound"));
-    public static final GTRegistry.RL<BedrockFluidDefinition> BEDROCK_FLUID_DEFINITIONS = new GTRegistry.RL<>(
-            GTCEu.id("bedrock_fluid"));
-    public static final GTRegistry.RL<BedrockOreDefinition> BEDROCK_ORE_DEFINITIONS = new GTRegistry.RL<>(
-            GTCEu.id("bedrock_ore"));
-    public static final GTRegistry.RL<GTOreDefinition> ORE_VEINS = new GTRegistry.RL<>(GTCEu.id("ore_vein"));
-    public static final GTRegistry.RL<DimensionMarker> DIMENSION_MARKERS = new GTRegistry.RL<>(
-            GTCEu.id("dimension_marker"));
+    public static final GTRegistry<SoundEntry> SOUNDS = new GTRegistry<>(SOUND_REGISTRY);
+    public static final GTRegistry<DimensionMarker> DIMENSION_MARKERS = new GTRegistry<>(DIMENSION_MARKER_REGISTRY);
+    // spotless:on
+
+    public static <T> ResourceKey<Registry<T>> makeRegistryKey(ResourceLocation registryId) {
+        return ResourceKey.createRegistryKey(registryId);
+    }
+
     public static final DeferredRegister<TrunkPlacerType<?>> TRUNK_PLACER_TYPE = DeferredRegister
             .create(Registries.TRUNK_PLACER_TYPE, GTCEu.MOD_ID);
     public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIER = DeferredRegister
