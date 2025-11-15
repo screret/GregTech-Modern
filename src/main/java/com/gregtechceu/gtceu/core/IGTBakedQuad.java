@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.core.extensions;
+package com.gregtechceu.gtceu.core;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
 

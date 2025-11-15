@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.core.mixins;
 
-import com.gregtechceu.gtceu.core.extensions.IGTTagLoader;
+import com.gregtechceu.gtceu.core.IGTTagLoader;
 import com.gregtechceu.gtceu.core.MixinHelpers;
 
 import net.minecraft.core.Registry;

@@ -1,12 +1,8 @@
-package com.gregtechceu.gtceu.core.plugin;
-
-import com.gregtechceu.gtceu.core.asm.ClassTransformerExtension;
-import com.gregtechceu.gtceu.core.asm.impl.ForgeRegistryAccessTransformer;
+package com.gregtechceu.gtceu.core.mixins;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.LoadingModList;
 
-import com.llamalad7.mixinextras.utils.MixinInternals;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -17,6 +13,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class GTMixinPlugin implements IMixinConfigPlugin {
+
+    @Override
+    public void onLoad(String mixinPackage) {}
 
     @Override
     public String getRefMapperConfig() {
@@ -34,13 +33,6 @@ public class GTMixinPlugin implements IMixinConfigPlugin {
         addModCompatMixin("ftbchunks");
         addModCompatMixin("xaerominimap");
         addModCompatMixin("xaeroworldmap");
-    }
-
-    @Override
-    public void onLoad(String mixinPackage) {
-        MixinInternals.registerExtension(ClassTransformerExtension.INSTANCE);
-
-        ClassTransformerExtension.enqueueTransformer(new ForgeRegistryAccessTransformer());
     }
 
     @Override
