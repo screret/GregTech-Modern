@@ -49,7 +49,7 @@ public class GTToolItem extends DiggerItem implements IGTTool {
     @Getter
     protected final Material material;
     @Getter
-    private IGTToolDefinition toolStats;
+    private final IGTToolDefinition toolStats;
 
     public GTToolItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition definition,
                       Properties properties) {
