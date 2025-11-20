@@ -354,7 +354,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike, 
                 BlockState state = player.level().getBlockState(pos);
                 boolean effective = false;
                 for (GTToolType type : getToolClasses(stack)) {
-                    if (type.harvestTags.stream().anyMatch(state::is)) {
+                    if (type.realHarvestTag != null && state.is(type.realHarvestTag)) {
                         effective = true;
                         break;
                     }

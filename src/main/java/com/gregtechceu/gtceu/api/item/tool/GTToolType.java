@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.common.data.item.GTToolActions;
 import com.gregtechceu.gtceu.common.item.tool.behavior.*;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -518,6 +519,8 @@ public class GTToolType {
     public final ToolConstructor constructor;
     public final int electricTier;
 
+    public final @Nullable TagKey<Block> realHarvestTag;
+
     public GTToolType(String name, String idFormat, char symbol,
                       Set<GTToolType> toolClasses, ToolConstructor constructor, IGTToolDefinition toolDefinition,
                       List<TagKey<Item>> itemTags, List<TagKey<Item>> matchTags, List<TagKey<Item>> craftingTags,
@@ -543,6 +546,14 @@ public class GTToolType {
         this.playSoundOnBlockDestroy = playSoundOnBlockDestroy;
         this.electricTier = electricTier;
         this.materialAmount = materialAmount;
+
+        if (this.harvestTags.isEmpty()) {
+            this.realHarvestTag = null;
+        } else if (this.harvestTags.size() == 1) {
+            this.realHarvestTag = this.harvestTags.get(0);
+        } else {
+            this.realHarvestTag = TagKey.create(Registries.BLOCK, GTCEu.id("mineable/" + this.name));
+        }
 
         types.put(name, this);
     }

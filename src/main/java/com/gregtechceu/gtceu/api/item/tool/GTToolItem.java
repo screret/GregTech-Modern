@@ -53,7 +53,8 @@ public class GTToolItem extends DiggerItem implements IGTTool {
 
     public GTToolItem(GTToolType toolType, MaterialToolTier tier, Material material, IGTToolDefinition definition,
                       Properties properties) {
-        super(0, 0, tier, toolType.harvestTags.isEmpty() ? null : toolType.harvestTags.get(0), properties);
+        //noinspection DataFlowIssue
+        super(0, 0, tier, toolType.realHarvestTag, properties);
         this.toolType = toolType;
         this.material = material;
         this.electricTier = toolType.electricTier;

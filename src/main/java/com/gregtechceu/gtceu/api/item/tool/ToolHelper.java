@@ -649,7 +649,7 @@ public class ToolHelper {
 
     // encompasses all vanilla special case tool checks for harvesting
     public static boolean isToolEffective(BlockState state, Set<GTToolType> toolClasses, int harvestLevel) {
-        if (toolClasses.stream().anyMatch(type -> type.harvestTags.stream().anyMatch(state::is))) {
+        if (toolClasses.stream().anyMatch(type -> type.realHarvestTag != null && state.is(type.realHarvestTag))) {
             return isCorrectTierForDrops(state, harvestLevel);
         }
         return false;

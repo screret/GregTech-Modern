@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.GTFluid;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorage;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
+import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.registry.registrate.forge.GTClientFluidTypeExtensions;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
@@ -92,11 +93,22 @@ public class MixinHelpers {
                 }
             });
 
+            GTToolType.getTypes().values().forEach(type -> {
+                if (type.realHarvestTag == null || type.harvestTags.size() <= 1) {
+                    // if the tool type doesn't have any harvest tags, or it only has one harvest tag,
+                    // don't bother building the custom harvest tag as it'll either be empty or a cyclical reference.
+                    return;
+                }
+                var newTag = tagMap.computeIfAbsent(type.realHarvestTag.location(), path -> new ArrayList<>());
+                for (TagKey<Block> tag : type.harvestTags) {
+                    newTag.add(makeTagEntry(tag));
+                }
+            });
             GTMaterialItems.TOOL_ITEMS.rowMap().forEach((material, map) -> {
-                map.values().forEach(item -> {
+                map.forEach((type, item) -> {
                     if (item == null) return;
                     var entry = makeItemEntry(item);
-                    for (TagKey<Item> tag : item.get().getToolType().itemTags) {
+                    for (TagKey<Item> tag : type.itemTags) {
                         tagMap.computeIfAbsent(tag.location(), path -> new ArrayList<>()).add(entry);
                     }
                 });
