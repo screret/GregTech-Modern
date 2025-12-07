@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.client.renderer.item.ArmorItemRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.TagPrefixItemRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.ToolItemRenderer;
 import com.gregtechceu.gtceu.common.data.models.GTModels;
+import com.gregtechceu.gtceu.data.pack.event.RegisterDynamicResourcesEvent;
 import com.gregtechceu.gtceu.integration.kjs.GregTechKubeJSPlugin;
 import com.gregtechceu.gtceu.integration.modernfix.GTModernFixIntegration;
 
@@ -16,6 +17,7 @@ import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModLoader;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,19 +40,8 @@ public abstract class ModelManagerMixin {
 
         long startTime = System.currentTimeMillis();
         // turns out these do have to be init in here after all, as they check for asset existence. whoops.
-        PipeModel.initModels();
-
-        MaterialBlockRenderer.reinitModels();
-        TagPrefixItemRenderer.reinitModels();
-        OreBlockRenderer.reinitModels();
-        ToolItemRenderer.reinitModels();
-        ArmorItemRenderer.reinitModels();
-        SurfaceRockRenderer.reinitModels();
-        GTModels.registerMaterialFluidModels();
-
-        if (GTCEu.Mods.isKubeJSLoaded()) {
-            GregTechKubeJSPlugin.generateMachineBlockModels();
-        }
+        MinecraftForge.EVENT_BUS.post(new RegisterDynamicResourcesEvent());
+        
         if (GTCEu.Mods.isModernFixLoaded()) {
             GTModernFixIntegration.setAsLast();
         }
