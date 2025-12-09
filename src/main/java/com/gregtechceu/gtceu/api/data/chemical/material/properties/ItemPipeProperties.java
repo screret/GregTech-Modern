@@ -7,8 +7,6 @@ import net.minecraft.util.ExtraCodecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import java.util.Objects;
-
 public class ItemPipeProperties implements IMaterialProperty {
 
     public static final Codec<ItemPipeProperties> CODEC = RecordCodecBuilder.create(instance -> instance.group(

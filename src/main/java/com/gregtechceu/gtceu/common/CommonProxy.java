@@ -101,7 +101,7 @@ public class CommonProxy {
         eventBus.register(this);
         eventBus.addListener(AlloyBlastPropertyAddition::addAlloyBlastProperties);
 
-        if (LDLib.isModLoaded(GTValues.MODID_JSONTHINGS)) {
+        if (GTCEu.isModLoaded(GTValues.MODID_JSONTHINGS)) {
             JsonThingsCompat.init(eventBus);
         }
         // must be set here because of KubeJS compat

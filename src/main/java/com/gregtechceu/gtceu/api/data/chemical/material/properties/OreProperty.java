@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
@@ -21,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 @AllArgsConstructor
-public class OreProperty implements IMaterialProperty<OreProperty> {
+public class OreProperty implements IMaterialProperty {
 
     public static final Codec<OreProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Material.CODEC.listOf().optionalFieldOf("byproducts", List.of()).forGetter(val -> val.oreByProducts),

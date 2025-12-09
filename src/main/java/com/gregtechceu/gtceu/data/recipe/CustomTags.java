@@ -196,9 +196,6 @@ public class CustomTags {
             NEEDS_NEUTRONIUM_TOOL,
     };
 
-    public static final TagKey<Block> MINEABLE_WITH_WRENCH = TagUtil.createBlockTag("mineable/wrench", false);
-    public static final TagKey<Block> MINEABLE_WITH_WIRE_CUTTER = TagUtil.createBlockTag("mineable/wire_cutter", false);
-
     public static final TagKey<Block> ENDSTONE_ORE_REPLACEABLES = TagUtil.createBlockTag("end_stone_ore_replaceables");
     public static final TagKey<Block> CONCRETE_BLOCK = TagUtil.createBlockTag("concretes");
     public static final TagKey<Block> VERY_FAST_WALKABLE_BLOCKS = TagUtil.createBlockTag("very_fast_walkable_blocks");

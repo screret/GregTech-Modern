@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class PropertyKey<T extends IMaterialProperty<T>> {
+public class PropertyKey<T extends IMaterialProperty> {
 
     private static final Map<String, PropertyKey<?>> KEYS = new HashMap<>();
 
@@ -69,7 +69,7 @@ public class PropertyKey<T extends IMaterialProperty<T>> {
         return defaultSupplier.get();
     }
 
-    public T cast(IMaterialProperty<?> property) {
+    public T cast(IMaterialProperty property) {
         return this.type.cast(property);
     }
 
@@ -95,7 +95,7 @@ public class PropertyKey<T extends IMaterialProperty<T>> {
         return KEYS.get(name);
     }
 
-    private static class EmptyProperty implements IMaterialProperty<EmptyProperty> {
+    private static class EmptyProperty implements IMaterialProperty {
 
         @Override
         public void verifyProperty(MaterialProperties properties) {

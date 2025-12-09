@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.integration.jsonthings.parsers;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
-import com.gregtechceu.gtceu.api.block.BlockProperties;
+import com.gregtechceu.gtceu.api.block.property.GTBlockStateProperties;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.data.RotationState;
@@ -15,10 +15,10 @@ import com.gregtechceu.gtceu.api.pattern.*;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
+import com.gregtechceu.gtceu.client.renderer.BlockEntityWithBERModelRenderer;
 import com.gregtechceu.gtceu.integration.jsonthings.JsonThingsCompat;
 import com.gregtechceu.gtceu.integration.jsonthings.builders.MachineBuilder;
-import com.gregtechceu.gtceu.utils.SupplierMemoizer;
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import com.lowdragmc.lowdraglib.Platform;
 
@@ -53,8 +53,8 @@ import dev.gigaherz.jsonthings.util.parse.value.Any;
 import dev.gigaherz.jsonthings.util.parse.value.ArrayValue;
 import dev.gigaherz.jsonthings.util.parse.value.ObjValue;
 import dev.gigaherz.jsonthings.util.parse.value.StringValue;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,7 +91,6 @@ public class MachineParser extends ThingParser<MachineBuilder> {
             LOGGER.info("Started registering Block things, errors about unexpected registry domains are harmless...");
             processAndConsumeErrors(getThingType(), getBuilders(),
                     thing -> {
-                        RotationState.set(thing.getRotationState());
                         MachineDefinition.setBuilt(thing.get());
 
                         helper.register(thing.getBlockBuilder().getRegistryName(),
@@ -99,7 +98,6 @@ public class MachineParser extends ThingParser<MachineBuilder> {
 
                         Arrays.stream(thing.getAbilities())
                                 .forEach(a -> a.register(thing.getTier(), thing.getBlockBuilder().get().self()));
-                        RotationState.clear();
                         MachineDefinition.clearBuilt();
                     },
                     BaseBuilder::getRegistryName);
@@ -109,10 +107,9 @@ public class MachineParser extends ThingParser<MachineBuilder> {
             processAndConsumeErrors(getThingType(), getBuilders(),
                     thing -> {
                         if (Platform.isClient() && thing.isHasTESR()) {
-                            OneTimeEventReceiver.addListener(modBus, FMLClientSetupEvent.class, $ -> {
-                                BlockEntityRenderers.register(thing.getBlockEntityTypeSupplier().get(),
-                                        GTRendererProvider::getOrCreate);
-                            });
+                            OneTimeEventReceiver.addListener(modBus, FMLClientSetupEvent.class,
+                                    $ -> BlockEntityRenderers.register(thing.getBlockEntityTypeSupplier().get(),
+                                            BlockEntityWithBERModelRenderer::new));
                         }
                         helper.register(thing.getRegistryName(), thing.getBlockEntityTypeSupplier().get());
                     },
@@ -128,7 +125,6 @@ public class MachineParser extends ThingParser<MachineBuilder> {
         MutableObject<RotationState> rotationState = new MutableObject<>(RotationState.ALL);
 
         final Map<String, Property<?>> propertiesByName = new HashMap<>();
-        propertiesByName.put("server_tick", BlockProperties.SERVER_TICK);
 
         MutableObject<String> uiTemplateType = new MutableObject<>(null);
 
@@ -138,7 +134,7 @@ public class MachineParser extends ThingParser<MachineBuilder> {
                 .ifKey("block", val -> parseBlock(builder, val))
                 .ifKey("allow_extended_facing", val -> val.bool().handle(value -> {
                     builder.setAllowExtendedFacing(value);
-                    propertiesByName.put("upwards_facing", BlockProperties.UPWARDS_FACING_PROPERTY);
+                    propertiesByName.put("upwards_facing", GTBlockStateProperties.UPWARDS_FACING);
                 }))
                 .ifKey("allow_flip", val -> val.bool().handle(builder::setAllowFlip))
                 .ifKey("rotation_state", val -> val.string().map(MachineParser::parseRotationState).handle(state -> {
@@ -160,7 +156,7 @@ public class MachineParser extends ThingParser<MachineBuilder> {
                         .strings()
                         .flatten(StringValue::getAsString, String[]::new)
                         .map(strings -> Arrays.stream(strings)
-                                .map(name -> GTRegistries.RECIPE_TYPES.get(GTCEu.appendId(name)))
+                                .map(name -> GTRegistries.RECIPE_TYPES.get(GTCEu.id(name)))
                                 .toArray(GTRecipeType[]::new))
                         .handle(types -> {
                             if (uiTemplateType.getValue() != null) {
@@ -171,7 +167,7 @@ public class MachineParser extends ThingParser<MachineBuilder> {
                         }))
                 .ifKey("tier", val -> val.intValue().handle(builder::setTier))
                 .ifKey("recipe_output_limits", val -> val.obj().raw(json -> {
-                    Object2IntMap<RecipeCapability<?>> limits = new Object2IntOpenHashMap<>();
+                    Reference2IntMap<RecipeCapability<?>> limits = new Reference2IntOpenHashMap<>();
                     for (String type : json.keySet()) {
                         RecipeCapability<?> cap = GTRegistries.RECIPE_CAPABILITIES.get(type);
                         if (cap == null) {
@@ -465,7 +461,7 @@ public class MachineParser extends ThingParser<MachineBuilder> {
     }
 
     private static Supplier<ItemStack[]> parseRecoveryItems(ArrayValue value) {
-        return SupplierMemoizer.memoize(() -> {
+        return GTMemoizer.memoize(() -> {
             List<ItemStack> stacks = new ArrayList<>();
             value.forEach((i, val) -> {
                 stacks.add(ItemStack.CODEC.parse(JsonOps.INSTANCE, val.get())

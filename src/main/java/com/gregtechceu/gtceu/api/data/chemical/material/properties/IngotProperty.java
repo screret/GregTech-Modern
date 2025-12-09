@@ -7,11 +7,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @NoArgsConstructor
 @AllArgsConstructor
-public class IngotProperty implements IMaterialProperty<IngotProperty> {
+public class IngotProperty implements IMaterialProperty {
 
     public static final Codec<IngotProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Material.CODEC.optionalFieldOf("smelt_into", null).forGetter(val -> val.smeltingInto),

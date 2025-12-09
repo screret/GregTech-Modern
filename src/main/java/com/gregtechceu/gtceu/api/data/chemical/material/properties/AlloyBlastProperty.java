@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 @NoArgsConstructor
-public class AlloyBlastProperty implements IMaterialProperty<AlloyBlastProperty> {
+public class AlloyBlastProperty implements IMaterialProperty {
 
     public static final Codec<AlloyBlastProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BuiltInRegistries.FLUID.byNameCodec().optionalFieldOf("fluid", null)

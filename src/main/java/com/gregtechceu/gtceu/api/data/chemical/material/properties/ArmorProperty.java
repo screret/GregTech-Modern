@@ -1,23 +1,31 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
+import com.gregtechceu.gtceu.api.codec.GTCodecUtils;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.recipe.content.SerializerIngredient;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.Util;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import com.google.common.base.Preconditions;
-import lombok.Getter;
-import lombok.Setter;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Keyable;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.mojang.serialization.codecs.SimpleMapCodec;
+import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -26,8 +34,31 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-// TODO document
+@NoArgsConstructor
 public class ArmorProperty implements IMaterialProperty {
+
+    private static final SimpleMapCodec<ArmorItem.Type, Integer> PROTECTION_VALUE_CODEC = Codec
+            .simpleMap(ArmorTypeWrapper.CODEC, Codec.INT, ArmorTypeWrapper.KEYS);
+    private static final Codec<Supplier<Ingredient>> INGREDIENT_CODEC = GTCodecUtils
+            .lazyParsingCodec(SerializerIngredient.CODEC);
+    private static final Supplier<Ingredient> INVALID_INGREDIENT_MARKER = () -> Ingredient.of(Items.BARRIER);
+
+    public static final Codec<ArmorProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("durability_multiplier").forGetter(val -> val.durabilityMultiplier),
+            PROTECTION_VALUE_CODEC.fieldOf("protection_values").forGetter(val -> val.protectionValues),
+            Codec.INT.optionalFieldOf("enchantability", 10).forGetter(val -> val.enchantability),
+            SoundEvent.CODEC.fieldOf("sound")
+                    .forGetter(val -> BuiltInRegistries.SOUND_EVENT.getResourceKey(val.sound.get())
+                            .flatMap(BuiltInRegistries.SOUND_EVENT::getHolder)
+                            .orElseThrow()),
+            Codec.FLOAT.optionalFieldOf("toughness", 0.0f).forGetter(val -> val.toughness),
+            Codec.FLOAT.optionalFieldOf("knockback_resistance", 0.0f).forGetter(val -> val.knockbackResistance),
+            INGREDIENT_CODEC.optionalFieldOf("repair_ingredient", INVALID_INGREDIENT_MARKER)
+                    .forGetter(val -> val.repairIngredient != null && !val.noRepair ? val.repairIngredient :
+                            INVALID_INGREDIENT_MARKER),
+            Codec.STRING.optionalFieldOf("name", "gtceu:metal").forGetter(val -> val.name),
+            Codec.BOOL.optionalFieldOf("dyeable", false).forGetter(val -> val.dyeable))
+            .apply(instance, ArmorProperty::new));
 
     @Setter
     @Range(from = 0, to = Integer.MAX_VALUE)
@@ -58,7 +89,7 @@ public class ArmorProperty implements IMaterialProperty {
     private boolean dyeable;
 
     @Getter
-    private final ArmorMaterial armorMaterial;
+    private final ArmorMaterial armorMaterial = new ArmorMaterial();
     private Material material;
 
     public ArmorProperty(int durabilityMultiplier, int[] protectionValues) {
@@ -71,7 +102,21 @@ public class ArmorProperty implements IMaterialProperty {
         this.sound = GTMemoizer.memoize(() -> SoundEvents.ARMOR_EQUIP_IRON);
         this.toughness = 0;
         this.knockbackResistance = 0;
-        this.armorMaterial = new ArmorMaterial();
+    }
+
+    protected ArmorProperty(int durabilityMultiplier, Map<ArmorItem.Type, Integer> protectionValues,
+                            int enchantability, Holder<SoundEvent> sound, float toughness, float knockbackResistance,
+                            Supplier<Ingredient> repairIngredient, String name, boolean dyeable) {
+        this.durabilityMultiplier = durabilityMultiplier;
+        this.protectionValues = protectionValues;
+        this.enchantability = enchantability;
+        this.sound = sound;
+        this.toughness = toughness;
+        this.knockbackResistance = knockbackResistance;
+        this.noRepair = repairIngredient != INVALID_INGREDIENT_MARKER;
+        this.repairIngredient = this.noRepair ? null : repairIngredient;
+        this.name = name;
+        this.dyeable = dyeable;
     }
 
     public void setSound(Supplier<SoundEvent> sound) {
@@ -102,12 +147,12 @@ public class ArmorProperty implements IMaterialProperty {
          *                             Ordered as Helmet, Chestplate, Leggings, Boots.
          * @throws IllegalArgumentException If the protectionValues array parameter does not have exactly 4 entries.
          *
-         * @see net.minecraft.world.item.ArmorMaterials
+         * @see ArmorMaterials
          */
-        public static ArmorProperty.Builder of(int durabilityMultiplier, int[] protectionValues) {
+        public static Builder of(int durabilityMultiplier, int[] protectionValues) {
             Preconditions.checkArgument(protectionValues != null && protectionValues.length == 4,
                     "protectionValues must have 4 entries!");
-            return new ArmorProperty.Builder(durabilityMultiplier, protectionValues);
+            return new Builder(durabilityMultiplier, protectionValues);
         }
 
         private Builder(int durabilityMultiplier, int[] protectionValues) {
@@ -117,7 +162,7 @@ public class ArmorProperty implements IMaterialProperty {
         /**
          * Set armors made from this Material as unbreakable, bypassing all durability.
          */
-        public ArmorProperty.Builder unbreakable() {
+        public Builder unbreakable() {
             armorProperty.durabilityMultiplier = 0;
             return this;
         }
@@ -125,7 +170,7 @@ public class ArmorProperty implements IMaterialProperty {
         /**
          * Set the base enchantability of a tool made from this Material. Iron is 14, Diamond is 10, Stone is 5.
          */
-        public ArmorProperty.Builder enchantability(int enchantability) {
+        public Builder enchantability(int enchantability) {
             armorProperty.enchantability = enchantability;
             return this;
         }
@@ -133,7 +178,7 @@ public class ArmorProperty implements IMaterialProperty {
         /**
          * Set the protection value for a specific piece of armor made from this Material.
          */
-        public ArmorProperty.Builder protectionValue(ArmorItem.Type type, int value) {
+        public Builder protectionValue(ArmorItem.Type type, int value) {
             armorProperty.protectionValues.put(type, value);
             return this;
         }
@@ -143,7 +188,7 @@ public class ArmorProperty implements IMaterialProperty {
          *
          * @throws IllegalArgumentException If the provided map does not have a value for all 4 armor pieces.
          */
-        public ArmorProperty.Builder protectionValues(Map<ArmorItem.Type, Integer> protectionValues) {
+        public Builder protectionValues(Map<ArmorItem.Type, Integer> protectionValues) {
             Preconditions.checkArgument(protectionValues != null && protectionValues.size() == 4,
                     "protectionValues must have 4 entries!");
             armorProperty.protectionValues = protectionValues;
@@ -153,7 +198,7 @@ public class ArmorProperty implements IMaterialProperty {
         /**
          * Set an Ingredient to use as the repair ingredient when repairing armors made of this Material in an Anvil.
          */
-        public ArmorProperty.Builder repairIngredient(@Nullable Supplier<@NotNull Ingredient> repairIngredient) {
+        public Builder repairIngredient(@Nullable Supplier<@NotNull Ingredient> repairIngredient) {
             if (repairIngredient == null) {
                 armorProperty.repairIngredient = null;
                 armorProperty.noRepair = true;
@@ -167,10 +212,10 @@ public class ArmorProperty implements IMaterialProperty {
          * Set the toughness granted for wearing armors made of this Material.
          * Diamond is 2, Netherite is 3, other armors are 0.
          *
-         * @see net.minecraft.world.item.ArmorMaterials
+         * @see ArmorMaterials
          * @see <a href="https://minecraft.wiki/w/Armor#Armor_toughness">Armor Toughness - Minecraft Wiki</a>
          */
-        public ArmorProperty.Builder toughness(float toughness) {
+        public Builder toughness(float toughness) {
             armorProperty.toughness = toughness;
             return this;
         }
@@ -179,9 +224,9 @@ public class ArmorProperty implements IMaterialProperty {
          * Set the knockback resistance granted for wearing armor made of this Material.<br>
          * Netherite is 0.1 (10%), other armors are 0.
          *
-         * @see net.minecraft.world.item.ArmorMaterials
+         * @see ArmorMaterials
          */
-        public ArmorProperty.Builder knockbackResistance(float knockbackResistance) {
+        public Builder knockbackResistance(float knockbackResistance) {
             armorProperty.knockbackResistance = knockbackResistance;
             return this;
         }
@@ -189,7 +234,7 @@ public class ArmorProperty implements IMaterialProperty {
         /**
          * Set whether armor made of this Material can be dyed, similar to Leather armor.
          */
-        public ArmorProperty.Builder dyeable(boolean dyeable) {
+        public Builder dyeable(boolean dyeable) {
             armorProperty.dyeable = dyeable;
             return this;
         }
@@ -197,7 +242,7 @@ public class ArmorProperty implements IMaterialProperty {
         /**
          * Set a custom worn armor texture for armor made of this Material.
          */
-        public ArmorProperty.Builder customTexture(ArmorProperty.@NotNull CustomTextureGetter textureGetter) {
+        public Builder customTexture(@NotNull CustomTextureGetter textureGetter) {
             armorProperty.customTextureGetter = textureGetter;
             return this;
         }
@@ -267,6 +312,42 @@ public class ArmorProperty implements IMaterialProperty {
 
         public ArmorProperty getArmorProperty() {
             return ArmorProperty.this;
+        }
+    }
+
+    private static enum ArmorTypeWrapper implements StringRepresentable {
+
+        HELMET(ArmorItem.Type.HELMET),
+        CHESTPLATE(ArmorItem.Type.CHESTPLATE),
+        LEGGINGS(ArmorItem.Type.LEGGINGS),
+        BOOTS(ArmorItem.Type.BOOTS);
+
+        public static final Codec<ArmorTypeWrapper> WRAPPER_CODEC = StringRepresentable
+                .fromEnum(ArmorTypeWrapper::values);
+        public static final Codec<ArmorItem.Type> CODEC = WRAPPER_CODEC.xmap(ArmorTypeWrapper::getWrapped,
+                ArmorTypeWrapper::getArmorType);
+
+        public static final Keyable KEYS = StringRepresentable.keys(ArmorTypeWrapper.values());
+
+        @Getter
+        private final ArmorItem.Type wrapped;
+
+        ArmorTypeWrapper(ArmorItem.Type wrapped) {
+            this.wrapped = wrapped;
+        }
+
+        public static ArmorTypeWrapper getArmorType(ArmorItem.Type original) {
+            return switch (original) {
+                case HELMET -> HELMET;
+                case CHESTPLATE -> CHESTPLATE;
+                case LEGGINGS -> LEGGINGS;
+                case BOOTS -> BOOTS;
+            };
+        }
+
+        @Override
+        public @NotNull String getSerializedName() {
+            return this.wrapped.getName();
         }
     }
 }

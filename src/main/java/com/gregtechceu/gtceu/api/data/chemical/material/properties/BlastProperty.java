@@ -1,29 +1,29 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
 
-import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Locale;
 import java.util.function.Supplier;
 
-@AllArgsConstructor
-public class BlastProperty implements IMaterialProperty<BlastProperty> {
+public class BlastProperty implements IMaterialProperty {
 
     public static final Codec<BlastProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ExtraCodecs.POSITIVE_INT.fieldOf("blast_temperature").forGetter(val -> val.blastTemperature),
             GasTier.CODEC.fieldOf("gas_tier").forGetter(val -> val.gasTier),
-            ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("duration_override", -1)
-                    .forGetter(val -> val.durationOverride),
-            ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("eut_override", -1).forGetter(val -> val.EUtOverride))
+            Codec.INT.optionalFieldOf("duration_override", -1).forGetter(val -> val.durationOverride),
+            Codec.INT.optionalFieldOf("eut_override", -1).forGetter(val -> val.EUtOverride),
+            Codec.INT.optionalFieldOf("vacuum_duration_override", -1).forGetter(val -> val.vacuumDurationOverride),
+            Codec.INT.optionalFieldOf("vacuum_eut_override", -1).forGetter(val -> val.vacuumEUtOverride))
             .apply(instance, BlastProperty::new));
 
     /**
@@ -128,7 +128,6 @@ public class BlastProperty implements IMaterialProperty<BlastProperty> {
         // Tiers reserved for addons
         HIGHER(() -> FluidIngredient.of(GTMaterials.Neon.getFluidTag(), 25)),
         HIGHEST(() -> FluidIngredient.of(GTMaterials.Krypton.getFluidTag(), 10));
-
 
         public static final GasTier[] VALUES = values();
         public static final Codec<GasTier> CODEC = StringRepresentable.fromEnum(GasTier::values);

@@ -11,7 +11,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.GENERATE_FOIL;
 
-public class WireProperties implements IMaterialProperty<WireProperties> {
+public class WireProperties implements IMaterialProperty {
 
     public static final Codec<WireProperties> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.LONG.fieldOf("voltage").forGetter(val -> val.voltage),

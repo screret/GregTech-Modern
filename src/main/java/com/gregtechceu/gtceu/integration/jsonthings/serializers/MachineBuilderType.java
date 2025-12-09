@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.machine.*;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
-import com.gregtechceu.gtceu.common.data.GTMachines;
+import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.common.machine.multiblock.primitive.PrimitiveFancyUIWorkableMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.steam.SteamParallelMultiblockMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -30,12 +30,13 @@ public class MachineBuilderType<D extends MachineDefinition, M extends MetaMachi
 
                 @Override
                 public MachineDefinition construct(ResourceLocation id, MachineBuilder builder) {
-                    return MachineDefinition.createDefinition(id);
+                    return new MachineDefinition(id);
                 }
 
                 @Override
                 public SimpleTieredMachine create(IMachineBlockEntity holder, MachineDefinition definition) {
-                    return new SimpleTieredMachine(holder, definition.getTier(), GTMachines.defaultTankSizeFunction);
+                    return new SimpleTieredMachine(holder, definition.getTier(),
+                            GTMachineUtils.defaultTankSizeFunction);
                 }
             });
     public static final MachineBuilderType<MachineDefinition, SimpleSteamMachine> STEAM = register("steam",
@@ -43,7 +44,7 @@ public class MachineBuilderType<D extends MachineDefinition, M extends MetaMachi
 
                 @Override
                 public MachineDefinition construct(ResourceLocation id, MachineBuilder builder) {
-                    return MachineDefinition.createDefinition(id);
+                    return new MachineDefinition(id);
                 }
 
                 @Override
@@ -57,14 +58,14 @@ public class MachineBuilderType<D extends MachineDefinition, M extends MetaMachi
 
                 @Override
                 public MachineDefinition construct(ResourceLocation id, MachineBuilder builder) {
-                    return MachineDefinition.createDefinition(id);
+                    return new MachineDefinition(id);
                 }
 
                 @Override
                 public SimpleGeneratorMachine create(IMachineBlockEntity holder, MachineDefinition definition) {
                     float hazardStrength = GsonHelper.getAsFloat(data, "hazard_strength", 0.25f);
                     return new SimpleGeneratorMachine(holder, definition.getTier(), hazardStrength,
-                            GTMachines.defaultTankSizeFunction);
+                            GTMachineUtils.defaultTankSizeFunction);
                 }
             });
 
@@ -73,7 +74,7 @@ public class MachineBuilderType<D extends MachineDefinition, M extends MetaMachi
 
                 @Override
                 public MultiblockMachineDefinition construct(ResourceLocation id, MachineBuilder builder) {
-                    return MultiblockMachineDefinition.createDefinition(id);
+                    return new MultiblockMachineDefinition(id);
                 }
 
                 @Override
@@ -88,7 +89,7 @@ public class MachineBuilderType<D extends MachineDefinition, M extends MetaMachi
 
                 @Override
                 public MultiblockMachineDefinition construct(ResourceLocation id, MachineBuilder builder) {
-                    return MultiblockMachineDefinition.createDefinition(id);
+                    return new MultiblockMachineDefinition(id);
                 }
 
                 @Override
@@ -103,7 +104,7 @@ public class MachineBuilderType<D extends MachineDefinition, M extends MetaMachi
 
                 @Override
                 public MultiblockMachineDefinition construct(ResourceLocation id, MachineBuilder builder) {
-                    return MultiblockMachineDefinition.createDefinition(id);
+                    return new MultiblockMachineDefinition(id);
                 }
 
                 @Override

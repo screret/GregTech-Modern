@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public class FluidProperty implements IMaterialProperty<FluidProperty>, FluidStorage {
+public class FluidProperty implements IMaterialProperty, FluidStorage {
 
     public static final Codec<FluidProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             FluidStorageImpl.CODEC.fieldOf("storage").forGetter(val -> val.storage),

@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
@@ -16,18 +17,15 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifierList;
-import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
-import com.gregtechceu.gtceu.client.renderer.machine.OverlayTieredMachineRenderer;
+import com.gregtechceu.gtceu.client.renderer.BlockEntityWithBERModelRenderer;
 import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.jsonthings.JsonThingsCompat;
 import com.gregtechceu.gtceu.integration.jsonthings.serializers.IMachineFactory;
 import com.gregtechceu.gtceu.integration.jsonthings.serializers.MachineBuilderType;
-import com.gregtechceu.gtceu.utils.SupplierMemoizer;
+import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
-import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.Platform;
-import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.core.BlockPos;
@@ -47,8 +45,8 @@ import dev.gigaherz.jsonthings.things.builders.BlockBuilder;
 import dev.gigaherz.jsonthings.things.parsers.ThingParser;
 import dev.gigaherz.jsonthings.things.shapes.DynamicShape;
 import dev.gigaherz.jsonthings.util.Utils;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.function.TriFunction;
@@ -68,7 +66,7 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
     protected BlockBuilder blockBuilder;
     @Getter
     protected Supplier<BlockEntityType<?>> blockEntityTypeSupplier;
-    protected TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory = MetaMachineBlockEntity::createBlockEntity;
+    protected TriFunction<BlockEntityType<?>, BlockPos, BlockState, IMachineBlockEntity> blockEntityFactory = MetaMachineBlockEntity::new;
     protected MachineBuilderType<?, ?> type;
     @Setter
     private DynamicShape shape;
@@ -85,7 +83,7 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
     @Setter
     private Integer tier;
     @Setter
-    private Object2IntMap<RecipeCapability<?>> recipeOutputLimits;
+    private Reference2IntMap<RecipeCapability<?>> recipeOutputLimits;
     @Setter
     private Integer paintingColor;
     @Setter
@@ -118,7 +116,7 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
     @Setter
     private Supplier<ItemStack[]> recoveryItems;
     @Setter
-    private Comparator<IMultiPart> partSorter = (a, b) -> 0;
+    private Function<MultiblockControllerMachine, Comparator<IMultiPart>> partSorter = (c) -> (a, b) -> 0;
     @Setter
     private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
     @Setter
@@ -186,8 +184,9 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
         return getValueOrElse(tier, MachineBuilder::getTier, 1);
     }
 
-    public Object2IntMap<RecipeCapability<?>> getRecipeOutputLimits() {
-        return getValueOrElseGet(recipeOutputLimits, MachineBuilder::getRecipeOutputLimits, Object2IntOpenHashMap::new);
+    public Reference2IntMap<RecipeCapability<?>> getRecipeOutputLimits() {
+        return getValueOrElseGet(recipeOutputLimits, MachineBuilder::getRecipeOutputLimits,
+                Reference2IntOpenHashMap::new);
     }
 
     public Integer getPaintingColor() {
@@ -247,7 +246,7 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
         return getValue(recoveryItems, MachineBuilder::getRecoveryItems);
     }
 
-    public Comparator<IMultiPart> getPartSorter() {
+    public Function<MultiblockControllerMachine, Comparator<IMultiPart>> getPartSorter() {
         return getValue(partSorter, MachineBuilder::getPartSorter);
     }
 
@@ -264,18 +263,19 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
         return "Machine";
     }
 
+    @SuppressWarnings("removal")
     @Override
     protected MachineDefinition buildInternal() {
         MachineDefinition definition = factory.construct(this.getRegistryName(), this);
         if (definition instanceof MultiblockMachineDefinition multi) {
-            multi.setPatternFactory(SupplierMemoizer.memoize(getPattern()));
-            multi.setShapes(SupplierMemoizer.memoize(getShapeInfo()));
+            multi.setPatternFactory(GTMemoizer.memoize(getPattern()));
+            multi.setShapes(GTMemoizer.memoize(getShapeInfo()));
             multi.setAllowExtendedFacing(isAllowExtendedFacing());
             multi.setAllowFlip(isAllowFlip());
             if (getRecoveryItems() != null) {
                 multi.setRecoveryItems(getRecoveryItems());
             }
-            multi.setPartSorter(getPartSorter());
+            multi.setPartSorter(GTMemoizer.memoizeFunctionWeakIdent(getPartSorter()));
             if (getPartAppearance() == null) {
                 partAppearance = (controller, part, side) -> definition.getAppearance().get();
             }
@@ -288,11 +288,9 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
         definition.setBlockSupplier(() -> blockBuilder.get().self());
         definition.setItemSupplier(() -> blockBuilder.getItemBuilder().get().self());
 
-        blockEntityTypeSupplier = SupplierMemoizer.memoize(() -> {
-            RotationState.set(MachineBuilder.this.getRotationState());
+        blockEntityTypeSupplier = GTMemoizer.memoize(() -> {
             MachineDefinition.setBuilt(definition);
             Block block = blockBuilder.get().self();
-            RotationState.clear();
             MachineDefinition.clearBuilt();
             return BlockEntityType.Builder
                     .of((pos, state) -> blockEntityFactory.apply(blockEntityTypeSupplier.get(), pos, state).self(),
@@ -301,10 +299,8 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
         });
         if (Platform.isClient() && isHasTESR()) {
             OneTimeEventReceiver.addListener(FMLJavaModLoadingContext.get().getModEventBus(), FMLClientSetupEvent.class,
-                    $ -> {
-                        BlockEntityRenderers.register(getBlockEntityTypeSupplier().get(),
-                                GTRendererProvider::getOrCreate);
-                    });
+                    $ -> BlockEntityRenderers.register(getBlockEntityTypeSupplier().get(),
+                            BlockEntityWithBERModelRenderer::new));
         }
         definition.setBlockEntityTypeSupplier(blockEntityTypeSupplier);
 
@@ -322,11 +318,6 @@ public class MachineBuilder extends BaseBuilder<MachineDefinition, MachineBuilde
             setAppearance(() -> blockBuilder.get().self().defaultBlockState());
         }
         definition.setAppearance(getAppearance());
-
-        definition.setRenderer(LDLib.isClient() ?
-                new OverlayTieredMachineRenderer(tier,
-                        getRegistryName().withPrefix("block/machine/part/")) :
-                IRenderer.EMPTY);
 
         return definition;
     }

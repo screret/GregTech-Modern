@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 @NoArgsConstructor
-public class RotorProperty implements IMaterialProperty<RotorProperty> {
+public class RotorProperty implements IMaterialProperty {
 
     public static final Codec<RotorProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ExtraCodecs.POSITIVE_INT.fieldOf("power").forGetter(val -> val.power),

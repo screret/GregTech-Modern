@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Map;
 
 @NoArgsConstructor
-public class FluidPipeProperties implements IMaterialProperty<FluidPipeProperties>, IPropertyFluidFilter {
+public class FluidPipeProperties implements IMaterialProperty, IPropertyFluidFilter {
 
     /**
      * The maximum number of channels any fluid pipe can have
@@ -28,12 +28,11 @@ public class FluidPipeProperties implements IMaterialProperty<FluidPipePropertie
     public static final int MAX_PIPE_CHANNELS = 9;
     public static final Codec<FluidPipeProperties> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("max_temperature").forGetter(val -> val.maxFluidTemperature),
-            Codec.LONG.fieldOf("throughput").forGetter(val -> val.throughput),
+            Codec.INT.fieldOf("throughput").forGetter(val -> val.throughput),
             Codec.BOOL.optionalFieldOf("gas_proof", true).forGetter(val -> val.gasProof),
             Codec.BOOL.optionalFieldOf("cryo_proof", false).forGetter(val -> val.cryoProof),
             Codec.BOOL.optionalFieldOf("plasma_proof", false).forGetter(val -> val.plasmaProof),
-            Codec.simpleMap(FluidAttribute.CODEC, Codec.BOOL, FluidAttribute.CODEC_KEYS)
-                    .codec()
+            Codec.simpleMap(FluidAttribute.CODEC, Codec.BOOL, FluidAttribute.CODEC_KEYS).codec()
                     .optionalFieldOf("can_contain", Map.of())
                     .forGetter(val -> val.containmentPredicate))
             .apply(instance, FluidPipeProperties::new));
