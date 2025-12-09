@@ -2,20 +2,19 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraft.util.ExtraCodecs;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import java.util.Objects;
-
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.GENERATE_FOIL;
 
 public class WireProperties implements IMaterialProperty<WireProperties> {
 
     public static final Codec<WireProperties> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ExtraCodecs.POSITIVE_INT.fieldOf("voltage").forGetter(val -> val.voltage),
+            Codec.LONG.fieldOf("voltage").forGetter(val -> val.voltage),
             ExtraCodecs.POSITIVE_INT.fieldOf("amperage").forGetter(val -> val.amperage),
             ExtraCodecs.NON_NEGATIVE_INT.fieldOf("loss_per_block").forGetter(val -> val.lossPerBlock),
             Codec.BOOL.optionalFieldOf("is_superconductor", false).forGetter(val -> val.isSuperconductor),
@@ -23,21 +22,21 @@ public class WireProperties implements IMaterialProperty<WireProperties> {
                     .forGetter(val -> val.superconductorCriticalTemperature))
             .apply(instance, WireProperties::new));
 
-    private int voltage;
+    private long voltage;
     private int amperage;
     private int lossPerBlock;
     private int superconductorCriticalTemperature;
     private boolean isSuperconductor;
 
-    public WireProperties(int voltage, int baseAmperage, int lossPerBlock) {
+    public WireProperties(long voltage, int baseAmperage, int lossPerBlock) {
         this(voltage, baseAmperage, lossPerBlock, false);
     }
 
-    public WireProperties(int voltage, int baseAmperage, int lossPerBlock, boolean isSuperCon) {
+    public WireProperties(long voltage, int baseAmperage, int lossPerBlock, boolean isSuperCon) {
         this(voltage, baseAmperage, lossPerBlock, isSuperCon, 0);
     }
 
-    public WireProperties(int voltage, int baseAmperage, int lossPerBlock, boolean isSuperCon,
+    public WireProperties(long voltage, int baseAmperage, int lossPerBlock, boolean isSuperCon,
                           int criticalTemperature) {
         this.voltage = voltage;
         this.amperage = baseAmperage;
@@ -62,7 +61,7 @@ public class WireProperties implements IMaterialProperty<WireProperties> {
      *
      * @return The current wire voltage
      */
-    public int getVoltage() {
+    public long getVoltage() {
         return voltage;
     }
 
@@ -71,7 +70,7 @@ public class WireProperties implements IMaterialProperty<WireProperties> {
      *
      * @param voltage The new wire voltage
      */
-    public void setVoltage(int voltage) {
+    public void setVoltage(long voltage) {
         this.voltage = voltage;
     }
 
@@ -173,6 +172,6 @@ public class WireProperties implements IMaterialProperty<WireProperties> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(voltage, amperage, lossPerBlock);
+        return GTMath.hashLongs(voltage, amperage, lossPerBlock);
     }
 }

@@ -24,11 +24,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author KilaBash
- * @date 2023/2/27
- * @implNote OreBlockRenderer
- */
 @MethodsReturnNonnullByDefault
 public class OreBlockRenderer {
 
@@ -48,7 +43,7 @@ public class OreBlockRenderer {
         for (OreBlockRenderer model : MODELS) {
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(model.block);
             ResourceLocation modelId = blockId.withPrefix("block/");
-            OreBlockRenderer.cloneBlockModel(modelId, model.block.tagPrefix, model.block.material);
+            OreBlockRenderer.cloneBlockModel(blockId, model.block.tagPrefix, model.block.material);
             GTDynamicResourcePack.addBlockState(blockId, BlockModelGenerators.createSimpleBlock(model.block, modelId));
             GTDynamicResourcePack.addItemModel(BuiltInRegistries.ITEM.getKey(model.block.asItem()),
                     new DelegatedModel(ModelLocationUtils.getModelLocation(model.block)));
@@ -81,8 +76,7 @@ public class OreBlockRenderer {
         JsonObject children = newJson.getAsJsonObject("children");
         // add the base stone texture.
         children.getAsJsonObject("base_stone").addProperty("parent",
-                TagPrefix.ORES.get(prefix).baseModelLocation().toString());// .getAsJsonObject("textures").addProperty("stone",
-                                                                           // TagPrefix.ORES.get(prefix).baseModelLocation().toString());
+                TagPrefix.ORES.get(prefix).baseModelLocation().toString());
 
         ResourceLocation layer0 = prefix.materialIconType().getBlockTexturePath(material.getMaterialIconSet(), true);
         ResourceLocation layer1 = prefix.materialIconType().getBlockTexturePath(material.getMaterialIconSet(), "layer2",

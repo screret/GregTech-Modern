@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
@@ -13,7 +14,6 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
-import com.google.common.primitives.Ints;
 import org.jetbrains.annotations.NotNull;
 
 public class EUToFEProvider extends CapabilityCompatProvider {
@@ -31,7 +31,7 @@ public class EUToFEProvider extends CapabilityCompatProvider {
 
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability, Direction facing) {
-        if (!ConfigHolder.INSTANCE.compat.energy.nativeEUToPlatformNative ||
+        if (!ConfigHolder.INSTANCE.compat.energy.nativeEUToFE ||
                 capability != GTCapability.CAPABILITY_ENERGY_CONTAINER)
             return LazyOptional.empty();
 
@@ -57,21 +57,19 @@ public class EUToFEProvider extends CapabilityCompatProvider {
             // Try to use the internal buffer before consuming a new packet
             if (feBuffer > 0) {
 
-                receive = energyStorage.receiveEnergy(Ints.saturatedCast(feBuffer), true);
+                receive = energyStorage.receiveEnergy(GTMath.saturatedCast(feBuffer), true);
 
                 if (receive == 0)
                     return 0;
 
                 // Internal Buffer could provide the max RF the consumer could consume
                 if (feBuffer > receive) {
-                    feBuffer -= receive;
-                    energyStorage.receiveEnergy(receive, false);
+                    feBuffer -= energyStorage.receiveEnergy(receive, false);
                     return 0;
 
                     // Buffer could not provide max value, save the remainder and continue processing
                 } else {
-                    receive = Ints.saturatedCast(feBuffer);
-                    feBuffer = 0;
+                    receive = GTMath.saturatedCast(feBuffer);
                 }
             }
 
@@ -81,61 +79,57 @@ public class EUToFEProvider extends CapabilityCompatProvider {
             // Try to consume our remainder buffer plus a fresh packet
             if (receive != 0) {
 
-                int consumable = energyStorage.receiveEnergy(Ints.saturatedCast(maximalValue + receive), true);
+                int consumable = energyStorage.receiveEnergy(GTMath.saturatedCast(maximalValue + receive), true);
 
                 // Machine unable to consume any power
                 if (consumable == 0)
                     return 0;
 
-                // Only able to consume our buffered amount
-                if (consumable == receive) {
-                    energyStorage.receiveEnergy(consumable, false);
-                    return 0;
-                }
+                consumable = energyStorage.receiveEnergy(consumable, false);
 
-                // Able to consume our full packet as well as our remainder buffer
-                if (consumable == maximalValue + receive) {
-                    energyStorage.receiveEnergy(consumable, false);
-                    return amperage;
+                // Only able to consume less then our buffered amount
+                if (consumable <= receive) {
+                    feBuffer = receive - consumable;
+                    return 0;
                 }
 
                 long newPower = consumable - receive;
 
                 // Able to consume buffered amount plus an even amount of packets (no buffer needed)
                 if (newPower % maxPacket == 0) {
-                    return energyStorage.receiveEnergy(consumable, false) / maxPacket;
+                    feBuffer = 0;
+                    return newPower / maxPacket;
                 }
 
                 // Able to consume buffered amount plus some amount of power with a packet remainder
-                int ampsToConsume = Ints.saturatedCast((newPower / maxPacket) + 1);
-                feBuffer = Ints.saturatedCast((maxPacket * ampsToConsume) - consumable);
-                energyStorage.receiveEnergy(consumable, false);
+                int ampsToConsume = GTMath.saturatedCast((newPower / maxPacket) + 1);
+                feBuffer = GTMath.saturatedCast((maxPacket * ampsToConsume) - newPower);
                 return ampsToConsume;
 
                 // Else try to draw 1 full packet
             } else {
 
-                int consumable = energyStorage.receiveEnergy(Ints.saturatedCast(maximalValue), true);
+                int consumable = energyStorage.receiveEnergy(GTMath.saturatedCast(maximalValue), true);
 
                 // Machine unable to consume any power
                 if (consumable == 0)
                     return 0;
 
-                // Able to accept the full amount of power
-                if (consumable == maximalValue) {
-                    energyStorage.receiveEnergy(consumable, false);
-                    return amperage;
-                }
+                consumable = energyStorage.receiveEnergy(consumable, false);
+
+                // Machine unable to actually consume any power
+                if (consumable == 0)
+                    return 0;
 
                 // Able to consume an even amount of packets
                 if (consumable % maxPacket == 0) {
-                    return energyStorage.receiveEnergy(consumable, false) / maxPacket;
+                    feBuffer = 0;
+                    return consumable / maxPacket;
                 }
 
                 // Able to consume power with some amount of power remainder in the packet
-                int ampsToConsume = Ints.saturatedCast((consumable / maxPacket) + 1);
-                feBuffer = Ints.saturatedCast((maxPacket * ampsToConsume) - consumable);
-                energyStorage.receiveEnergy(consumable, false);
+                int ampsToConsume = GTMath.saturatedCast((consumable / maxPacket) + 1);
+                feBuffer = GTMath.saturatedCast((maxPacket * ampsToConsume) - consumable);
                 return ampsToConsume;
             }
         }

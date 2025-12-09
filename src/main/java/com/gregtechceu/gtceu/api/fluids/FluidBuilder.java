@@ -11,10 +11,9 @@ import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.api.registry.registrate.IGTFluidBuilder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.Platform;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 
 import com.google.common.base.Preconditions;
@@ -104,6 +103,7 @@ public class FluidBuilder {
     private boolean hasCustomStill = false;
     private boolean hasCustomFlowing = false;
 
+    @Getter
     private boolean hasFluidBlock = false;
     private boolean hasBucket = true;
 
@@ -116,7 +116,7 @@ public class FluidBuilder {
      * @return this;
      */
     public @NotNull FluidBuilder temperature(int temperature) {
-        Preconditions.checkArgument(temperature > 0, "temperature must be > 0");
+        Preconditions.checkArgument(temperature >= 0, "temperature must be >= 0");
         this.temperature = temperature;
         return this;
     }
@@ -278,10 +278,10 @@ public class FluidBuilder {
         return this;
     }
 
-    public @NotNull Supplier<? extends Fluid> build(@NotNull String modid, Material material, FluidStorageKey key,
+    public @NotNull Supplier<? extends Fluid> build(Material material, @NotNull FluidStorageKey key,
                                                     GTRegistrate registrate) {
         determineName(material, key);
-        determineTextures(material, key, modid);
+        determineTextures(material, key, material.getModid());
 
         if (name == null) {
             throw new IllegalStateException("Could not determine fluid name");
@@ -317,22 +317,23 @@ public class FluidBuilder {
         }
 
         builder.onFluidRegister(fluid -> {
-            if (fluid instanceof GTFluid gtFluid) {
-                attributes.forEach(gtFluid::addAttribute);
+            if (fluid instanceof FlowingFluid flowingFluid) {
+                if (flowingFluid.getSource() instanceof GTFluid gtSource) attributes.forEach(gtSource::addAttribute);
+                if (flowingFluid.getFlowing() instanceof GTFluid gtFlowing) attributes.forEach(gtFlowing::addAttribute);
             }
         });
 
         return builder.registerFluid();
     }
 
-    private void determineName(@Nullable Material material, @Nullable FluidStorageKey key) {
+    private void determineName(@NotNull Material material, @Nullable FluidStorageKey key) {
         if (name != null) return;
-        if (material == null || key == null) throw new IllegalArgumentException("Fluid must have a name");
+        if (material.isNull() || key == null) throw new IllegalArgumentException("Fluid must have a name");
         name = key.getRegistryNameFor(material);
     }
 
-    private void determineTextures(@Nullable Material material, @Nullable FluidStorageKey key, @NotNull String modid) {
-        if (material != null && key != null) {
+    private void determineTextures(@NotNull Material material, @Nullable FluidStorageKey key, @NotNull String modid) {
+        if (!material.isNull() && key != null) {
             if (hasCustomStill) {
                 still = new ResourceLocation(modid, "block/fluids/fluid." + name);
             } else {
@@ -349,9 +350,9 @@ public class FluidBuilder {
         }
     }
 
-    private void determineTemperature(@Nullable Material material) {
+    private void determineTemperature(@NotNull Material material) {
         if (temperature != INFER_TEMPERATURE) return;
-        if (material == null) {
+        if (material.isNull()) {
             temperature = ROOM_TEMPERATURE;
         } else {
             BlastProperty property = material.getProperty(PropertyKey.BLAST);
@@ -382,10 +383,10 @@ public class FluidBuilder {
         }
     }
 
-    private void determineColor(@Nullable Material material) {
+    private void determineColor(@NotNull Material material) {
         if (color != INFER_COLOR) return;
-        if (isColorEnabled && material != null) {
-            color = Platform.isForge() ? GTUtil.convertRGBtoARGB(material.getMaterialRGB()) : material.getMaterialRGB();
+        if (isColorEnabled && !material.isNull()) {
+            color = GTUtil.convertRGBtoARGB(material.getMaterialRGB());
         }
     }
 
@@ -398,11 +399,11 @@ public class FluidBuilder {
         };
     }
 
-    private void determineLuminosity(@Nullable Material material) {
+    private void determineLuminosity(@NotNull Material material) {
         if (luminosity != INFER_LUMINOSITY) return;
         if (state == FluidState.PLASMA) {
             luminosity = 15;
-        } else if (material != null) {
+        } else if (!material.isNull()) {
             if (material.hasFlag(MaterialFlags.PHOSPHORESCENT)) {
                 luminosity = 15;
             } else if (state == FluidState.LIQUID && material.hasProperty(PropertyKey.DUST)) {
@@ -416,11 +417,11 @@ public class FluidBuilder {
         }
     }
 
-    private void determineViscosity(@Nullable Material material) {
+    private void determineViscosity(@NotNull Material material) {
         if (viscosity != INFER_VISCOSITY) return;
         viscosity = switch (state) {
             case LIQUID -> {
-                if (material != null && material.hasFlag(MaterialFlags.STICKY)) {
+                if (!material.isNull() && material.hasFlag(MaterialFlags.STICKY)) {
                     yield STICKY_LIQUID_VISCOSITY;
                 }
                 yield DEFAULT_LIQUID_VISCOSITY;

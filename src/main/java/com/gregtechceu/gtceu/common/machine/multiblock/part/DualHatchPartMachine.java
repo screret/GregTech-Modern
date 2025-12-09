@@ -2,22 +2,25 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.common.data.GTMachines;
+import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
-import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
-import com.lowdragmc.lowdraglib.gui.widget.TankWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
-import com.lowdragmc.lowdraglib.side.fluid.FluidHelper;
-import com.lowdragmc.lowdraglib.side.fluid.FluidTransferHelper;
-import com.lowdragmc.lowdraglib.side.item.ItemTransferHelper;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.fluids.FluidType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +30,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class DualHatchPartMachine extends ItemBusPartMachine {
 
-    public static final long INITIAL_TANK_CAPACITY = 16 * FluidHelper.getBucket();
+    public static final int INITIAL_TANK_CAPACITY = 16 * FluidType.BUCKET_VOLUME;
     protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(DualHatchPartMachine.class,
             ItemBusPartMachine.MANAGED_FIELD_HOLDER);
 
@@ -37,8 +40,8 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
     @Nullable
     protected ISubscription tankSubs;
 
-    private boolean hasFluidTransfer;
-    private boolean hasItemTransfer;
+    private boolean hasFluidHandler;
+    private boolean hasItemHandler;
 
     public DualHatchPartMachine(IMachineBlockEntity holder, int tier, IO io, Object... args) {
         super(holder, tier, io);
@@ -49,8 +52,8 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
     // ***** Initialization ******//
     ////////////////////////////////
 
-    public static long getTankCapacity(long initialCapacity, int tier) {
-        return initialCapacity * (1L << (tier - 6));
+    public static int getTankCapacity(int initialCapacity, int tier) {
+        return initialCapacity * (1 << (tier - 6));
     }
 
     @Override
@@ -58,7 +61,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         return (int) Math.pow((getTier() - 4), 2);
     }
 
-    protected NotifiableFluidTank createTank(long initialCapacity, int slots, Object... args) {
+    protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
         return new NotifiableFluidTank(this, slots, getTankCapacity(initialCapacity, getTier()), io);
     }
 
@@ -86,16 +89,14 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         boolean canOutput = io == IO.OUT && (!tank.isEmpty() || !getInventory().isEmpty());
         var level = getLevel();
         if (level != null) {
-            this.hasItemTransfer = ItemTransferHelper.getItemTransfer(
-                    level, getPos().relative(getFrontFacing()), getFrontFacing().getOpposite()) != null;
-            this.hasFluidTransfer = FluidTransferHelper.getFluidTransfer(
-                    level, getPos().relative(getFrontFacing()), getFrontFacing().getOpposite()) != null;
+            this.hasItemHandler = GTTransferUtils.hasAdjacentItemHandler(level, getPos(), getFrontFacing());
+            this.hasFluidHandler = GTTransferUtils.hasAdjacentFluidHandler(level, getPos(), getFrontFacing());
         } else {
-            this.hasItemTransfer = false;
-            this.hasFluidTransfer = false;
+            this.hasItemHandler = false;
+            this.hasFluidHandler = false;
         }
 
-        if (isWorkingEnabled() && (canOutput || io == IO.IN) && (hasItemTransfer || hasFluidTransfer)) {
+        if (isWorkingEnabled() && (canOutput || io == IO.IN) && (hasItemHandler || hasFluidHandler)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
@@ -108,23 +109,51 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         if (getOffsetTimer() % 5 == 0) {
             if (isWorkingEnabled()) {
                 if (io == IO.OUT) {
-                    if (hasItemTransfer) {
+                    if (hasItemHandler) {
                         getInventory().exportToNearby(getFrontFacing());
                     }
-                    if (hasFluidTransfer) {
+                    if (hasFluidHandler) {
                         tank.exportToNearby(getFrontFacing());
                     }
                 } else if (io == IO.IN) {
-                    if (hasItemTransfer) {
+                    if (hasItemHandler) {
                         getInventory().importFromNearby(getFrontFacing());
                     }
-                    if (hasFluidTransfer) {
+                    if (hasFluidHandler) {
                         tank.importFromNearby(getFrontFacing());
                     }
                 }
             }
             updateInventorySubscription();
         }
+    }
+
+    @Override
+    public boolean swapIO() {
+        BlockPos blockPos = getHolder().pos();
+        MachineDefinition newDefinition = null;
+
+        if (io == IO.IN) {
+            newDefinition = GTMachines.DUAL_EXPORT_HATCH[this.getTier()];
+        } else if (io == IO.OUT) {
+            newDefinition = GTMachines.DUAL_IMPORT_HATCH[this.getTier()];
+        }
+        if (newDefinition == null) return false;
+
+        BlockState newBlockState = newDefinition.getBlock().defaultBlockState();
+
+        getLevel().setBlockAndUpdate(blockPos, newBlockState);
+
+        if (getLevel().getBlockEntity(blockPos) instanceof IMachineBlockEntity newHolder) {
+            if (newHolder.getMetaMachine() instanceof DualHatchPartMachine newMachine) {
+                newMachine.setFrontFacing(this.getFrontFacing());
+                newMachine.setUpwardsFacing(this.getUpwardsFacing());
+                for (int i = 0; i < this.tank.getTanks(); i++) {
+                    newMachine.tank.setFluidInTank(i, this.tank.getFluidInTank(i));
+                }
+            }
+        }
+        return true;
     }
 
     ///////////////////////////////
@@ -158,17 +187,6 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
-    }
-
-    @Override
-    public boolean isDistinct() {
-        return super.isDistinct() && tank.isDistinct();
-    }
-
-    @Override
-    public void setDistinct(boolean isDistinct) {
-        super.setDistinct(isDistinct);
-        tank.setDistinct(isDistinct);
     }
 
     @Override

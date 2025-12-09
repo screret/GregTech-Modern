@@ -6,13 +6,14 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
+import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
+import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
@@ -31,7 +32,7 @@ public class StorageCover extends CoverBehavior implements IUICover {
 
     @Persisted
     @DescSynced
-    public final ItemStackTransfer inventory;
+    public final CustomItemStackHandler inventory;
     private final int SIZE = 18;
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(StorageCover.class,
@@ -40,7 +41,7 @@ public class StorageCover extends CoverBehavior implements IUICover {
     public StorageCover(@NotNull CoverDefinition definition, @NotNull ICoverable coverableView,
                         @NotNull Direction attachedSide) {
         super(definition, coverableView, attachedSide);
-        inventory = new ItemStackTransfer(SIZE) {
+        inventory = new CustomItemStackHandler(SIZE) {
 
             @Override
             public int getSlotLimit(int slot) {
@@ -50,11 +51,13 @@ public class StorageCover extends CoverBehavior implements IUICover {
     }
 
     @Override
+    @NotNull
     public ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
     }
 
     @Override
+    @NotNull
     public List<ItemStack> getAdditionalDrops() {
         var list = super.getAdditionalDrops();
         for (int slot = 0; slot < SIZE; slot++) {
@@ -65,6 +68,7 @@ public class StorageCover extends CoverBehavior implements IUICover {
 
     @Override
     public boolean canAttach() {
+        if (!(coverHolder instanceof MachineCoverContainer)) return false;
         for (var dir : Direction.values()) {
             if (coverHolder.hasCover(dir) && coverHolder.getCoverAtSide(dir) instanceof StorageCover)
                 return false;
@@ -103,7 +107,7 @@ public class StorageCover extends CoverBehavior implements IUICover {
 
         @Override
         public IGuiTexture getIcon() {
-            return GuiTextures.MAINTENANCE_ICON;
+            return GuiTextures.STORAGE_ICON;
         }
 
         @Override

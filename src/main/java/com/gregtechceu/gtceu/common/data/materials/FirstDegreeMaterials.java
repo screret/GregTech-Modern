@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.common.data.materials;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.api.data.chemical.material.properties.ArmorProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.BlastProperty.GasTier;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.HazardProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
@@ -41,7 +41,7 @@ public class FirstDegreeMaterials {
                 .color(0xf2c079).secondaryColor(0xe45534).iconSet(BRIGHT)
                 .appendFlags(EXT2_METAL, MORTAR_GRINDABLE, GENERATE_FINE_WIRE)
                 .components(Copper, 1)
-                .cableProperties(GTValues.V[2], 1, 1)
+                .cableProperties(V[MV], 1, 1)
                 .buildAndRegister();
         Copper.getProperty(PropertyKey.INGOT).setArcSmeltingInto(AnnealedCopper);
 
@@ -77,7 +77,7 @@ public class FirstDegreeMaterials {
                 .gem(3).ore(2, 1)
                 .color(0xdbfeff).secondaryColor(0xa0c4d7).iconSet(GEM_HORIZONTAL)
                 .appendFlags(EXT_METAL, NO_SMASHING, NO_SMELTING, HIGH_SIFTER_OUTPUT)
-                .components(Aluminium, 2, Silicon, 1, Fluorine, 2, Hydrogen, 2, Oxygen, 6)
+                .components(Aluminium, 2, Silicon, 1, Oxygen, 4, Fluorine, 2)
                 .buildAndRegister();
 
         Bone = new Material.Builder(GTCEu.id("bone"))
@@ -106,6 +106,8 @@ public class FirstDegreeMaterials {
                 .components(Tin, 1, Copper, 3)
                 .toolStats(ToolProperty.Builder.of(3.0F, 2.0F, 192, 2)
                         .enchantability(18).addTypes(GTToolType.MORTAR).build())
+                .armorStats(ArmorProperty.Builder.of(17, new int[] { 3, 7, 6, 2 })
+                        .enchantability(8).build())
                 .rotorStats(115, 105, 2.5f, 192)
                 .fluidPipeProperties(1696, 20, true)
                 .buildAndRegister();
@@ -183,6 +185,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         Cooperite = new Material.Builder(GTCEu.id("cooperite"))
+                .langValue("Sheldonite") // greg's humor is now on 1.20...
                 .dust(1).ore()
                 .color(0xe9ffa7).secondaryColor(0x665f2f).iconSet(METALLIC)
                 .components(Platinum, 3, Nickel, 1, Sulfur, 1, Palladium, 1)
@@ -195,7 +198,7 @@ public class FirstDegreeMaterials {
                 .appendFlags(EXT_METAL, GENERATE_SPRING, GENERATE_FINE_WIRE)
                 .components(Copper, 1, Nickel, 1)
                 .itemPipeProperties(2048, 1)
-                .cableProperties(GTValues.V[MV], 1, 1)
+                .cableProperties(V[MV], 1, 1)
                 .buildAndRegister();
 
         DarkAsh = new Material.Builder(GTCEu.id("dark_ash"))
@@ -223,7 +226,7 @@ public class FirstDegreeMaterials {
                 .appendFlags(EXT2_METAL, MORTAR_GRINDABLE, GENERATE_FINE_WIRE, GENERATE_RING)
                 .components(Silver, 1, Gold, 1)
                 .itemPipeProperties(1024, 2)
-                .cableProperties(GTValues.V[3], 2, 2)
+                .cableProperties(V[HV], 2, 2)
                 .buildAndRegister();
 
         Emerald = new Material.Builder(GTCEu.id("emerald"))
@@ -311,8 +314,9 @@ public class FirstDegreeMaterials {
                 .color(0xC2D2DF).secondaryColor(0x4c4238).iconSet(METALLIC)
                 .appendFlags(EXT_METAL, GENERATE_SPRING)
                 .components(Iron, 1, Aluminium, 1, Chromium, 1)
-                .cableProperties(GTValues.V[3], 4, 3)
-                .blastTemp(1800, GasTier.LOW, GTValues.VA[HV], 900)
+                .cableProperties(V[HV], 4, 3)
+                .blast(b -> b.temp(1800, GasTier.LOW)
+                        .blastStats(VA[HV], 900))
                 .buildAndRegister();
 
         Lazurite = new Material.Builder(GTCEu.id("lazurite"))
@@ -357,8 +361,10 @@ public class FirstDegreeMaterials {
                 .color(0xaf94b2).secondaryColor(0x5b4c6a).iconSet(METALLIC)
                 .appendFlags(EXT_METAL, GENERATE_SPRING)
                 .components(Nickel, 4, Chromium, 1)
-                .cableProperties(GTValues.V[EV], 4, 4)
-                .blastTemp(2700, GasTier.LOW, GTValues.VA[HV], 1300)
+                .cableProperties(V[EV], 4, 4)
+                .blast(b -> b.temp(2700, GasTier.LOW)
+                        .blastStats(VA[EV], 1300)
+                        .vacuumStats(VA[HV]))
                 .buildAndRegister();
 
         NiobiumNitride = new Material.Builder(GTCEu.id("niobium_nitride"))
@@ -366,8 +372,8 @@ public class FirstDegreeMaterials {
                 .color(0x574457).secondaryColor(0x332e3c).iconSet(BRIGHT)
                 .appendFlags(EXT_METAL, GENERATE_FOIL)
                 .components(Niobium, 1, Nitrogen, 1)
-                .cableProperties(GTValues.V[6], 1, 1)
-                .blastTemp(2846, GasTier.MID)
+                .cableProperties(V[LuV], 1, 1)
+                .blast(2846, GasTier.MID)
                 .buildAndRegister();
 
         NiobiumTitanium = new Material.Builder(GTCEu.id("niobium_titanium"))
@@ -377,8 +383,10 @@ public class FirstDegreeMaterials {
                 .appendFlags(EXT2_METAL, GENERATE_SPRING, GENERATE_SPRING_SMALL, GENERATE_FOIL, GENERATE_FINE_WIRE)
                 .components(Niobium, 1, Titanium, 1)
                 .fluidPipeProperties(5900, 175, true)
-                .cableProperties(GTValues.V[LuV], 4, 2)
-                .blastTemp(4500, GasTier.HIGH, GTValues.VA[HV], 1500)
+                .cableProperties(V[LuV], 4, 2)
+                .blast(b -> b.temp(4500, GasTier.HIGH)
+                        .blastStats(VA[HV], 1500)
+                        .vacuumStats(VA[HV], 200))
                 .buildAndRegister();
 
         Obsidian = new Material.Builder(GTCEu.id("obsidian"))
@@ -413,7 +421,8 @@ public class FirstDegreeMaterials {
                         .enchantment(Enchantments.SMITE, 3).build())
                 .rotorStats(100, 160, 2.0f, 196)
                 .itemPipeProperties(1024, 2)
-                .blastTemp(1700, GasTier.LOW, GTValues.VA[MV], 1000)
+                .blast(b -> b.temp(1700, GasTier.LOW)
+                        .blastStats(VA[MV], 1000))
                 .buildAndRegister();
 
         RoseGold = new Material.Builder(GTCEu.id("rose_gold"))
@@ -427,7 +436,8 @@ public class FirstDegreeMaterials {
                         .enchantment(Enchantments.BLOCK_FORTUNE, 2).build())
                 .rotorStats(100, 170, 2.0f, 152)
                 .itemPipeProperties(1024, 2)
-                .blastTemp(1600, GasTier.LOW, GTValues.VA[MV], 1000)
+                .blast(b -> b.temp(1600, GasTier.LOW)
+                        .blastStats(VA[MV], 1000))
                 .buildAndRegister();
 
         BlackBronze = new Material.Builder(GTCEu.id("black_bronze"))
@@ -438,7 +448,8 @@ public class FirstDegreeMaterials {
                 .components(Gold, 1, Silver, 1, Copper, 3)
                 .rotorStats(100, 155, 2.0f, 256)
                 .itemPipeProperties(1024, 2)
-                .blastTemp(2000, GasTier.LOW, GTValues.VA[MV], 1000)
+                .blast(b -> b.temp(2000, GasTier.LOW)
+                        .blastStats(VA[MV], 1000))
                 .buildAndRegister();
 
         BismuthBronze = new Material.Builder(GTCEu.id("bismuth_bronze"))
@@ -448,7 +459,8 @@ public class FirstDegreeMaterials {
                 .appendFlags(EXT2_METAL)
                 .components(Bismuth, 1, Zinc, 1, Copper, 3)
                 .rotorStats(130, 120, 3.0f, 256)
-                .blastTemp(1100, GasTier.LOW, GTValues.VA[MV], 1000)
+                .blast(b -> b.temp(1100, GasTier.LOW)
+                        .blastStats(VA[MV], 1000))
                 .buildAndRegister();
 
         Biotite = new Material.Builder(GTCEu.id("biotite"))
@@ -490,20 +502,26 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         RTMAlloy = new Material.Builder(GTCEu.id("rtm_alloy"))
+                .langValue("RTM Alloy")
                 .ingot().fluid()
                 .color(0x30306B).iconSet(SHINY)
                 .components(Ruthenium, 4, Tungsten, 2, Molybdenum, 1)
                 .flags(GENERATE_SPRING)
                 .cableProperties(V[EV], 6, 2)
-                .blastTemp(3000, GasTier.MID, GTValues.VA[GTValues.EV], 1400)
+                .blast(b -> b.temp(3000, GasTier.MID)
+                        .blastStats(VA[EV], 1400)
+                        .vacuumStats(VA[HV], 250))
                 .buildAndRegister();
 
         Ruridit = new Material.Builder(GTCEu.id("ruridit"))
                 .ingot(3)
+                .fluid()
                 .color(0x88b5b9).secondaryColor(0x4e885c).iconSet(BRIGHT)
                 .flags(GENERATE_FINE_WIRE, GENERATE_GEAR, GENERATE_LONG_ROD, GENERATE_FRAME, GENERATE_BOLT_SCREW)
                 .components(Ruthenium, 2, Iridium, 1)
-                .blastTemp(4500, GasTier.HIGH, GTValues.VA[GTValues.EV], 1600)
+                .blast(b -> b.temp(4500, GasTier.HIGH)
+                        .blastStats(VA[EV], 1600)
+                        .vacuumStats(VA[HV], 300))
                 .buildAndRegister();
 
         Ruby = new Material.Builder(GTCEu.id("ruby"))
@@ -600,7 +618,8 @@ public class FirstDegreeMaterials {
                         .enchantability(14).build())
                 .rotorStats(160, 115, 4.0f, 480)
                 .fluidPipeProperties(2428, 75, true, true, true, false)
-                .blastTemp(1700, GasTier.LOW, GTValues.VA[HV], 1100)
+                .blast(b -> b.temp(1700, GasTier.LOW)
+                        .blastStats(VA[HV], 1100))
                 .buildAndRegister();
 
         Steel = new Material.Builder(GTCEu.id("steel"))
@@ -614,10 +633,13 @@ public class FirstDegreeMaterials {
                 .toolStats(ToolProperty.Builder.of(5.0F, 3.0F, 512, 3)
                         .addTypes(GTToolType.MORTAR)
                         .enchantability(14).build())
+                .armorStats(ArmorProperty.Builder.of(19, new int[] { 3, 7, 5, 2 })
+                        .enchantability(14).build())
                 .rotorStats(130, 105, 3.0f, 512)
                 .fluidPipeProperties(1855, 50, true)
-                .cableProperties(GTValues.V[EV], 2, 2)
-                .blastTemp(1000, null, GTValues.VA[MV], 800) // no gas tier for steel
+                .cableProperties(V[EV], 2, 2)
+                .blast(b -> b.temp(1000)
+                        .blastStats(VA[MV], 800)) // no gas tier for steel
                 .buildAndRegister();
 
         Stibnite = new Material.Builder(GTCEu.id("stibnite"))
@@ -630,7 +652,7 @@ public class FirstDegreeMaterials {
         Tetrahedrite = new Material.Builder(GTCEu.id("tetrahedrite"))
                 .dust().ore()
                 .color(0xa3a09b).secondaryColor(0x143313)
-                .components(Copper, 3, Antimony, 1, Sulfur, 3, Iron, 1)
+                .components(Copper, 2, Iron, 1, Antimony, 1, Sulfur, 3)
                 .buildAndRegister();
 
         TinAlloy = new Material.Builder(GTCEu.id("tin_alloy"))
@@ -646,7 +668,7 @@ public class FirstDegreeMaterials {
                 .gem(3).ore()
                 .color(0xe8d73a).secondaryColor(0xf4680f).iconSet(GEM_HORIZONTAL)
                 .appendFlags(EXT_METAL, NO_SMASHING, NO_SMELTING, HIGH_SIFTER_OUTPUT)
-                .components(Aluminium, 2, Silicon, 1, Fluorine, 1, Hydrogen, 2)
+                .components(Aluminium, 2, Silicon, 1, Oxygen, 5, Fluorine, 1, Hydrogen, 1)
                 .buildAndRegister();
 
         Tungstate = new Material.Builder(GTCEu.id("tungstate"))
@@ -667,7 +689,8 @@ public class FirstDegreeMaterials {
                         .attackSpeed(0.1F).enchantability(21).build())
                 .rotorStats(160, 130, 4.0f, 2048)
                 .itemPipeProperties(128, 16)
-                .blastTemp(2700, GasTier.MID, GTValues.VA[HV], 1300)
+                .blast(b -> b.temp(2700, GasTier.MID)
+                        .blastStats(VA[HV], 1300))
                 .buildAndRegister();
 
         Uraninite = new Material.Builder(GTCEu.id("uraninite"))
@@ -690,8 +713,10 @@ public class FirstDegreeMaterials {
                 .color(0x89aeec).secondaryColor(0x00379d).iconSet(SHINY)
                 .appendFlags(STD_METAL, GENERATE_FOIL, GENERATE_SPRING, GENERATE_SPRING_SMALL)
                 .components(Vanadium, 3, Gallium, 1)
-                .cableProperties(GTValues.V[7], 4, 2)
-                .blastTemp(4500, GasTier.HIGH, GTValues.VA[GTValues.EV], 1200)
+                .cableProperties(V[ZPM], 4, 2)
+                .blast(b -> b.temp(4500, GasTier.HIGH)
+                        .blastStats(VA[EV], 1200)
+                        .vacuumStats(VA[HV]))
                 .buildAndRegister();
 
         WroughtIron = new Material.Builder(GTCEu.id("wrought_iron"))
@@ -715,12 +740,14 @@ public class FirstDegreeMaterials {
                 .components(Lead, 1, Molybdenum, 1, Oxygen, 4)
                 .buildAndRegister();
 
-        YellowLimonite = new Material.Builder(GTCEu.id("yellow_limonite"))
+        Limonite = new Material.Builder(GTCEu.id("yellow_limonite"))
+                .langValue("Limonite")
                 .dust().ore()
                 .color(0xf5e315).secondaryColor(0xc06f33).iconSet(METALLIC)
                 .flags(DECOMPOSITION_BY_CENTRIFUGING, BLAST_FURNACE_CALCITE_DOUBLE)
                 .components(Iron, 1, Hydrogen, 1, Oxygen, 2)
                 .buildAndRegister();
+        YellowLimonite = Limonite;
 
         YttriumBariumCuprate = new Material.Builder(GTCEu.id("yttrium_barium_cuprate"))
                 .ingot()
@@ -729,8 +756,10 @@ public class FirstDegreeMaterials {
                 .appendFlags(EXT_METAL, GENERATE_FINE_WIRE, GENERATE_SPRING, GENERATE_SPRING_SMALL, GENERATE_FOIL,
                         GENERATE_BOLT_SCREW)
                 .components(Yttrium, 1, Barium, 2, Copper, 3, Oxygen, 7)
-                .cableProperties(GTValues.V[8], 4, 4)
-                .blastTemp(4500, GasTier.HIGH) // todo redo this EBF process
+                .cableProperties(V[UV], 4, 4)
+                .blast(b -> b.temp(4500, GasTier.HIGH)
+                        .blastStats(VA[IV], 1000)
+                        .vacuumStats(VA[EV], 150))
                 .buildAndRegister();
 
         NetherQuartz = new Material.Builder(GTCEu.id("nether_quartz"))
@@ -767,7 +796,7 @@ public class FirstDegreeMaterials {
                 .color(0x808080).secondaryColor(0x3d3838).iconSet(SHINY)
                 .flags(DISABLE_DECOMPOSITION, GENERATE_FOIL)
                 .components(Carbon, 1)
-                .cableProperties(GTValues.V[5], 1, 1)
+                .cableProperties(V[IV], 1, 1)
                 .buildAndRegister();
 
         TungsticAcid = new Material.Builder(GTCEu.id("tungstic_acid"))
@@ -786,7 +815,9 @@ public class FirstDegreeMaterials {
                 .components(Iridium, 3, Osmium, 1)
                 .rotorStats(130, 130, 3.0f, 3152)
                 .itemPipeProperties(64, 32)
-                .blastTemp(4500, GasTier.HIGH, GTValues.VA[GTValues.LuV], 900)
+                .blast(b -> b.temp(4500, GasTier.HIGH)
+                        .blastStats(VA[LuV], 900)
+                        .vacuumStats(VA[EV], 200))
                 .buildAndRegister();
 
         LithiumChloride = new Material.Builder(GTCEu.id("lithium_chloride"))
@@ -819,7 +850,8 @@ public class FirstDegreeMaterials {
                 .color(0x938fff).secondaryColor(0x8c548c)
                 .appendFlags(STD_METAL, DECOMPOSITION_BY_CENTRIFUGING)
                 .components(Arsenic, 1, Gallium, 1)
-                .blastTemp(1200, GasTier.LOW, GTValues.VA[MV], 1200)
+                .blast(b -> b.temp(1200, GasTier.LOW)
+                        .blastStats(VA[MV], 1200))
                 .buildAndRegister();
 
         Potash = new Material.Builder(GTCEu.id("potash"))
@@ -861,6 +893,7 @@ public class FirstDegreeMaterials {
         MagnesiumChloride = new Material.Builder(GTCEu.id("magnesium_chloride"))
                 .dust(1)
                 .color(0xeee4e9).secondaryColor(0xD40D5C)
+                .flags(DISABLE_DECOMPOSITION)
                 .components(Magnesium, 1, Chlorine, 2)
                 .buildAndRegister();
 
@@ -920,6 +953,7 @@ public class FirstDegreeMaterials {
         SodiumBicarbonate = new Material.Builder(GTCEu.id("sodium_bicarbonate"))
                 .dust(1)
                 .color(0xFFFFFF).secondaryColor(0xa7d2df).iconSet(ROUGH)
+                .flags(DISABLE_DECOMPOSITION)
                 .components(Sodium, 1, Hydrogen, 1, Carbon, 1, Oxygen, 3)
                 .buildAndRegister();
 
@@ -1025,7 +1059,7 @@ public class FirstDegreeMaterials {
         GlauconiteSand = new Material.Builder(GTCEu.id("glauconite_sand"))
                 .dust().ore(3, 1)
                 .color(0x1da351).secondaryColor(0x1a6e8f).iconSet(SAND)
-                .components(Potassium, 1, Magnesium, 2, Aluminium, 4, Hydrogen, 2, Oxygen, 12)
+                .components(Potassium, 1, Magnesium, 2, Aluminium, 2, Silicon, 3, Oxygen, 12, Hydrogen, 2, Water, 1)
                 .buildAndRegister();
 
         Malachite = new Material.Builder(GTCEu.id("malachite"))
@@ -1049,7 +1083,7 @@ public class FirstDegreeMaterials {
         Alunite = new Material.Builder(GTCEu.id("alunite"))
                 .dust().ore(3, 1)
                 .color(0xfbd677).secondaryColor(0xe11e0a).iconSet(METALLIC)
-                .components(Potassium, 1, Aluminium, 3, Silicon, 2, Hydrogen, 6, Oxygen, 14)
+                .components(Potassium, 1, Aluminium, 2, Silicon, 2, Hydrogen, 6, Oxygen, 14)
                 .buildAndRegister();
 
         Talc = new Material.Builder(GTCEu.id("talc"))
@@ -1091,7 +1125,9 @@ public class FirstDegreeMaterials {
                         .enchantability(21).build())
                 .rotorStats(160, 155, 4.0f, 1280)
                 .fluidPipeProperties(3837, 200, true)
-                .blastTemp(3058, GasTier.MID, GTValues.VA[HV], 1500)
+                .blast(b -> b.temp(3058, GasTier.MID)
+                        .blastStats(VA[EV], 1500)
+                        .vacuumStats(VA[HV]))
                 .buildAndRegister();
 
         CarbonDioxide = new Material.Builder(GTCEu.id("carbon_dioxide"))
@@ -1188,6 +1224,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         Iron3Chloride = new Material.Builder(GTCEu.id("iron_iii_chloride"))
+                .langValue("Iron III Chloride")
                 .liquid()
                 .color(0x060B0B)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
@@ -1195,6 +1232,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         Iron2Chloride = new Material.Builder(GTCEu.id("iron_ii_chloride"))
+                .langValue("Iron II Chloride")
                 .liquid()
                 .color(0xe8e0be)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
@@ -1240,7 +1278,7 @@ public class FirstDegreeMaterials {
         PotassiumFeldspar = new Material.Builder(GTCEu.id("potassium_feldspar"))
                 .dust(1)
                 .color(0xffe3bc).secondaryColor(0xd4918a).iconSet(FINE)
-                .components(Potassium, 1, Aluminium, 1, Silicon, 1, Oxygen, 8)
+                .components(Potassium, 1, Aluminium, 1, Silicon, 3, Oxygen, 8)
                 .buildAndRegister();
 
         NeodymiumMagnetic = new Material.Builder(GTCEu.id("magnetic_neodymium"))
@@ -1299,8 +1337,8 @@ public class FirstDegreeMaterials {
                 .color(0xE1B454).secondaryColor(0x223033).iconSet(METALLIC)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
                 .components(Manganese, 1, Phosphorus, 1)
-                .cableProperties(GTValues.V[GTValues.LV], 2, 0, true, 78)
-                .blastTemp(1200, GasTier.LOW)
+                .cableProperties(V[LV], 2, 0, true, 78)
+                .blast(1200, GasTier.LOW)
                 .buildAndRegister();
 
         MagnesiumDiboride = new Material.Builder(GTCEu.id("magnesium_diboride"))
@@ -1309,8 +1347,10 @@ public class FirstDegreeMaterials {
                 .color(0x603c1a).secondaryColor(0x423e39).iconSet(METALLIC)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
                 .components(Magnesium, 1, Boron, 2)
-                .cableProperties(GTValues.V[MV], 4, 0, true, 78)
-                .blastTemp(2500, GasTier.LOW, GTValues.VA[HV], 1000)
+                .cableProperties(V[MV], 4, 0, true, 78)
+                .blast(b -> b.temp(2500, GasTier.LOW)
+                        .blastStats(VA[HV], 1000)
+                        .vacuumStats(VA[MV], 200))
                 .buildAndRegister();
 
         MercuryBariumCalciumCuprate = new Material.Builder(GTCEu.id("mercury_barium_calcium_cuprate"))
@@ -1319,8 +1359,10 @@ public class FirstDegreeMaterials {
                 .color(0x928547).secondaryColor(0x3f2e2e).iconSet(SHINY)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
                 .components(Mercury, 1, Barium, 2, Calcium, 2, Copper, 3, Oxygen, 8)
-                .cableProperties(GTValues.V[HV], 4, 0, true, 78)
-                .blastTemp(3300, GasTier.LOW, GTValues.VA[HV], 1500)
+                .cableProperties(V[HV], 4, 0, true, 78)
+                .blast(b -> b.temp(3300, GasTier.LOW)
+                        .blastStats(VA[HV], 1500)
+                        .vacuumStats(VA[HV]))
                 .buildAndRegister();
 
         UraniumTriplatinum = new Material.Builder(GTCEu.id("uranium_triplatinum"))
@@ -1329,8 +1371,10 @@ public class FirstDegreeMaterials {
                 .color(0x457045).secondaryColor(0x66ff00).iconSet(RADIOACTIVE)
                 .flags(DECOMPOSITION_BY_CENTRIFUGING)
                 .components(Uranium238, 1, Platinum, 3)
-                .cableProperties(GTValues.V[GTValues.EV], 6, 0, true, 30)
-                .blastTemp(4400, GasTier.MID, GTValues.VA[GTValues.EV], 1000)
+                .cableProperties(V[EV], 6, 0, true, 30)
+                .blast(b -> b.temp(4400, GasTier.MID)
+                        .blastStats(VA[EV], 1000)
+                        .vacuumStats(VA[EV], 200))
                 .buildAndRegister()
                 .setFormula("UPt3", true);
 
@@ -1340,8 +1384,10 @@ public class FirstDegreeMaterials {
                 .color(0x850e85).secondaryColor(0x332f33).iconSet(SHINY)
                 .flags(DECOMPOSITION_BY_CENTRIFUGING)
                 .components(Samarium, 1, Iron, 1, Arsenic, 1, Oxygen, 1)
-                .cableProperties(GTValues.V[GTValues.IV], 6, 0, true, 30)
-                .blastTemp(5200, GasTier.MID, GTValues.VA[GTValues.EV], 1500)
+                .cableProperties(V[IV], 6, 0, true, 30)
+                .blast(b -> b.temp(5200, GasTier.MID)
+                        .blastStats(VA[EV], 1500)
+                        .vacuumStats(VA[IV], 200))
                 .buildAndRegister();
 
         IndiumTinBariumTitaniumCuprate = new Material.Builder(GTCEu.id("indium_tin_barium_titanium_cuprate"))
@@ -1350,8 +1396,10 @@ public class FirstDegreeMaterials {
                 .color(0x686760).secondaryColor(0x673300).iconSet(METALLIC)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING, GENERATE_FINE_WIRE)
                 .components(Indium, 4, Tin, 2, Barium, 2, Titanium, 1, Copper, 7, Oxygen, 14)
-                .cableProperties(GTValues.V[GTValues.LuV], 8, 0, true, 5)
-                .blastTemp(6000, GasTier.HIGH, GTValues.VA[GTValues.IV], 1000)
+                .cableProperties(V[LuV], 8, 0, true, 5)
+                .blast(b -> b.temp(6000, GasTier.HIGH)
+                        .blastStats(VA[IV], 1000)
+                        .vacuumStats(VA[LuV]))
                 .buildAndRegister();
 
         UraniumRhodiumDinaquadide = new Material.Builder(GTCEu.id("uranium_rhodium_dinaquadide"))
@@ -1360,8 +1408,10 @@ public class FirstDegreeMaterials {
                 .color(0x232020).secondaryColor(0xff009c).iconSet(RADIOACTIVE)
                 .flags(DECOMPOSITION_BY_CENTRIFUGING, GENERATE_FINE_WIRE)
                 .components(Uranium238, 1, Rhodium, 1, Naquadah, 2)
-                .cableProperties(GTValues.V[GTValues.ZPM], 8, 0, true, 5)
-                .blastTemp(9000, GasTier.HIGH, GTValues.VA[GTValues.IV], 1500)
+                .cableProperties(V[ZPM], 8, 0, true, 5)
+                .blast(b -> b.temp(9000, GasTier.HIGH)
+                        .blastStats(VA[IV], 1500)
+                        .vacuumStats(VA[ZPM], 200))
                 .buildAndRegister()
                 .setFormula("URhNq2", true);
 
@@ -1372,8 +1422,10 @@ public class FirstDegreeMaterials {
                 .color(0xc6b083).secondaryColor(0x45063d).iconSet(METALLIC)
                 .flags(DECOMPOSITION_BY_CENTRIFUGING, GENERATE_FINE_WIRE)
                 .components(NaquadahEnriched, 4, Trinium, 3, Europium, 2, Duranium, 1)
-                .cableProperties(GTValues.V[GTValues.UV], 16, 0, true, 3)
-                .blastTemp(9900, GasTier.HIGH, GTValues.VA[GTValues.LuV], 1000)
+                .cableProperties(V[UV], 16, 0, true, 3)
+                .blast(b -> b.temp(9900, GasTier.HIGH)
+                        .blastStats(VA[LuV], 1200)
+                        .vacuumStats(VA[UV], 200))
                 .buildAndRegister();
 
         RutheniumTriniumAmericiumNeutronate = new Material.Builder(GTCEu.id("ruthenium_trinium_americium_neutronate"))
@@ -1382,8 +1434,10 @@ public class FirstDegreeMaterials {
                 .color(0x897b76).secondaryColor(0x00c0ff).iconSet(RADIOACTIVE)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
                 .components(Ruthenium, 1, Trinium, 2, Americium, 1, Neutronium, 2, Oxygen, 8)
-                .cableProperties(GTValues.V[GTValues.UHV], 24, 0, true, 3)
-                .blastTemp(10800, GasTier.HIGHER)
+                .cableProperties(V[UHV], 24, 0, true, 3)
+                .blast(b -> b.temp(10800, GasTier.HIGHER)
+                        .blastStats(VA[ZPM], 1000)
+                        .vacuumStats(VA[UHV], 200))
                 .buildAndRegister();
 
         InertMetalMixture = new Material.Builder(GTCEu.id("inert_metal_mixture"))
@@ -1497,7 +1551,7 @@ public class FirstDegreeMaterials {
         Pyrochlore = new Material.Builder(GTCEu.id("pyrochlore"))
                 .dust().ore()
                 .color(0x5b4838).secondaryColor(0x331400).iconSet(METALLIC)
-                .components(Calcium, 2, Niobium, 2, Oxygen, 7)
+                .components(Calcium, 2, Niobium, 2, Oxygen, 6, Fluorine, 1)
                 .buildAndRegister();
 
         PotassiumHydroxide = new Material.Builder(GTCEu.id("potassium_hydroxide"))
@@ -1544,7 +1598,7 @@ public class FirstDegreeMaterials {
         CalciumCarbonate = new Material.Builder(GTCEu.id("calcium_carbonate"))
                 .dust()
                 .color(0xd9ca9c).secondaryColor(0xad913b)
-                .components(Calcium, 2, Carbon, 1, Oxygen, 3)
+                .components(Calcium, 1, Carbon, 1, Oxygen, 3)
                 .buildAndRegister();
 
         PotassiumCyanide = new Material.Builder(GTCEu.id("potassium_cyanide"))
@@ -1562,7 +1616,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         FormicAcid = new Material.Builder(GTCEu.id("formic_acid"))
-                .gas()
+                .liquid(new FluidBuilder().attribute(FluidAttributes.ACID))
                 .color(0xa6a6a6)
                 .components(Carbon, 1, Hydrogen, 2, Oxygen, 2)
                 .hazard(HazardProperty.HazardTrigger.INHALATION, GTMedicalConditions.CHEMICAL_BURNS)
@@ -1598,27 +1652,6 @@ public class FirstDegreeMaterials {
                 .components(Carbon, 2, Hydrogen, 3, Nitrogen, 1, Oxygen, 1)
                 .buildAndRegister();
 
-        AcidicBromineSolution = new Material.Builder(GTCEu.id("acidic_bromine_solution"))
-                .liquid()
-                .color(0xc49b52)
-                .components(Chlorine, 1, Bromine, 1)
-                .flags(DISABLE_DECOMPOSITION)
-                .buildAndRegister();
-
-        ConcentratedBromineSolution = new Material.Builder(GTCEu.id("concentrated_bromine_solution"))
-                .liquid()
-                .color(0x91481e)
-                .components(Bromine, 2, Chlorine, 1)
-                .flags(DISABLE_DECOMPOSITION)
-                .buildAndRegister();
-
-        HydrogenIodide = new Material.Builder(GTCEu.id("hydrogen_iodide"))
-                .gas()
-                .color(0x8187a6)
-                .components(Hydrogen, 1, Iodine, 1)
-                .flags(DISABLE_DECOMPOSITION)
-                .buildAndRegister();
-
         DiethylenetriaminePentaacetonitrile = new Material.Builder(GTCEu.id("diethylenetriamine_pentaacetonitrile"))
                 .liquid()
                 .color(0xcbbfd6)
@@ -1638,6 +1671,18 @@ public class FirstDegreeMaterials {
                 .color(0xcfbf65).secondaryColor(0x85600b)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
                 .components(Sodium, 1, Nitrogen, 1, Oxygen, 2)
+                .buildAndRegister();
+
+        HydrogenPeroxide = new Material.Builder(GTCEu.id("hydrogen_peroxide"))
+                .liquid()
+                .color(0x0cbdd7)
+                .components(Hydrogen, 2, Oxygen, 2)
+                .hazard(HazardProperty.HazardTrigger.ANY, GTMedicalConditions.CHEMICAL_BURNS, true)
+                .buildAndRegister();
+
+        IlmeniteSlag = new Material.Builder(GTCEu.id("ilmenite_slag"))
+                .dust()
+                .color(0x8B0000).iconSet(SAND)
                 .buildAndRegister();
     }
 }

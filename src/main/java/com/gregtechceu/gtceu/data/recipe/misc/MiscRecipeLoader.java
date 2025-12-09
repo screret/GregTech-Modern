@@ -2,14 +2,17 @@ package com.gregtechceu.gtceu.data.recipe.misc;
 
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterials.Color;
-import com.gregtechceu.gtceu.api.data.chemical.material.stack.UnificationEntry;
+import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
+import com.gregtechceu.gtceu.api.recipe.ingredient.FluidContainerIngredient;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.common.data.GTRecipeCategories;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
 import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,21 +34,25 @@ public class MiscRecipeLoader {
     public static void init(Consumer<FinishedRecipe> provider) {
         // Basic Terminal Recipe
         VanillaRecipeHelper.addShapedRecipe(provider, true, "basic_terminal", TERMINAL.asStack(),
-                "SGS", "PBP", "PWP", 'S', new UnificationEntry(screw, WroughtIron), 'G', Tags.Items.GLASS_PANES, 'B',
+                "SGS", "PBP", "PWP", 'S', new MaterialEntry(screw, WroughtIron), 'G', Tags.Items.GLASS_PANES, 'B',
                 new ItemStack(Items.BOOK),
-                'P', new UnificationEntry(plate, WroughtIron), 'W', new UnificationEntry(wireGtSingle, RedAlloy));
-
+                'P', new MaterialEntry(plate, WroughtIron), 'W', new MaterialEntry(wireGtSingle, RedAlloy));
+        // Machine Memory Card Recipe
+        VanillaRecipeHelper.addShapedRecipe(provider, true, "machine_memory_card", MACHINE_MEMORY_CARD.asStack(),
+                "PWP", "SLS", "PPP", 'P', new MaterialEntry(plate, Steel), 'W',
+                new MaterialEntry(wireGtSingle, Copper), 'S', new MaterialEntry(screw, RedAlloy), 'L',
+                CustomTags.LV_CIRCUITS);
         // Potin Recipe
         VanillaRecipeHelper.addShapelessRecipe(provider, "potin_dust", ChemicalHelper.get(dust, Potin, 8),
-                new UnificationEntry(dust, Copper),
-                new UnificationEntry(dust, Copper),
-                new UnificationEntry(dust, Copper),
-                new UnificationEntry(dust, Copper),
-                new UnificationEntry(dust, Copper),
-                new UnificationEntry(dust, Copper),
-                new UnificationEntry(dust, Tin),
-                new UnificationEntry(dust, Tin),
-                new UnificationEntry(dust, Lead));
+                new MaterialEntry(dust, Copper),
+                new MaterialEntry(dust, Copper),
+                new MaterialEntry(dust, Copper),
+                new MaterialEntry(dust, Copper),
+                new MaterialEntry(dust, Copper),
+                new MaterialEntry(dust, Copper),
+                new MaterialEntry(dust, Tin),
+                new MaterialEntry(dust, Tin),
+                new MaterialEntry(dust, Lead));
 
         MIXER_RECIPES.recipeBuilder("fermented_spider_eye_brown").duration(100).EUt(VA[ULV])
                 .inputItems(dust, Sugar)
@@ -82,109 +89,97 @@ public class MiscRecipeLoader {
         ROCK_BREAKER_RECIPES.recipeBuilder("cobblestone")
                 .notConsumable(Blocks.COBBLESTONE.asItem())
                 .outputItems(Blocks.COBBLESTONE.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VA[ULV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("stone")
                 .notConsumable(Blocks.STONE.asItem())
                 .outputItems(Blocks.STONE.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VA[ULV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("andesite")
                 .notConsumable(Blocks.ANDESITE.asItem())
                 .outputItems(Blocks.ANDESITE.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[MV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("granite")
                 .notConsumable(Blocks.GRANITE.asItem())
                 .outputItems(Blocks.GRANITE.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[MV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("diorite")
                 .notConsumable(Blocks.DIORITE.asItem())
                 .outputItems(Blocks.DIORITE.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[MV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("obsidian")
                 .notConsumable(dust, Redstone)
                 .outputItems(Blocks.OBSIDIAN.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[HV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("basalt")
                 .notConsumable(Blocks.BASALT.asItem())
                 .outputItems(Blocks.BASALT.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[HV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("blackstone")
                 .notConsumable(Blocks.BLACKSTONE.asItem())
                 .outputItems(Blocks.BLACKSTONE.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[HV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("deepslate")
                 .notConsumable(Blocks.DEEPSLATE.asItem())
                 .outputItems(Blocks.DEEPSLATE.asItem())
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[EV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("marble")
                 .notConsumable(rock, Marble)
                 .outputItems(rock, Marble)
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[HV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("basalt")
                 .notConsumable(rock, Basalt)
                 .outputItems(rock, Basalt)
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[HV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         ROCK_BREAKER_RECIPES.recipeBuilder("red_granite")
                 .notConsumable(rock, GraniteRed)
                 .outputItems(rock, GraniteRed)
+                .adjacentFluidTag(FluidTags.LAVA, FluidTags.WATER)
                 .duration(16)
                 .EUt(VHA[EV])
-                .addData("fluidA", "minecraft:lava")
-                .addData("fluidB", "minecraft:water")
                 .save(provider);
 
         // Jetpacks
@@ -195,6 +190,7 @@ public class MiscRecipeLoader {
                 .inputItems(rotor, Steel)
                 .inputItems(cableGtSingle, Copper, 2)
                 .outputItems(POWER_THRUSTER)
+                .addMaterialInfo(true)
                 .save(provider);
 
         ASSEMBLER_RECIPES.recipeBuilder("power_thruster_advanced").duration(200).EUt(30)
@@ -204,6 +200,7 @@ public class MiscRecipeLoader {
                 .inputItems(rotor, Chromium)
                 .inputItems(cableGtSingle, Gold, 2)
                 .outputItems(POWER_THRUSTER_ADVANCED)
+                .addMaterialInfo(true)
                 .save(provider);
 
         // QuarkTech Suite
@@ -219,6 +216,7 @@ public class MiscRecipeLoader {
                 .inputItems(wireFine, Rhodium, 32)
                 .inputFluids(Titanium.getFluid(L * 10))
                 .outputItems(QUANTUM_HELMET)
+                .addMaterialInfo(true, true)
                 .save(provider);
 
         ASSEMBLER_RECIPES.recipeBuilder("quantum_chestplate").duration(1500).EUt(VA[IV])
@@ -233,6 +231,7 @@ public class MiscRecipeLoader {
                 .inputItems(wireFine, Rhodium, 48)
                 .inputFluids(Titanium.getFluid(L * 16))
                 .outputItems(QUANTUM_CHESTPLATE)
+                .addMaterialInfo(true, true)
                 .save(provider);
 
         ASSEMBLER_RECIPES.recipeBuilder("quantum_leggings").duration(1500).EUt(VA[IV])
@@ -247,6 +246,7 @@ public class MiscRecipeLoader {
                 .inputItems(wireFine, Rhodium, 40)
                 .inputFluids(Titanium.getFluid(L * 14))
                 .outputItems(QUANTUM_LEGGINGS)
+                .addMaterialInfo(true, true)
                 .save(provider);
 
         ASSEMBLER_RECIPES.recipeBuilder("quantum_boots").duration(1500).EUt(VA[IV])
@@ -261,6 +261,7 @@ public class MiscRecipeLoader {
                 .inputItems(wireFine, Rhodium, 16)
                 .inputFluids(Titanium.getFluid(L * 8))
                 .outputItems(QUANTUM_BOOTS)
+                .addMaterialInfo(true, true)
                 .save(provider);
 
         ASSEMBLY_LINE_RECIPES.recipeBuilder("quantum_chestplate_advanced").duration(1000).EUt(VA[LuV])
@@ -277,6 +278,7 @@ public class MiscRecipeLoader {
                 .inputItems(ELECTRIC_MOTOR_LuV, 2)
                 .inputItems(screw, HSSS, 8)
                 .outputItems(QUANTUM_CHESTPLATE_ADVANCED)
+                .addMaterialInfo(true, true)
                 .save(provider);
 
         // TODO Central monitor
@@ -384,11 +386,13 @@ public class MiscRecipeLoader {
             EXTRACTOR_RECIPES.recipeBuilder("extract_" + item.get()).EUt(VA[LV]).duration(15)
                     .inputItems(item)
                     .outputFluids(Glass.getFluid(108))
+                    .category(GTRecipeCategories.EXTRACTOR_RECYCLING)
                     .save(provider);
 
-            MACERATOR_RECIPES.recipeBuilder("macerate_" + item.get()).duration(15)
+            MACERATOR_RECIPES.recipeBuilder("macerate_" + item.get()).EUt(VA[LV]).duration(15)
                     .inputItems(item)
                     .outputItems(dustSmall, Glass, 3)
+                    .category(GTRecipeCategories.MACERATOR_RECYCLING)
                     .save(provider);
         }
 
@@ -401,47 +405,27 @@ public class MiscRecipeLoader {
 
         // Dyed Lens Recipes
         GTRecipeBuilder builder = CHEMICAL_BATH_RECIPES.recipeBuilder("").EUt(VA[HV]).duration(200).inputItems(lens,
-                Glass);
+                Glass).category(GTRecipeCategories.CHEM_DYES);
         final int dyeAmount = 288;
+
+        // skip white lens
+        for (int i = 1; i < CHEMICAL_DYES.length; i++) {
+            builder.copy(CHEMICAL_DYES[i].getName() + "_lens").inputFluids(CHEMICAL_DYES[i].getFluid(dyeAmount))
+                    .outputItems(GLASS_LENSES.get(Color.VALUES[i]))
+                    .save(provider);
+        }
 
         builder.copy("colorless_lens").inputFluids(DyeWhite.getFluid(dyeAmount)).outputItems(lens, Glass)
                 .save(provider);
-        builder.copy("orange_lens").inputFluids(DyeOrange.getFluid(dyeAmount))
-                .outputItems(GLASS_LENSES.get(Color.Orange)).save(provider);
-        builder.copy("magenta_lens").inputFluids(DyeMagenta.getFluid(dyeAmount))
-                .outputItems(GLASS_LENSES.get(Color.Magenta)).save(provider);
-        builder.copy("light_blue_lens").inputFluids(DyeLightBlue.getFluid(dyeAmount))
-                .outputItems(GLASS_LENSES.get(Color.LightBlue)).save(provider);
-        builder.copy("yellow_lens").inputFluids(DyeYellow.getFluid(dyeAmount))
-                .outputItems(GLASS_LENSES.get(Color.Yellow)).save(provider);
-        builder.copy("lime_lens").inputFluids(DyeLime.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Lime))
-                .save(provider);
-        builder.copy("pink_lens").inputFluids(DyePink.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Pink))
-                .save(provider);
-        builder.copy("gray_lens").inputFluids(DyeGray.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Gray))
-                .save(provider);
-        builder.copy("light_gray_lens").inputFluids(DyeLightGray.getFluid(dyeAmount))
-                .outputItems(GLASS_LENSES.get(Color.LightGray)).save(provider);
-        builder.copy("cyan_lens").inputFluids(DyeCyan.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Cyan))
-                .save(provider);
-        builder.copy("purple_lens").inputFluids(DyePurple.getFluid(dyeAmount))
-                .outputItems(GLASS_LENSES.get(Color.Purple)).save(provider);
-        builder.copy("blue_lens").inputFluids(DyeBlue.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Blue))
-                .save(provider);
-        builder.copy("brown_lens").inputFluids(DyeBrown.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Brown))
-                .save(provider);
-        builder.copy("green_lens").inputFluids(DyeGreen.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Green))
-                .save(provider);
-        builder.copy("red_lens").inputFluids(DyeRed.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Red))
-                .save(provider);
-        builder.copy("black_lens").inputFluids(DyeBlack.getFluid(dyeAmount)).outputItems(GLASS_LENSES.get(Color.Black))
-                .save(provider);
+        VanillaRecipeHelper.addShapelessRecipe(provider, "brown_dye_from_metal_mixture", new ItemStack(Items.BROWN_DYE),
+                new MaterialEntry(dust, MetalMixture));
 
         // NAN Certificate
         EXTRUDER_RECIPES.recipeBuilder("nan_certificate")
                 .inputItems(block, Neutronium, 64)
                 .inputItems(block, Neutronium, 64)
                 .outputItems(NAN_CERTIFICATE)
+                .addMaterialInfo(true)
                 .duration(Integer.MAX_VALUE).EUt(VA[ULV]).save(provider);
 
         // Fertilizer
@@ -506,11 +490,11 @@ public class MiscRecipeLoader {
         if (!ConfigHolder.INSTANCE.recipes.hardMiscRecipes) {
             VanillaRecipeHelper.addShapedRecipe(provider, "flour_to_dough", new ItemStack(DOUGH, 8),
                     "FFF", "FWF", "FFF",
-                    'F', ChemicalHelper.get(dust, Wheat),
+                    'F', CustomTags.WHEAT_GRAINS,
                     'W', Water.getBucket());
 
             MIXER_RECIPES.recipeBuilder("flour_to_dough")
-                    .inputItems(dust, Wheat, 2)
+                    .inputItems(CustomTags.WHEAT_GRAINS, 2)
                     .inputFluids(Water.getFluid(250))
                     .outputItems(DOUGH, 3)
                     .EUt(VA[ULV])
@@ -518,14 +502,14 @@ public class MiscRecipeLoader {
                     .save(provider);
 
             VanillaRecipeHelper.addShapelessRecipe(provider, "pumpkin_pie_from_dough", new ItemStack(Items.PUMPKIN_PIE),
-                    new ItemStack(Blocks.PUMPKIN), new ItemStack(Items.SUGAR), new ItemStack(DOUGH));
+                    new ItemStack(Blocks.PUMPKIN), new ItemStack(Items.SUGAR), CustomTags.DOUGHS);
 
             VanillaRecipeHelper.addShapelessRecipe(provider, "cookie_from_dough", new ItemStack(Items.COOKIE, 8),
-                    new ItemStack(DOUGH), new ItemStack(Items.COCOA_BEANS));
+                    CustomTags.DOUGHS, new ItemStack(Items.COCOA_BEANS));
 
             FORMING_PRESS_RECIPES.recipeBuilder("cookie")
                     .notConsumable(SHAPE_MOLD_CYLINDER)
-                    .inputItems(DOUGH)
+                    .inputItems(CustomTags.DOUGHS)
                     .inputItems(Items.COCOA_BEANS, 2)
                     .outputItems(Items.COOKIE, 12)
                     .EUt(VA[LV])
@@ -536,16 +520,16 @@ public class MiscRecipeLoader {
                     "MMM", "SES", " D ",
                     'E', Items.EGG,
                     'S', Items.SUGAR,
-                    'M', Items.MILK_BUCKET,
-                    'D', DOUGH);
+                    'M', new FluidContainerIngredient(Milk.getFluidTag(), 1000),
+                    'D', CustomTags.DOUGHS);
         } else {
             VanillaRecipeHelper.addShapedRecipe(provider, "flour_to_dough", new ItemStack(DOUGH, 4),
                     "FFF", "FWF", "FFF",
-                    'F', ChemicalHelper.get(dust, Wheat),
+                    'F', CustomTags.WHEAT_GRAINS,
                     'W', Water.getBucket());
 
             MIXER_RECIPES.recipeBuilder("flour_to_dough")
-                    .inputItems(dust, Wheat, 4)
+                    .inputItems(CustomTags.WHEAT_GRAINS, 4)
                     .inputItems(Items.EGG, 2)
                     .inputFluids(Milk.getFluid(250)) // 1 bucket = 1000mB, hence 250mb. Also its infinitely renewable
                     .outputItems(DOUGH, 7)
@@ -554,14 +538,14 @@ public class MiscRecipeLoader {
                     .save(provider);
 
             VanillaRecipeHelper.addShapelessRecipe(provider, "pumpkin_pie_from_dough", new ItemStack(Items.PUMPKIN_PIE),
-                    new ItemStack(Blocks.PUMPKIN), new ItemStack(DOUGH), new ItemStack(Items.SUGAR), 'r', 'k');
+                    new ItemStack(Blocks.PUMPKIN), CustomTags.DOUGHS, new ItemStack(Items.SUGAR), 'r', 'k');
 
             VanillaRecipeHelper.addShapelessRecipe(provider, "cookie", new ItemStack(Items.COOKIE, 4),
-                    new ItemStack(Items.COCOA_BEANS), new ItemStack(DOUGH), new ItemStack(Items.SUGAR), 'r');
+                    new ItemStack(Items.COCOA_BEANS), CustomTags.DOUGHS, new ItemStack(Items.SUGAR), 'r');
 
             FORMING_PRESS_RECIPES.recipeBuilder("cookie")
                     .notConsumable(SHAPE_MOLD_CYLINDER)
-                    .inputItems(DOUGH)
+                    .inputItems(CustomTags.DOUGHS)
                     .inputItems(Items.COCOA_BEANS, 2)
                     .inputItems(Items.SUGAR)
                     .outputItems(Items.COOKIE, 8)
@@ -573,13 +557,13 @@ public class MiscRecipeLoader {
                     "BBB", "SMS", "DDD",
                     'B', Items.SWEET_BERRIES,
                     'S', Items.SUGAR,
-                    'M', Items.MILK_BUCKET,
-                    'D', DOUGH);
+                    'M', new FluidContainerIngredient(Milk.getFluidTag(), 1000),
+                    'D', CustomTags.DOUGHS);
         }
 
         FORMING_PRESS_RECIPES.recipeBuilder("pumpkin_pie")
                 .notConsumable(SHAPE_MOLD_CYLINDER)
-                .inputItems(DOUGH, 2)
+                .inputItems(CustomTags.DOUGHS, 2)
                 .inputItems(Items.PUMPKIN)
                 .inputItems(Items.SUGAR)
                 .outputItems(Items.PUMPKIN_PIE, 2)
@@ -625,12 +609,19 @@ public class MiscRecipeLoader {
                 .inputItems(rod, Iron)
                 .inputItems(ring, Iron, 2)
                 .outputItems(IRON_MINECART_WHEELS)
-                .duration(100).EUt(20).save(provider);
+                .duration(100).EUt(20)
+                .addMaterialInfo(true).save(provider);
 
         ASSEMBLER_RECIPES.recipeBuilder("steel_minecart_wheels")
                 .inputItems(rod, Steel)
                 .inputItems(ring, Steel, 2)
                 .outputItems(STEEL_MINECART_WHEELS)
                 .duration(60).EUt(20).save(provider);
+
+        // Bookshelf Decomposition
+        MACERATOR_RECIPES.recipeBuilder("chiseled_bookshelf_recycling")
+                .inputItems(Blocks.CHISELED_BOOKSHELF.asItem())
+                .outputItems(dust, Wood, 6)
+                .duration(100).EUt(2).save(provider);
     }
 }

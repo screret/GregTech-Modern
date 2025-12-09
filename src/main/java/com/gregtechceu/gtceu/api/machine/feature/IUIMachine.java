@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.feature;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.factory.MachineUIFactory;
 
-import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -12,9 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * @author KilaBash
- * @date 2023/2/17
- * @implNote A machine that has gui. can be opened via right click.
+ * A machine that has gui. can be opened via right click.
  */
 public interface IUIMachine extends IUIHolder, IMachineFeature {
 
@@ -41,7 +39,7 @@ public interface IUIMachine extends IUIHolder, IMachineFeature {
     @Override
     default boolean isRemote() {
         var level = self().getLevel();
-        return level == null ? LDLib.isRemote() : level.isClientSide;
+        return level == null ? GTCEu.isClientThread() : level.isClientSide;
     }
 
     @Override

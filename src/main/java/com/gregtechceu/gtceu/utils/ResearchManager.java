@@ -8,28 +8,28 @@ import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.ingredient.EnergyStack;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
-import com.lowdragmc.lowdraglib.misc.ItemTransferList;
-import com.lowdragmc.lowdraglib.side.item.IItemTransfer;
-
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 
-import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 
 public final class ResearchManager {
@@ -70,16 +70,12 @@ public final class ResearchManager {
      * @return the research id
      */
     @Nullable
-    public static Pair<GTRecipeType, String> readResearchId(@NotNull ItemStack stack) {
+    public static ResearchItem readResearchId(@NotNull ItemStack stack) {
         CompoundTag compound = stack.getTag();
         if (!hasResearchTag(compound)) return null;
 
         CompoundTag researchCompound = compound.getCompound(RESEARCH_NBT_TAG);
-        String researchId = researchCompound.getString(RESEARCH_ID_NBT_TAG);
-        ResourceLocation researchRecipeType = ResourceLocation
-                .tryParse(researchCompound.getString(RESEARCH_TYPE_NBT_TAG));
-        return researchId.isEmpty() || researchRecipeType == null ? null :
-                Pair.of(GTRegistries.RECIPE_TYPES.get(researchRecipeType), researchId);
+        return ResearchItem.CODEC.parse(NbtOps.INSTANCE, researchCompound).result().orElse(null);
     }
 
     /**
@@ -125,38 +121,61 @@ public final class ResearchManager {
         if (!ConfigHolder.INSTANCE.machines.enableResearch) return;
 
         for (GTRecipeBuilder.ResearchRecipeEntry entry : builder.researchRecipeEntries()) {
-            createDefaultResearchRecipe(builder.recipeType, entry.researchId(), entry.researchStack(),
+            if (entry.researchItem().isEmpty() && entry.researchFluid().isEmpty())
+                throw new IllegalStateException("Both entry types in the research entry are null!");
+
+            createDefaultResearchRecipe(builder.recipeType, entry.researchId(), entry.researchItem(),
+                    entry.researchFluid(),
                     entry.dataStack(), entry.duration(), entry.EUt(), entry.CWUt(), provider);
         }
     }
 
     public static void createDefaultResearchRecipe(@NotNull GTRecipeType recipeType, @NotNull String researchId,
-                                                   @NotNull ItemStack researchItem, @NotNull ItemStack dataItem,
-                                                   int duration, int EUt, int CWUt, Consumer<FinishedRecipe> provider) {
+                                                   @NotNull ItemStack researchItem, @NotNull FluidStack researchFluid,
+                                                   @NotNull ItemStack dataItem,
+                                                   int duration, EnergyStack eut, int CWUt,
+                                                   Consumer<FinishedRecipe> provider) {
         if (!ConfigHolder.INSTANCE.machines.enableResearch) return;
 
         CompoundTag compound = dataItem.getOrCreateTag();
         writeResearchToNBT(compound, researchId, recipeType);
 
         if (CWUt > 0) {
-            GTRecipeTypes.RESEARCH_STATION_RECIPES.recipeBuilder(FormattingUtil.toLowerCaseUnderscore(researchId))
-                    .inputItems(dataItem.getItem())
-                    .inputItems(researchItem)
-                    .outputItems(dataItem)
-                    .EUt(EUt)
+            var builder = GTRecipeTypes.RESEARCH_STATION_RECIPES
+                    .recipeBuilder(researchId)
+                    .inputItems(dataItem.getItem());
+
+            if (!researchItem.isEmpty()) builder.inputItems(researchItem);
+            if (!researchFluid.isEmpty()) builder.inputFluids(researchFluid);
+
+            builder.outputItems(dataItem)
+                    .EUt(eut.voltage(), eut.amperage())
                     .CWUt(CWUt)
                     .totalCWU(duration)
                     .save(provider);
         } else {
-            GTRecipeTypes.SCANNER_RECIPES.recipeBuilder(FormattingUtil.toLowerCaseUnderscore(researchId))
-                    .inputItems(dataItem.getItem())
-                    .inputItems(researchItem)
-                    .outputItems(dataItem)
+            var builder = GTRecipeTypes.SCANNER_RECIPES.recipeBuilder(FormattingUtil.toLowerCaseUnderscore(researchId))
+                    .inputItems(dataItem.getItem());
+
+            if (!researchItem.isEmpty()) builder.inputItems(researchItem);
+            if (!researchFluid.isEmpty()) builder.inputFluids(researchFluid);
+
+            builder.outputItems(dataItem)
                     .duration(duration)
-                    .EUt(EUt)
+                    .EUt(eut.voltage(), eut.amperage())
                     .researchScan(true)
                     .save(provider);
         }
+    }
+
+    public record ResearchItem(@NotNull String researchId, @NotNull GTRecipeType recipeType) {
+
+        // spotless:off
+        public static final Codec<ResearchItem> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("research_id").forGetter(ResearchItem::researchId),
+                GTRegistries.RECIPE_TYPES.codec().fieldOf("research_type").forGetter(ResearchItem::recipeType)
+        ).apply(instance, ResearchItem::new));
+        // spotless:on
     }
 
     public static class DataStickCopyScannerLogic implements GTRecipeType.ICustomRecipeLogic {
@@ -166,10 +185,11 @@ public final class ResearchManager {
 
         @Override
         public GTRecipe createCustomRecipe(IRecipeCapabilityHolder holder) {
-            var itemInputs = holder.getCapabilitiesProxy().get(IO.IN, ItemRecipeCapability.CAP).stream()
-                    .filter(IItemTransfer.class::isInstance).map(IItemTransfer.class::cast)
-                    .toArray(IItemTransfer[]::new);
-            var inputs = new ItemTransferList(itemInputs);
+            var itemInputs = holder.getCapabilitiesFlat(IO.IN, ItemRecipeCapability.CAP).stream()
+                    .filter(IItemHandlerModifiable.class::isInstance)
+                    .map(IItemHandlerModifiable.class::cast)
+                    .toArray(IItemHandlerModifiable[]::new);
+            var inputs = new CombinedInvWrapper(itemInputs);
             if (inputs.getSlots() > 1) {
                 // try the data recipe both ways, prioritizing overwriting the first
                 GTRecipe recipe = createDataRecipe(inputs.getStackInSlot(0), inputs.getStackInSlot(1));
@@ -194,25 +214,29 @@ public final class ResearchManager {
                     .inputItems(first)
                     .notConsumable(second)
                     .outputItems(output)
-                    .duration(DURATION).EUt(EUT).buildRawRecipe();
+                    .duration(DURATION).EUt(EUT)
+                    .buildRawRecipe();
         }
 
-        @Nullable
         @Override
-        public List<GTRecipe> getRepresentativeRecipes() {
+        public void buildRepresentativeRecipes() {
             ItemStack copiedStick = GTItems.TOOL_DATA_STICK.asStack();
             copiedStick.setHoverName(Component.translatable("gtceu.scanner.copy_stick_from"));
             ItemStack emptyStick = GTItems.TOOL_DATA_STICK.asStack();
             emptyStick.setHoverName(Component.translatable("gtceu.scanner.copy_stick_empty"));
             ItemStack resultStick = GTItems.TOOL_DATA_STICK.asStack();
             resultStick.setHoverName(Component.translatable("gtceu.scanner.copy_stick_to"));
-            return Collections.singletonList(
-                    GTRecipeTypes.SCANNER_RECIPES.recipeBuilder("copy_" + GTStringUtils.itemStackToString(copiedStick))
-                            .inputItems(emptyStick)
-                            .notConsumable(copiedStick)
-                            .outputItems(resultStick)
-                            .duration(DURATION).EUt(EUT)
-                            .buildRawRecipe());
+
+            GTRecipe recipe = GTRecipeTypes.SCANNER_RECIPES
+                    .recipeBuilder("copy_" + GTStringUtils.itemStackToString(copiedStick))
+                    .inputItems(emptyStick)
+                    .notConsumable(copiedStick)
+                    .outputItems(resultStick)
+                    .duration(DURATION).EUt(EUT)
+                    .buildRawRecipe();
+            // for EMI to detect it's a synthetic recipe (not ever in JSON)
+            recipe.setId(recipe.getId().withPrefix("/"));
+            GTRecipeTypes.SCANNER_RECIPES.addToMainCategory(recipe);
         }
     }
 }

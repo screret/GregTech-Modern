@@ -6,32 +6,17 @@ import com.gregtechceu.gtceu.api.capability.recipe.IRecipeCapabilityHolder;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.logic.OCParams;
-import com.gregtechceu.gtceu.api.recipe.logic.OCResult;
+import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @author KilaBash
- * @date 2023/2/20
- * @implNote IRecipeMachine
- *           A machine can handle recipes.
+ * A machine can handle recipes.
  */
 public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFeature, IWorkable, ICleanroomReceiver,
                                      IVoidable {
-
-    @Override
-    default int getChanceTier() {
-        if (self() instanceof IOverclockMachine ocMachine) {
-            return ocMachine.getOverclockTier();
-        } else if (self() instanceof ITieredMachine tieredMachine) {
-            return tieredMachine.getTier();
-        }
-
-        return self().getDefinition().getTier();
-    }
 
     /**
      * RecipeType held
@@ -57,20 +42,20 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFe
     @NotNull
     RecipeLogic getRecipeLogic();
 
-    default GTRecipe fullModifyRecipe(GTRecipe recipe, @NotNull OCParams params, @NotNull OCResult result) {
-        return doModifyRecipe(recipe.trimRecipeOutputs(this.getOutputLimits()), params, result);
+    default GTRecipe fullModifyRecipe(GTRecipe recipe) {
+        return doModifyRecipe(RecipeHelper.trimRecipeOutputs(recipe, this.getOutputLimits()));
     }
 
     /**
      * Override it to modify recipe on the fly e.g. applying overclock, change chance, etc
-     * 
+     *
      * @param recipe recipe from detected from GTRecipeType
      * @return modified recipe.
      *         null -- this recipe is unavailable
      */
     @Nullable
-    default GTRecipe doModifyRecipe(GTRecipe recipe, @NotNull OCParams params, @NotNull OCResult result) {
-        return self().getDefinition().getRecipeModifier().apply(self(), recipe, params, result);
+    default GTRecipe doModifyRecipe(GTRecipe recipe) {
+        return self().getDefinition().getRecipeModifier().applyModifier(self(), recipe);
     }
 
     /**
@@ -120,12 +105,12 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFe
     /**
      * Whether progress decrease when machine is waiting for pertick ingredients. (e.g. lack of EU)
      */
-    default boolean dampingWhenWaiting() {
-        return true;
+    default boolean regressWhenWaiting() {
+        return self().getDefinition().isRegressWhenWaiting();
     }
 
     /**
-     * Always try {@link IRecipeLogicMachine#fullModifyRecipe(GTRecipe, OCParams, OCResult)} before setting up recipe.
+     * Always try {@link IRecipeLogicMachine#fullModifyRecipe(GTRecipe)} before setting up recipe.
      * 
      * @return true - will map {@link RecipeLogic#lastOriginRecipe} to the latest recipe for next round when finishing.
      *         false - keep using the {@link RecipeLogic#lastRecipe}, which is already modified.
@@ -152,6 +137,16 @@ public interface IRecipeLogicMachine extends IRecipeCapabilityHolder, IMachineFe
     @Override
     default void setWorkingEnabled(boolean isWorkingAllowed) {
         getRecipeLogic().setWorkingEnabled(isWorkingAllowed);
+    }
+
+    @Override
+    default void setSuspendAfterFinish(boolean suspendAfterFinish) {
+        getRecipeLogic().setSuspendAfterFinish(suspendAfterFinish);
+    }
+
+    @Override
+    default boolean isSuspendAfterFinish() {
+        return getRecipeLogic().isSuspendAfterFinish();
     }
 
     @Override

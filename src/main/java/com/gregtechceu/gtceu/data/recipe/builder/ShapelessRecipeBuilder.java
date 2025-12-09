@@ -1,8 +1,7 @@
 package com.gregtechceu.gtceu.data.recipe.builder;
 
-import com.gregtechceu.gtceu.api.recipe.ingredient.NBTIngredient;
+import com.gregtechceu.gtceu.GTCEu;
 
-import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.utils.NBTToJsonConverter;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
+import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -26,11 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * @author KilaBash
- * @date 2023/2/21
- * @implNote SmeltingRecipeBuilder
- */
 @Accessors(chain = true, fluent = true)
 public class ShapelessRecipeBuilder {
 
@@ -55,11 +50,7 @@ public class ShapelessRecipeBuilder {
     }
 
     public ShapelessRecipeBuilder requires(ItemStack itemStack) {
-        if (itemStack.hasTag() || itemStack.getDamageValue() > 0) {
-            requires(NBTIngredient.createNBTIngredient(itemStack));
-        } else {
-            requires(Ingredient.of(itemStack));
-        }
+        requires(itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : Ingredient.of(itemStack));
         return this;
     }
 
@@ -106,7 +97,7 @@ public class ShapelessRecipeBuilder {
         json.add("ingredients", jsonarray);
 
         if (output.isEmpty()) {
-            LDLib.LOGGER.error("shapeless recipe {} output is empty", id);
+            GTCEu.LOGGER.error("shapeless recipe {} output is empty", id);
             throw new IllegalArgumentException(id + ": output items is empty");
         } else {
             JsonObject result = new JsonObject();

@@ -32,11 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author KilaBash
- * @date 2023/6/27
- * @implNote ConfiguratorPanel
- */
 public class ConfiguratorPanel extends WidgetGroup {
 
     @Getter
@@ -185,7 +180,24 @@ public class ConfiguratorPanel extends WidgetGroup {
         public Tab(IFancyConfigurator configurator) {
             super(0, tabs.size() * (getTabSize() + 2), getTabSize(), getTabSize());
             this.configurator = configurator;
-            this.button = new ButtonWidget(0, 0, getTabSize(), getTabSize(), null, this::onClick);
+            this.button = new ButtonWidget(0, 0, getTabSize(), getTabSize(), null, this::onClick) {
+
+                @Override
+                public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
+                    if (!(configurator instanceof IFancyCustomMouseWheelAction hasActions)) return false;
+                    if (isMouseOverElement(mouseX, mouseY))
+                        return hasActions.mouseWheelMove(this::writeClientAction, mouseX, mouseY, wheelDelta);
+                    return false;
+                }
+
+                @Override
+                public void handleClientAction(int id, FriendlyByteBuf buffer) {
+                    if (configurator instanceof IFancyCustomClientActionHandler handler && id > 1)
+                        handler.handleClientAction(id, buffer);
+                    else
+                        super.handleClientAction(id, buffer);
+                }
+            };
             if (configurator instanceof IFancyConfiguratorButton) {
                 this.view = null;
                 this.addWidget(button);
@@ -270,7 +282,9 @@ public class ConfiguratorPanel extends WidgetGroup {
         }
 
         private void onClick(ClickData clickData) {
-            if (configurator instanceof IFancyConfiguratorButton fancyButton) {
+            if (clickData.button == 2 && configurator instanceof IFancyCustomMiddleClickAction middleAction) {
+                middleAction.onMiddleClick(this::writeClientAction);
+            } else if (configurator instanceof IFancyConfiguratorButton fancyButton) {
                 fancyButton.onClick(clickData);
             } else {
                 if (expanded == this) {

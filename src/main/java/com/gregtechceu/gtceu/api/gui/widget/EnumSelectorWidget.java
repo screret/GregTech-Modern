@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 
-import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.CycleButtonWidget;
@@ -37,12 +37,12 @@ public class EnumSelectorWidget<T extends Enum<T> & EnumSelectorWidget.Selectabl
         IGuiTexture getIcon();
     }
 
-    private final CycleButtonWidget buttonWidget;
+    public final CycleButtonWidget buttonWidget;
 
-    private final List<T> values;
-    private final Consumer<T> onChanged;
+    public final List<T> values;
+    public final Consumer<T> onChanged;
 
-    private int selected = 0;
+    public int selected = 0;
 
     private BiFunction<T, IGuiTexture, IGuiTexture> textureSupplier = (value, texture) -> new GuiTextureGroup(
             GuiTextures.VANILLA_BUTTON, texture);
@@ -85,7 +85,7 @@ public class EnumSelectorWidget<T extends Enum<T> & EnumSelectorWidget.Selectabl
         return values.get(selected);
     }
 
-    private IGuiTexture getTexture(int selected) {
+    public IGuiTexture getTexture(int selected) {
         var selectedValue = values.get(selected);
         return textureSupplier.apply(selectedValue, selectedValue.getIcon());
     }
@@ -125,7 +125,7 @@ public class EnumSelectorWidget<T extends Enum<T> & EnumSelectorWidget.Selectabl
     }
 
     private void updateTooltip() {
-        if (!LDLib.isRemote())
+        if (!GTCEu.isClientThread())
             return;
 
         T selectedValue = getCurrentValue();

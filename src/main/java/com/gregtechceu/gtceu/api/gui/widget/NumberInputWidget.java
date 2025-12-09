@@ -1,15 +1,16 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -111,6 +112,12 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
         textField.setCurrentString(buffer.readUtf());
     }
 
+    @Override
+    public Widget setHoverTooltips(String... tooltipText) {
+        textField.setHoverTooltips(tooltipText);
+        return super.setHoverTooltips(tooltipText);
+    }
+
     private void buildUI() {
         int buttonWidth = Mth.clamp(this.getSize().width / 5, 15, 40);
         int textFieldWidth = this.getSize().width - (2 * buttonWidth) - 4;
@@ -133,7 +140,7 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     private IGuiTexture getButtonTexture(String prefix, int buttonWidth) {
         var texture = new TextTexture(prefix + "1");
 
-        if (!LDLib.isRemote()) {
+        if (!GTCEu.isClientThread()) {
             return texture;
         }
 

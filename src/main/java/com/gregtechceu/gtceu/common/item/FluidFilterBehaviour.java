@@ -15,11 +15,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Function;
 
-/**
- * @author KilaBash
- * @date 2023/3/13
- * @implNote FluidFilterBehaviour
- */
 public record FluidFilterBehaviour(Function<ItemStack, FluidFilter> filterCreator) implements IItemUIFactory {
 
     @Override
@@ -33,7 +28,7 @@ public record FluidFilterBehaviour(Function<ItemStack, FluidFilter> filterCreato
         var held = holder.getHeld();
         return new ModularUI(176, 157, holder, entityPlayer)
                 .background(GuiTextures.BACKGROUND)
-                .widget(new LabelWidget(5, 3, held.getDescriptionId()))
+                .widget(new LabelWidget(5, 5, held.getDescriptionId()))
                 .widget(FluidFilter.loadFilter(held).openConfigurator((176 - 80) / 2, (60 - 55) / 2 + 15))
                 .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 75, true));
     }

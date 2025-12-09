@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api;
 
-import com.gregtechceu.gtceu.data.recipe.CraftingComponent;
-
 import net.minecraft.util.RandomSource;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Arrays;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntFunction;
 
 import static net.minecraft.ChatFormatting.*;
 
@@ -14,12 +14,6 @@ import static net.minecraft.ChatFormatting.*;
  * Made for static imports, this Class is just a Helper.
  */
 public class GTValues {
-
-    /**
-     * Default fallback value used for Map keys.
-     * Currently only used in {@link CraftingComponent}.
-     */
-    public static final int FALLBACK = -1;
 
     /**
      * <p/>
@@ -54,7 +48,7 @@ public class GTValues {
     /**
      * The Voltage Tiers. Use this Array instead of the old named Voltage Variables
      */
-    public static final long[] V = new long[] { 8, 32, 128, 512, 2048, 8192, 32768, 131072, 524288, 2097152, 8388608,
+    public static final long[] V = { 8, 32, 128, 512, 2048, 8192, 32768, 131072, 524288, 2097152, 8388608,
             33554432, 134217728, 536870912, 2147483648L };
 
     /**
@@ -66,19 +60,19 @@ public class GTValues {
     /**
      * The Voltage Tiers adjusted for cable loss. Use this for recipe EU/t to avoid full-amp recipes
      */
-    public static final int[] VA = new int[] { 7, 30, 120, 480, 1920, 7680, 30720, 122880, 491520, 1966080, 7864320,
+    public static final int[] VA = { 7, 30, 120, 480, 1920, 7680, 30720, 122880, 491520, 1966080, 7864320,
             31457280, 125829120, 503316480, 2013265920 };
 
     /**
      * The Voltage Tiers adjusted for cable loss, divided by 2.
      */
-    public static final int[] VHA = { 7, 16, 60, 240, 960, 3840, 15360, 61440, 245760, 983040, 3932160, 15728640,
+    public static final int[] VHA = { 3, 15, 60, 240, 960, 3840, 15360, 61440, 245760, 983040, 3932160, 15728640,
             62914560, 251658240, 1006632960 };
 
     /**
      * The Voltage Tiers. Use this Array instead of the old named Voltage Variables
      */
-    public static final long[] VEX = new long[] { 8, 32, 128, 512, 2048, 8192, 32768, 131072, 524288, 2097152, 8388608,
+    public static final long[] VEX = { 8, 32, 128, 512, 2048, 8192, 32768, 131072, 524288, 2097152, 8388608,
             33554432, 134217728, 536870912, 2147483648L, 8589934592L, 34359738368L, 137438953472L, 549755813888L,
             2199023255552L, 8796093022208L, 35184372088832L, 140737488355328L, 562949953421312L, 2251799813685248L,
             9007199254740992L, 36028797018963968L, 144115188075855872L, 576460752303423488L, 2305843009213693952L,
@@ -112,6 +106,8 @@ public class GTValues {
 
     public static final String MODID_TOP = "theoneprobe",
             MODID_JEI = "jei",
+            MODID_REI = "roughlyenoughitems",
+            MODID_EMI = "emi",
             MODID_APPENG = "ae2",
             MODID_KUBEJS = "kubejs",
             MODID_IRIS = "iris",
@@ -121,13 +117,23 @@ public class GTValues {
             MODID_EMBEDDIUM = "embeddium",
             MODID_CREATE = "create",
             MODID_JSONTHINGS = "jsonthings",
-            MODID_ALMOSTUNIFIED = "almostunified",
             MODID_CURIOS = "curios",
             MODID_AE2WTLIB = "ae2wtlib",
             MODID_SHIMMER = "shimmer",
+            MODID_MODERNFIX = "modernfix",
+            MODID_JOURNEYMAP = "journeymap",
+            MODID_XAEROS_MINIMAP = "xaerominimap",
+            MODID_XAEROS_WORLDMAP = "xaeroworldmap",
+            MODID_FTB_CHUNKS = "ftbchunks",
             MODID_JAVD = "javd",
-            MODID_FTBTEAMS = "ftbteams",
-            MODID_ARGONAUTS = "argonauts";
+            MODID_FTB_TEAMS = "ftbteams",
+            MODID_ARGONAUTS = "argonauts",
+            MODID_HERACLES = "heracles",
+            MODID_GAMESTAGES = "gamestages",
+            MODID_FTB_QUEST = "ftbquests",
+            MODID_CCTWEAKED = "computercraft",
+            MODID_ENDERIO = "enderio",
+            MODID_ENSORCELLATION = "ensorcellation";
 
     /**
      * Spray painting compat modids
@@ -139,6 +145,12 @@ public class GTValues {
      */
     public static final String[] VN = new String[] { "ULV", "LV", "MV", "HV", "EV", "IV", "LuV", "ZPM", "UV", "UHV",
             "UEV", "UIV", "UXV", "OpV", "MAX" };
+
+    public static final IntFunction<String> MAX_PLUS_FORMAT = (value) -> "" + RED + BOLD + "M" +
+            GREEN + BOLD + "A" +
+            BLUE + BOLD + "X" +
+            YELLOW + BOLD + "+" +
+            RED + BOLD + value;
 
     /**
      * The short names for the voltages, formatted for text
@@ -158,7 +170,41 @@ public class GTValues {
             DARK_GREEN + "UIV",
             YELLOW + "UXV",
             BLUE.toString() + BOLD + "OpV",
-            RED.toString() + BOLD + "MAX" };
+            RED.toString() + BOLD + "MAX",
+            MAX_PLUS_FORMAT.apply(1),
+            MAX_PLUS_FORMAT.apply(2),
+            MAX_PLUS_FORMAT.apply(3),
+            MAX_PLUS_FORMAT.apply(4),
+            MAX_PLUS_FORMAT.apply(5),
+            MAX_PLUS_FORMAT.apply(6),
+            MAX_PLUS_FORMAT.apply(7),
+            MAX_PLUS_FORMAT.apply(8),
+            MAX_PLUS_FORMAT.apply(9),
+            MAX_PLUS_FORMAT.apply(10),
+            MAX_PLUS_FORMAT.apply(11),
+            MAX_PLUS_FORMAT.apply(12),
+            MAX_PLUS_FORMAT.apply(13),
+            MAX_PLUS_FORMAT.apply(14),
+            MAX_PLUS_FORMAT.apply(15),
+            MAX_PLUS_FORMAT.apply(16),
+    };
+
+    public static final String[] VCF = new String[] {
+            DARK_GRAY.toString(),
+            GRAY.toString(),
+            AQUA.toString(),
+            GOLD.toString(),
+            DARK_PURPLE.toString(),
+            BLUE.toString(),
+            LIGHT_PURPLE.toString(),
+            RED.toString(),
+            DARK_AQUA.toString(),
+            DARK_RED.toString(),
+            GREEN.toString(),
+            DARK_GREEN.toString(),
+            YELLOW.toString(),
+            BLUE.toString() + BOLD.toString(),
+            RED.toString() + BOLD.toString() };
 
     public static final String[] VLVH = new String[] {
             "Primitive", // not doing the gray color for these first two because it looks weird
@@ -218,6 +264,29 @@ public class GTValues {
     public static final int[] VC = new int[] { 0xC80000, 0xDCDCDC, 0xFF6400, 0xFFFF1E, 0x808080, 0xF0F0F5, 0xE99797,
             0x7EC3C4, 0x7EB07E, 0xBF74C0, 0x0B5CFE, 0x914E91, 0x488748, 0x8C0000, 0x2828F5 };
 
+    // Main colour for each tier
+    public static final int[] VCM = new int[] {
+            DARK_GRAY.getColor(),
+            GRAY.getColor(),
+            AQUA.getColor(),
+            GOLD.getColor(),
+            DARK_PURPLE.getColor(),
+            BLUE.getColor(),
+            LIGHT_PURPLE.getColor(),
+            RED.getColor(),
+            DARK_AQUA.getColor(),
+            DARK_RED.getColor(),
+            GREEN.getColor(),
+            DARK_GREEN.getColor(),
+            YELLOW.getColor(),
+            BLUE.getColor(),
+            RED.getColor()
+    };
+
+    // Main color for steam machines
+    public static final int VC_LP_STEAM = 0xBB8E53;
+    public static final int VC_HP_STEAM = 0x79756F;
+
     /**
      * The long names for the voltages
      */
@@ -231,14 +300,14 @@ public class GTValues {
      */
     public static boolean HT = false;
 
-    public static Supplier<Boolean> FOOLS = () -> {
-        String[] yearMonthDay = LocalDate.now().toString().split("-");
-        return yearMonthDay[1].equals("04") && yearMonthDay[2].equals("01");
+    public static BooleanSupplier FOOLS = () -> {
+        var now = LocalDate.now();
+        return now.getMonth() == Month.APRIL && now.getDayOfMonth() == 1;
     };
 
-    public static Supplier<Boolean> XMAS = () -> {
-        String[] yearMonthDay = LocalDate.now().toString().split("-");
-        return yearMonthDay[1].equals("12") && (yearMonthDay[2].equals("24") || yearMonthDay[2].equals("25"));
+    public static BooleanSupplier XMAS = () -> {
+        var now = LocalDate.now();
+        return now.getMonth() == Month.DECEMBER && (now.getDayOfMonth() == 24 || now.getDayOfMonth() == 25);
     };
 
     public static final String CUSTOM_TAG_SOURCE = "GTCEu Custom Tags";

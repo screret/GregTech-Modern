@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.data.materials;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.BlastProperty.GasTier;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.HazardProperty;
@@ -14,6 +13,7 @@ import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
 
 import net.minecraft.world.item.enchantment.Enchantments;
 
+import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags.*;
 import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
@@ -61,7 +61,7 @@ public class SecondDegreeMaterials {
                 .gem().ore(2, 1)
                 .color(0xa7e404).secondaryColor(0x166439).iconSet(RUBY)
                 .appendFlags(EXT_METAL, NO_SMASHING, NO_SMELTING, HIGH_SIFTER_OUTPUT)
-                .components(Magnesium, 2, Iron, 1, SiliconDioxide, 2)
+                .components(Magnesium, 1, Iron, 1, SiliconDioxide, 2)
                 .buildAndRegister();
 
         Opal = new Material.Builder(GTCEu.id("opal"))
@@ -116,8 +116,8 @@ public class SecondDegreeMaterials {
                 .color(0x666666).secondaryColor(0x1a120e).iconSet(METALLIC)
                 .appendFlags(EXT_METAL, GENERATE_FINE_WIRE, GENERATE_GEAR, GENERATE_FRAME)
                 .components(Nickel, 1, BlackBronze, 1, Steel, 3)
-                .cableProperties(GTValues.V[4], 3, 2)
-                .blastTemp(1200, GasTier.LOW)
+                .cableProperties(V[EV], 3, 2)
+                .blast(1758, GasTier.LOW)
                 .buildAndRegister();
 
         DamascusSteel = new Material.Builder(GTCEu.id("damascus_steel"))
@@ -130,10 +130,11 @@ public class SecondDegreeMaterials {
                         .attackSpeed(0.3F).enchantability(33)
                         .enchantment(Enchantments.MOB_LOOTING, 3)
                         .enchantment(Enchantments.BLOCK_FORTUNE, 3).build())
-                .blastTemp(1500, GasTier.LOW)
+                .blast(1500, GasTier.LOW)
                 .buildAndRegister();
 
         TungstenSteel = new Material.Builder(GTCEu.id("tungsten_steel"))
+                .langValue("Tungstensteel")
                 .ingot(4).fluid()
                 .color(0x687ece).secondaryColor(0x03192f).iconSet(METALLIC)
                 .appendFlags(EXT2_METAL, GENERATE_ROTOR, GENERATE_SMALL_GEAR, GENERATE_DENSE, GENERATE_FRAME,
@@ -143,8 +144,10 @@ public class SecondDegreeMaterials {
                         .enchantability(14).build())
                 .rotorStats(160, 120, 4.0f, 2560)
                 .fluidPipeProperties(3587, 225, true)
-                .cableProperties(GTValues.V[5], 3, 2)
-                .blastTemp(3000, GasTier.MID, GTValues.VA[GTValues.EV], 1000)
+                .cableProperties(V[IV], 3, 2)
+                .blast(b -> b.temp(3000, GasTier.MID)
+                        .blastStats(VA[EV], 1000)
+                        .vacuumStats(VA[HV]))
                 .buildAndRegister();
 
         CobaltBrass = new Material.Builder(GTCEu.id("cobalt_brass"))
@@ -226,13 +229,14 @@ public class SecondDegreeMaterials {
                 .dust().ore(3, 1)
                 .color(0xede8a3).secondaryColor(0xcdb44c).iconSet(ROUGH)
                 .flags(DISABLE_DECOMPOSITION)
-                .components(Sodium, 1, Magnesium, 6, Silicon, 12, Hydrogen, 4, Water, 5, Oxygen, 36)
+                .components(Sodium, 1, Magnesium, 6, Silicon, 12, Hydrogen, 6, Water, 5, Oxygen, 36)
                 .buildAndRegister();
 
         FullersEarth = new Material.Builder(GTCEu.id("fullers_earth"))
+                .langValue("Fuller's Earth")
                 .dust().ore(2, 1)
                 .color(0xf3efbb).secondaryColor(0xb8d066).iconSet(FINE)
-                .components(Magnesium, 1, Silicon, 4, Hydrogen, 1, Water, 4, Oxygen, 11)
+                .components(Magnesium, 2, Silicon, 4, Oxygen, 14, Hydrogen, 4, Water, 1)
                 .buildAndRegister();
 
         Pitchblende = new Material.Builder(GTCEu.id("pitchblende"))
@@ -272,8 +276,7 @@ public class SecondDegreeMaterials {
         Zeolite = new Material.Builder(GTCEu.id("zeolite"))
                 .dust().ore(3, 1)
                 .color(0xf2e3e0).secondaryColor(0xeabeb4)
-                .flags(DISABLE_DECOMPOSITION)
-                .components(Sodium, 1, Calcium, 4, Silicon, 27, Aluminium, 9, Water, 28, Oxygen, 72)
+                .components(Sodium, 2, Aluminium, 2, Silicon, 3, Oxygen, 10, Water, 2)
                 .buildAndRegister();
 
         Concrete = new Material.Builder(GTCEu.id("concrete"))
@@ -305,7 +308,7 @@ public class SecondDegreeMaterials {
                         .attackSpeed(-0.2F).enchantability(5).build())
                 .rotorStats(130, 115, 3.0f, 1920)
                 .fluidPipeProperties(2073, 50, true, true, false, false)
-                .blastTemp(1453, GasTier.LOW)
+                .blast(1453, GasTier.LOW)
                 .buildAndRegister();
 
         Potin = new Material.Builder(GTCEu.id("potin"))
@@ -342,8 +345,10 @@ public class SecondDegreeMaterials {
                 .toolStats(ToolProperty.Builder.of(40.0F, 12.0F, 3072, 5)
                         .attackSpeed(0.3F).enchantability(33).magnetic().build())
                 .rotorStats(190, 120, 5.0f, 5120)
-                .cableProperties(GTValues.V[8], 2, 4)
-                .blastTemp(7200, GasTier.HIGH, GTValues.VA[GTValues.LuV], 1000)
+                .cableProperties(V[UV], 2, 4)
+                .blast(b -> b.temp(7200, GasTier.HIGH)
+                        .blastStats(VA[LuV], 1000)
+                        .vacuumStats(VA[IV], 300))
                 .buildAndRegister();
 
         SulfuricNickelSolution = new Material.Builder(GTCEu.id("sulfuric_nickel_solution"))
@@ -390,11 +395,11 @@ public class SecondDegreeMaterials {
                 .color(0xc7c7c7).secondaryColor(0x212121).iconSet(FLINT)
                 .flags(NO_SMASHING, MORTAR_GRINDABLE, DECOMPOSITION_BY_CENTRIFUGING)
                 .components(SiliconDioxide, 1)
-                .toolStats(ToolProperty.Builder.of(1.5F, 1.0F, 64, 2)
+                .toolStats(ToolProperty.Builder.of(0.0F, 1.0F, 64, 1)
                         .types(GTToolType.MORTAR, GTToolType.KNIFE, GTToolType.AXE, GTToolType.PICKAXE, GTToolType.HOE,
                                 GTToolType.SWORD, GTToolType.SHOVEL)
                         .enchantability(5).ignoreCraftingTools()
-                        .enchantment(Enchantments.FIRE_ASPECT, 2).build())
+                        .enchantment(Enchantments.FIRE_ASPECT, 1).build())
                 .buildAndRegister();
 
         Air = new Material.Builder(GTCEu.id("air"))
@@ -490,7 +495,9 @@ public class SecondDegreeMaterials {
                 .appendFlags(EXT2_METAL, GENERATE_ROTOR, GENERATE_DENSE, GENERATE_SMALL_GEAR)
                 .components(Palladium, 3, Rhodium, 1)
                 .rotorStats(130, 155, 3.0f, 1024)
-                .blastTemp(4500, GasTier.HIGH, GTValues.VA[GTValues.IV], 1200)
+                .blast(b -> b.temp(4500, GasTier.HIGH)
+                        .blastStats(VA[IV], 1200)
+                        .vacuumStats(VA[EV], 300))
                 .buildAndRegister();
 
         Clay = new Material.Builder(GTCEu.id("clay"))
@@ -523,29 +530,6 @@ public class SecondDegreeMaterials {
                 .flags(DISABLE_DECOMPOSITION)
                 .components(Carbon, 4, Hydrogen, 13, Nitrogen, 3)
                 .hazard(HazardProperty.HazardTrigger.ANY, GTMedicalConditions.CHEMICAL_BURNS)
-                .buildAndRegister();
-
-        RawBrine = new Material.Builder(GTCEu.id("raw_brine"))
-                .liquid()
-                .color(0x9f6b26)
-                .buildAndRegister();
-
-        DebrominatedBrine = new Material.Builder(GTCEu.id("debrominated_brine"))
-                .liquid()
-                .color(0xab8c6d)
-                .buildAndRegister();
-
-        BrominatedChlorineVapor = new Material.Builder(GTCEu.id("brominated_chlorine_vapor"))
-                .gas()
-                .color(0xbb9b72)
-                .components(Chlorine, 1, Bromine, 1, Steam, 1)
-                .flags(DISABLE_DECOMPOSITION)
-                .buildAndRegister();
-
-        AcidicBromineExhaust = new Material.Builder(GTCEu.id("acidic_bromine_exhaust"))
-                .gas()
-                .color(0x8f681e)
-                .components(Steam, 3, Chlorine, 1)
                 .buildAndRegister();
     }
 }

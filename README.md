@@ -1,9 +1,9 @@
-<p align="center"><img src="https://github.com/user-attachments/assets/547baf4d-088b-4311-9366-80260c2d1f55" alt="Logo"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/GregTechCEu/Branding/refs/heads/master/gregtech_ceu_modern_logo_large_modern.png" alt="Logo"></p>
 <h1 align="center">GregTech CEu: Modern</h1>
-<p align="center">GregTech:CEu built on modern Minecraft versions for Forge(1.20.1) & NeoForge(1.21+).</p>
+<p align="center">GregTech:CEu for modern Minecraft versions MinecraftForge (1.20.1) & NeoForge (1.21.1+).</p>
 <h1 align="center">
-    <a href="https://www.curseforge.com/minecraft/mc-mods/gregtech-ce-unofficial"><img src="https://img.shields.io/badge/Available%20for-MC%201.20.1+%20-informational?style=for-the-badge" alt="Supported Versions"></a>
-    <a href="https://github.com/GregTechCEu/GregTech/blob/master/LICENSE"><img src="https://img.shields.io/github/license/GregTechCEu/GregTech?style=for-the-badge" alt="License"></a>
+    <a href="https://www.curseforge.com/minecraft/mc-mods/gregtechceu-modern"><img src="https://img.shields.io/badge/Available%20for-MC%201.20.1+%20-informational?style=for-the-badge" alt="Supported Versions"></a>
+    <a href="https://github.com/GregTechCEu/GregTech-Modern/blob/1.20.1/LICENSE"><img src="https://img.shields.io/github/license/GregTechCEu/GregTech?style=for-the-badge" alt="License"></a>
     <a href="https://discord.gg/bWSWuYvURP"><img src="https://img.shields.io/discord/701354865217110096?color=5464ec&label=Discord&style=for-the-badge" alt="Discord"></a>
     <br>
     <a href="https://www.curseforge.com/minecraft/mc-mods/gregtechceu-modern"><img src="https://cf.way2muchnoise.eu/890405.svg?badge_style=for_the_badge" alt="CurseForge"></a>
@@ -11,7 +11,7 @@
     <a href="https://github.com/GregTechCEu/GregTech-Modern/releases"><img src="https://img.shields.io/github/downloads/GregTechCEu/GregTech-Modern/total?sort=semver&logo=github&label=&style=for-the-badge&color=2d2d2d&labelColor=545454&logoColor=FFFFFF" alt="GitHub"></a>
 </h1>
 
-### [Wiki](https://gregtechceu.github.io/gtceu-modern-docs/)
+### [Wiki](https://gregtechceu.github.io/GregTech-Modern/)
 
 ## Developers
 
@@ -52,7 +52,7 @@ Additionally, the [Minecraft Development plugin](https://plugins.jetbrains.com/p
 - Some textures are originally from the **[ZedTech GTCEu Resourcepack](https://github.com/brachy84/zedtech-ceu)**, with some changes made by the community.
 - New material item textures by @TTFTCUTS and @Rosethorns.
 - Wooden Forms, World Accelerators, and the Extreme Combustion Engine are from the **[GregTech: New Horizons Modpack](https://www.curseforge.com/minecraft/modpacks/gt-new-horizons)**.
-- Primitive Water Pump is from the **[IMPACT: GREGTECH EDITION Modpack](https://gtimpact.space/)**.
+- Primitive Water Pump is from the **[IMPACT: GREGTECH EDITION Modpack](https://gt-impact.github.io/#/)**.
 - Ender Fluid Link Cover, Auto-Maintenance Hatch, Optical Fiber, and Data Bank Textures are from **[TecTech](https://github.com/Technus/TecTech)**.
 - Steam Grinder is from **[GregTech++](https://www.curseforge.com/minecraft/mc-mods/gregtech-gt-gtplusplus)**.
 - Certificate of Not Being a Noob Anymore is from **[Crops++](https://www.curseforge.com/minecraft/mc-mods/berries)**.

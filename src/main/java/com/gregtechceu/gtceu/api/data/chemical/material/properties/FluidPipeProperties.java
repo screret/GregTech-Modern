@@ -4,8 +4,7 @@ import com.gregtechceu.gtceu.api.capability.IPropertyFluidFilter;
 import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttribute;
 import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
-
-import com.lowdragmc.lowdraglib.side.fluid.FluidHelper;
+import com.gregtechceu.gtceu.utils.GTMath;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -19,7 +18,6 @@ import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 
 @NoArgsConstructor
 public class FluidPipeProperties implements IMaterialProperty<FluidPipeProperties>, IPropertyFluidFilter {
@@ -42,7 +40,7 @@ public class FluidPipeProperties implements IMaterialProperty<FluidPipePropertie
 
     @Getter
     @Setter
-    private long throughput;
+    private int throughput;
     @Getter
     @Setter
     private int channels;
@@ -61,7 +59,7 @@ public class FluidPipeProperties implements IMaterialProperty<FluidPipePropertie
 
     private final Object2BooleanMap<FluidAttribute> containmentPredicate = new Object2BooleanOpenHashMap<>();
 
-    public FluidPipeProperties(int maxFluidTemperature, long throughput, boolean gasProof, boolean cryoProof,
+    public FluidPipeProperties(int maxFluidTemperature, int throughput, boolean gasProof, boolean cryoProof,
                                boolean plasmaProof, Map<FluidAttribute, Boolean> canContain) {
         this.maxFluidTemperature = maxFluidTemperature;
         this.throughput = throughput;
@@ -72,7 +70,7 @@ public class FluidPipeProperties implements IMaterialProperty<FluidPipePropertie
         this.containmentPredicate.putAll(canContain);
     }
 
-    public FluidPipeProperties(int maxFluidTemperature, long throughput, boolean gasProof, boolean acidProof,
+    public FluidPipeProperties(int maxFluidTemperature, int throughput, boolean gasProof, boolean acidProof,
                                boolean cryoProof, boolean plasmaProof, int channels) {
         this.maxFluidTemperature = maxFluidTemperature;
         this.throughput = throughput;
@@ -86,7 +84,7 @@ public class FluidPipeProperties implements IMaterialProperty<FluidPipePropertie
     /**
      * Default property constructor.
      */
-    public FluidPipeProperties(int maxFluidTemperature, long throughput, boolean gasProof, boolean acidProof,
+    public FluidPipeProperties(int maxFluidTemperature, int throughput, boolean gasProof, boolean acidProof,
                                boolean cryoProof, boolean plasmaProof) {
         this(maxFluidTemperature, throughput, gasProof, acidProof, cryoProof, plasmaProof, 1);
     }
@@ -114,7 +112,7 @@ public class FluidPipeProperties implements IMaterialProperty<FluidPipePropertie
 
     @Override
     public int hashCode() {
-        return Objects.hash(maxFluidTemperature, throughput, gasProof, channels);
+        return GTMath.hashInts(maxFluidTemperature, throughput, Boolean.hashCode(gasProof), channels);
     }
 
     @Override
@@ -128,10 +126,6 @@ public class FluidPipeProperties implements IMaterialProperty<FluidPipePropertie
                 ", plasmaProof=" + plasmaProof +
                 ", channels=" + channels +
                 '}';
-    }
-
-    public long getPlatformThroughput() {
-        return getThroughput() * FluidHelper.getBucket() / 1000;
     }
 
     @Override

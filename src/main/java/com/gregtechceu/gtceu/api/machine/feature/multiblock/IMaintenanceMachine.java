@@ -4,20 +4,20 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
+import com.gregtechceu.gtceu.api.machine.property.GTMachineModelProperties;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-
-import lombok.val;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import java.util.ArrayList;
 
 public interface IMaintenanceMachine extends IMultiPart {
 
-    int MINIMUM_MAINTENANCE_TIME = 3456000; // 48 real-life hours = 3456000 ticks
+    BooleanProperty MAINTENANCE_TAPED_PROPERTY = GTMachineModelProperties.IS_TAPED;
     byte ALL_PROBLEMS = 0;
     byte NO_PROBLEMS = 0b111111;
 
@@ -80,20 +80,6 @@ public interface IMaintenanceMachine extends IMultiPart {
     }
 
     /**
-     * @param duration recipe progress time
-     * @return it's time for a new problem occurring;
-     */
-    default boolean calculateTime(int duration) {
-        setTimeActive(duration + getTimeActive());
-        var value = getTimeActive() - MINIMUM_MAINTENANCE_TIME;
-        if (value > 0) {
-            setTimeActive(value);
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Used to calculate whether a maintenance problem should happen based on machine time active
      *
      * @param duration in ticks to add to the counter of active time
@@ -103,12 +89,22 @@ public interface IMaintenanceMachine extends IMultiPart {
             return;
         }
 
-        if (calculateTime((int) (duration * maintenanceMachine.getTimeMultiplier()))) {
-            if (GTValues.RNG.nextFloat() - 0.75f >= 0) {
+        setTimeActive(getTimeActive() + duration);
+        float rate = ConfigHolder.INSTANCE.machines.maintenanceCheckRate / maintenanceMachine.getTimeMultiplier();
+        if (getTimeActive() >= rate) {
+            setTimeActive(0);
+            if (GTValues.RNG.nextInt(6000) == 0) {
                 causeRandomMaintenanceProblems();
                 maintenanceMachine.setTaped(false);
             }
         }
+    }
+
+    /**
+     * Used to calculate whether a maintenance problem should happen based on machine time active
+     */
+    default void calculateMaintenance(IMaintenanceMachine maintenanceMachine) {
+        calculateMaintenance(maintenanceMachine, 1);
     }
 
     default int getNumMaintenanceProblems() {
@@ -125,17 +121,14 @@ public interface IMaintenanceMachine extends IMultiPart {
 
     default void causeRandomMaintenanceProblems() {
         setMaintenanceProblems(
-                (byte) (getMaintenanceProblems() & (byte) ~(1 << ((int) (GTValues.RNG.nextFloat() * 5)))));
+                (byte) (getMaintenanceProblems() & (byte) ~(1 << GTValues.RNG.nextInt(6))));
     }
 
     @Override
-    default boolean afterWorking(IWorkableMultiController controller) {
-        if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
-            calculateMaintenance(this, controller.getRecipeLogic().getProgress());
-            if (hasMaintenanceProblems()) {
-                controller.getRecipeLogic().markLastRecipeDirty();
-                return false;
-            }
+    default boolean onWorking(IWorkableMultiController controller) {
+        calculateMaintenance(this);
+        if (hasMaintenanceProblems()) {
+            controller.getRecipeLogic().markLastRecipeDirty();
         }
         return true;
     }
@@ -168,27 +161,27 @@ public interface IMaintenanceMachine extends IMultiPart {
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(() -> GuiTextures.MAINTENANCE_ICON, () -> {
-                val tooltips = new ArrayList<Component>();
+                var tooltips = new ArrayList<Component>();
                 tooltips.add(Component.translatable("gtceu.multiblock.universal.has_problems_header")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
 
                 if ((getMaintenanceProblems() & 1) == 0)
-                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.wrench", "\n"));
+                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.wrench"));
 
                 if (((getMaintenanceProblems() >> 1) & 1) == 0)
-                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.screwdriver", "\n"));
+                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.screwdriver"));
 
                 if (((getMaintenanceProblems() >> 2) & 1) == 0)
-                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.soft_mallet", "\n"));
+                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.soft_mallet"));
 
                 if (((getMaintenanceProblems() >> 3) & 1) == 0)
-                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.hard_hammer", "\n"));
+                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.hard_hammer"));
 
                 if (((getMaintenanceProblems() >> 4) & 1) == 0)
-                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.wire_cutter", "\n"));
+                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.wire_cutter"));
 
                 if (((getMaintenanceProblems() >> 5) & 1) == 0)
-                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.crowbar", "\n"));
+                    tooltips.add(Component.translatable("gtceu.multiblock.universal.problem.crowbar"));
 
                 return tooltips;
             }, this::hasMaintenanceProblems, () -> null));

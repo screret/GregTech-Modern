@@ -5,25 +5,26 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
-import com.gregtechceu.gtceu.api.gui.widget.LongInputWidget;
+import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.NumberInputWidget;
+import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
+import com.gregtechceu.gtceu.utils.GTMath;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.side.fluid.FluidStack;
-import com.lowdragmc.lowdraglib.side.fluid.IFluidTransfer;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import it.unimi.dsi.fastutil.objects.Object2LongMaps;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -39,13 +40,13 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     @Persisted
     @DescSynced
     @Getter
-    protected long globalTransferSizeMillibuckets = 1L;
+    protected int globalTransferSizeMillibuckets = 1;
     @Persisted
     @DescSynced
     @Getter
     private BucketMode transferBucketMode = BucketMode.MILLI_BUCKET;
 
-    private NumberInputWidget<Long> stackSizeInput;
+    private NumberInputWidget<Integer> stackSizeInput;
     private EnumSelectorWidget<BucketMode> stackSizeBucketModeInput;
 
     public AdvancedFluidVoidingCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
@@ -58,34 +59,35 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
 
     @Override
     protected void doVoidFluids() {
-        IFluidTransfer fluidTransfer = getOwnFluidTransfer();
-        if (fluidTransfer == null) {
+        IFluidHandlerModifiable fluidHandler = getOwnFluidHandler();
+        if (fluidHandler == null) {
             return;
         }
 
         switch (voidingMode) {
-            case VOID_ANY -> voidAny(fluidTransfer);
-            case VOID_OVERFLOW -> voidOverflow(fluidTransfer);
+            case VOID_ANY -> voidAny(fluidHandler);
+            case VOID_OVERFLOW -> voidOverflow(fluidHandler);
         }
     }
 
-    private void voidOverflow(IFluidTransfer fluidTransfer) {
-        final Map<FluidStack, Long> fluidAmounts = enumerateDistinctFluids(fluidTransfer, TransferDirection.EXTRACT);
+    private void voidOverflow(IFluidHandlerModifiable fluidHandler) {
+        var fluidAmounts = enumerateDistinctFluids(fluidHandler, TransferDirection.EXTRACT);
 
-        for (FluidStack fluidStack : fluidAmounts.keySet()) {
-            long presentAmount = fluidAmounts.get(fluidStack);
-            long targetAmount = getFilteredFluidAmount(fluidStack) * MILLIBUCKET_SIZE;
-            if (targetAmount <= 0L || targetAmount > presentAmount)
-                continue;
+        for (var entry : Object2LongMaps.fastIterable(fluidAmounts)) {
+            var stack = entry.getKey();
+            long presentAmount = entry.getLongValue();
+            int targetAmount = getFilteredFluidAmount(stack);
+            if (targetAmount <= 0L || targetAmount > presentAmount) continue;
 
-            var toDrain = fluidStack.copy();
-            toDrain.setAmount(presentAmount - targetAmount);
-
-            fluidTransfer.drain(toDrain, false);
+            long diff = presentAmount - targetAmount;
+            for (int op : GTMath.split(diff)) {
+                var toDrain = new FluidStack(stack, op);
+                fluidHandler.drain(toDrain, IFluidHandler.FluidAction.EXECUTE);
+            }
         }
     }
 
-    private long getFilteredFluidAmount(FluidStack fluidStack) {
+    private int getFilteredFluidAmount(FluidStack fluidStack) {
         if (!filterHandler.isFilterPresent())
             return globalTransferSizeMillibuckets;
 
@@ -127,9 +129,9 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         group.addWidget(
                 new EnumSelectorWidget<>(146, 20, 20, 20, VoidingMode.values(), voidingMode, this::setVoidingMode));
 
-        this.stackSizeInput = new LongInputWidget(35, 20, 84, 20,
-                this::getCurrentBucketModeTransferSize, this::setCurrentBucketModeTransferSize).setMin(1L)
-                .setMax(Long.MAX_VALUE);
+        this.stackSizeInput = new IntInputWidget(35, 20, 84, 20,
+                this::getCurrentBucketModeTransferSize, this::setCurrentBucketModeTransferSize).setMin(1)
+                .setMax(Integer.MAX_VALUE);
         configureStackSizeInput();
         group.addWidget(this.stackSizeInput);
 
@@ -138,18 +140,18 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         group.addWidget(this.stackSizeBucketModeInput);
     }
 
-    private long getCurrentBucketModeTransferSize() {
+    private int getCurrentBucketModeTransferSize() {
         return this.globalTransferSizeMillibuckets / this.transferBucketMode.multiplier;
     }
 
-    private void setCurrentBucketModeTransferSize(long transferSize) {
+    private void setCurrentBucketModeTransferSize(int transferSize) {
         this.globalTransferSizeMillibuckets = Math.max(transferSize * this.transferBucketMode.multiplier, 0);
     }
 
     @Override
     protected void configureFilter() {
         if (filterHandler.getFilter() instanceof SimpleFluidFilter filter) {
-            filter.setMaxStackSize(voidingMode == VoidingMode.VOID_ANY ? 1L : Long.MAX_VALUE);
+            filter.setMaxStackSize(voidingMode == VoidingMode.VOID_ANY ? 1 : Integer.MAX_VALUE);
         }
 
         configureStackSizeInput();

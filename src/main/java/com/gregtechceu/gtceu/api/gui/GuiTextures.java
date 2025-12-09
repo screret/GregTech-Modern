@@ -3,13 +3,6 @@ package com.gregtechceu.gtceu.api.gui;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
-import lombok.val;
-
-/**
- * @author KilaBash
- * @date 2023/2/22
- * @implNote GuiTextures
- */
 @SuppressWarnings("unused")
 public class GuiTextures {
 
@@ -114,6 +107,8 @@ public class GuiTextures {
             "gtceu:textures/gui/widget/button_distinct_buses.png");
     public static final ResourceTexture BUTTON_POWER = new ResourceTexture(
             "gtceu:textures/gui/widget/button_power.png");
+    public static final ResourceTexture BUTTON_BATCH = new ResourceTexture(
+            "gtceu:textures/gui/widget/button_batch.png");
     public static final ResourceTexture BUTTON_FILTER_NBT = new ResourceTexture(
             "gtceu:textures/gui/widget/button_filter_nbt.png");
     public static final ResourceTexture BUTTON_FLUID_OUTPUT = new ResourceTexture(
@@ -129,6 +124,10 @@ public class GuiTextures {
     public static final ResourceTexture BUTTON_LEFT = new ResourceTexture("gtceu:textures/gui/widget/left.png");
     public static final ResourceTexture BUTTON_PUBLIC_PRIVATE = new ResourceTexture(
             "gtceu:textures/gui/widget/button_public_private.png");
+    public static final ResourceTexture BUTTON_CHECK = new ResourceTexture(
+            "gtceu:textures/gui/widget/button_check.png");
+    public static final ResourceTexture BUTTON_LIST = new ResourceTexture(
+            "gtceu:textures/gui/widget/button_list.png");
     public static final ResourceTexture BUTTON_RIGHT = new ResourceTexture("gtceu:textures/gui/widget/right.png");
     public static final ResourceTexture BUTTON_SILK_TOUCH_MODE = new ResourceTexture(
             "gtceu:textures/gui/widget/button_silk_touch_mode.png");
@@ -191,6 +190,8 @@ public class GuiTextures {
             "gtceu:textures/gui/widget/button_maintenance.png");
     public static final ResourceTexture MAINTENANCE_ICON = new ResourceTexture(
             "gtceu:textures/block/overlay/machine/overlay_maintenance.png");
+    public static final ResourceTexture STORAGE_ICON = new ResourceTexture(
+            "gtceu:textures/item/storage_cover.png");
     public static final ResourceTexture BUTTON_MINER_MODES = new ResourceTexture(
             "gtceu:textures/gui/widget/button_miner_modes.png");
 
@@ -486,9 +487,16 @@ public class GuiTextures {
     public static final ResourceTexture MULTIBLOCK_CATEGORY = new ResourceTexture(
             "gtceu:textures/gui/icon/coke_oven.png");
 
+    public static final ResourceTexture ARC_FURNACE_RECYCLING_CATEGORY = new ResourceTexture(
+            "gtceu:textures/gui/icon/category/arc_furnace_recycling.png");
+    public static final ResourceTexture MACERATOR_RECYCLING_CATEGORY = new ResourceTexture(
+            "gtceu:textures/gui/icon/category/macerator_recycling.png");
+    public static final ResourceTexture EXTRACTOR_RECYCLING_CATEGORY = new ResourceTexture(
+            "gtceu:textures/gui/icon/category/extractor_recycling.png");
+
     // Covers
     public static final ResourceTexture COVER_MACHINE_CONTROLLER = new ResourceTexture(
-            "gtceu:textures/items/metaitems/cover.controller.png");
+            "gtceu:textures/items/machine_controller_cover.png");
 
     // Terminal
     public static final ResourceTexture ICON_REMOVE = new ResourceTexture(
@@ -549,7 +557,7 @@ public class GuiTextures {
     public static final ResourceTexture UP = new ResourceTexture("gtceu:textures/gui/base/up.png");
     public static final ResourceTexture[] TIER = new ResourceTexture[9];
     static {
-        val offset = 1f / TIER.length;
+        var offset = 1f / TIER.length;
         for (int i = 0; i < TIER.length; i++) {
             TIER[i] = new ResourceTexture("gtceu:textures/gui/overlay/tier.png").getSubTexture(0, i * offset, 1,
                     offset);

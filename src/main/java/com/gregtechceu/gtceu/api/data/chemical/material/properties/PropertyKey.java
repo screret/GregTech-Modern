@@ -33,6 +33,8 @@ public class PropertyKey<T extends IMaterialProperty<T>> {
             OreProperty.CODEC);
     public static final PropertyKey<ToolProperty> TOOL = new PropertyKey<>("tool", ToolProperty.class,
             ToolProperty::new, ToolProperty.CODEC);
+    public static final PropertyKey<ArmorProperty> ARMOR = new PropertyKey<>("armor", ArmorProperty.class,
+            ArmorProperty::new, ArmorProperty.CODEC);
     public static final PropertyKey<RotorProperty> ROTOR = new PropertyKey<>("rotor", RotorProperty.class,
             RotorProperty::new, RotorProperty.CODEC);
     public static final PropertyKey<WireProperties> WIRE = new PropertyKey<>("wire", WireProperties.class,
@@ -49,6 +51,7 @@ public class PropertyKey<T extends IMaterialProperty<T>> {
 
     @Getter
     private final String key;
+    @Getter
     private final Class<T> type;
     private final Supplier<T> defaultSupplier;
     @Getter

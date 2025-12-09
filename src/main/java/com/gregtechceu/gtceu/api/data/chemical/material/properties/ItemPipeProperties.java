@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
+import com.gregtechceu.gtceu.utils.GTMath;
+
 import net.minecraft.util.ExtraCodecs;
 
 import com.mojang.serialization.Codec;
@@ -7,7 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import java.util.Objects;
 
-public class ItemPipeProperties implements IMaterialProperty<ItemPipeProperties> {
+public class ItemPipeProperties implements IMaterialProperty {
 
     public static final Codec<ItemPipeProperties> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ExtraCodecs.POSITIVE_INT.fieldOf("priority").forGetter(val -> val.priority),
@@ -93,7 +95,7 @@ public class ItemPipeProperties implements IMaterialProperty<ItemPipeProperties>
 
     @Override
     public int hashCode() {
-        return Objects.hash(priority, transferRate);
+        return GTMath.hashInts(priority, Float.hashCode(transferRate));
     }
 
     @Override

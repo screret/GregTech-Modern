@@ -3,12 +3,13 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.stack.UnificationEntry;
+import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.GTBucketItem;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
+import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTMedicalConditions;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
@@ -24,7 +25,6 @@ import net.minecraft.world.item.ItemStack;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lombok.Getter;
-import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
@@ -32,12 +32,7 @@ import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import java.util.*;
 
-/**
- * @author h3tR
- * @date 2024/2/12
- * @implNote HazardProperty
- */
-public class HazardProperty implements IMaterialProperty<HazardProperty> {
+public class HazardProperty implements IMaterialProperty {
 
     public static final Codec<HazardProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             HazardTrigger.CODEC.fieldOf("trigger").forGetter(val -> val.hazardTrigger),
@@ -137,7 +132,7 @@ public class HazardProperty implements IMaterialProperty<HazardProperty> {
                     correctArmorItems.add(equipmentType);
                 }
             }
-            if (!GTCEu.isCuriosLoaded() || this.curioSlots.isEmpty()) {
+            if (!GTCEu.Mods.isCuriosLoaded() || this.curioSlots.isEmpty()) {
                 return correctArmorItems.containsAll(equipmentTypes);
             }
             Set<String> correctCurios = new HashSet<>();
@@ -170,7 +165,7 @@ public class HazardProperty implements IMaterialProperty<HazardProperty> {
                         armor.hurtAndBreak(amount, player, p -> p.broadcastBreakEvent(type.getSlot()));
                     }
                 }
-                if (GTCEu.isCuriosLoaded()) {
+                if (GTCEu.Mods.isCuriosLoaded()) {
                     ICuriosItemHandler curiosInventory = CuriosApi.getCuriosInventory(player)
                             .resolve()
                             .orElse(null);
@@ -194,10 +189,9 @@ public class HazardProperty implements IMaterialProperty<HazardProperty> {
         }
     }
 
-    @Nullable
     public static Material getValidHazardMaterial(ItemStack item) {
-        Material material = null;
-        TagPrefix prefix = null;
+        Material material = GTMaterials.NULL;
+        TagPrefix prefix = TagPrefix.NULL_PREFIX;
         boolean isFluid = false;
         if (item.getItem() instanceof TagPrefixItem prefixItem) {
             material = prefixItem.material;
@@ -208,21 +202,18 @@ public class HazardProperty implements IMaterialProperty<HazardProperty> {
                 isFluid = true;
             }
         } else if (ConfigHolder.INSTANCE.gameplay.universalHazards) {
-            UnificationEntry entry = ChemicalHelper.getUnificationEntry(item.getItem());
-            if (entry != null && entry.material != null) {
-                material = entry.material;
-                prefix = entry.tagPrefix;
+            MaterialEntry entry = ChemicalHelper.getMaterialEntry(item.getItem());
+            if (!entry.isEmpty()) {
+                material = entry.material();
+                prefix = entry.tagPrefix();
             }
-        }
-        if (material == null) {
-            return null;
         }
         HazardProperty property = material.getProperty(PropertyKey.HAZARD);
         if (property == null) {
-            return null;
+            return GTMaterials.NULL;
         }
         if (!isFluid && !property.hazardTrigger.isAffected(prefix)) {
-            return null;
+            return GTMaterials.NULL;
         }
         return material;
     }

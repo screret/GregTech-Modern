@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorUtils;
+import com.gregtechceu.gtceu.core.IFireImmuneEntity;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -25,16 +26,16 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class AdvancedQuarkTechSuite extends QuarkTechSuite implements IJetpack {
 
     // A replacement for checking the current world time, to get around the gamerule that stops it
     private long timer = 0L;
-    private List<Pair<NonNullList<ItemStack>, List<Integer>>> inventoryIndexMap;
+    private List<Pair<NonNullList<ItemStack>, IntList>> inventoryIndexMap;
 
     public AdvancedQuarkTechSuite(int energyPerUse, long capacity, int tier) {
         super(ArmorItem.Type.CHESTPLATE, energyPerUse, capacity, tier);
@@ -93,8 +94,10 @@ public class AdvancedQuarkTechSuite extends QuarkTechSuite implements IJetpack {
 
         performFlying(player, jetpackEnabled, hoverMode, item);
 
-        if (player.isOnFire())
-            player.extinguishFire();
+        if (type == ArmorItem.Type.CHESTPLATE && !player.fireImmune()) {
+            ((IFireImmuneEntity) player).gtceu$setFireImmune(true);
+            if (player.isOnFire()) player.extinguishFire();
+        }
 
         // Charging mechanics
         if (canShare && !world.isClientSide) {
@@ -105,10 +108,10 @@ public class AdvancedQuarkTechSuite extends QuarkTechSuite implements IJetpack {
             if (inventoryIndexMap != null && !inventoryIndexMap.isEmpty()) {
                 // Charge all inventory slots
                 for (int i = 0; i < inventoryIndexMap.size(); i++) {
-                    Pair<NonNullList<ItemStack>, List<Integer>> inventoryMap = inventoryIndexMap.get(i);
-                    Iterator<Integer> inventoryIterator = inventoryMap.getSecond().iterator();
+                    Pair<NonNullList<ItemStack>, IntList> inventoryMap = inventoryIndexMap.get(i);
+                    var inventoryIterator = inventoryMap.getSecond().iterator();
                     while (inventoryIterator.hasNext()) {
-                        int slot = inventoryIterator.next();
+                        int slot = inventoryIterator.nextInt();
                         IElectricItem chargable = GTCapabilityHelper.getElectricItem(inventoryMap.getFirst().get(slot));
 
                         // Safety check the null, it should not actually happen. Also don't try and charge itself
@@ -146,6 +149,7 @@ public class AdvancedQuarkTechSuite extends QuarkTechSuite implements IJetpack {
 
     @Override
     public void addInfo(ItemStack itemStack, List<Component> lines) {
+        super.addInfo(itemStack, lines);
         CompoundTag data = itemStack.getOrCreateTag();
         Component state;
         boolean enabled = !data.contains("enabled") || data.getBoolean("enabled");
@@ -163,7 +167,6 @@ public class AdvancedQuarkTechSuite extends QuarkTechSuite implements IJetpack {
         state = hover ? Component.translatable("metaarmor.hud.status.enabled") :
                 Component.translatable("metaarmor.hud.status.disabled");
         lines.add(Component.translatable("metaarmor.hud.hover_mode", state));
-        super.addInfo(itemStack, lines);
     }
 
     @Override

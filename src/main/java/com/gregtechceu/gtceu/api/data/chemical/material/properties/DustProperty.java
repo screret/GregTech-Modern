@@ -6,7 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import lombok.Getter;
 
-public class DustProperty implements IMaterialProperty<DustProperty> {
+public class DustProperty implements IMaterialProperty {
 
     public static final Codec<DustProperty> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("harvest_level", 2).forGetter(val -> val.harvestLevel),

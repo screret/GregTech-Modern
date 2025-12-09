@@ -5,12 +5,13 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.factory.CoverUIFactory;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.item.tool.IToolGridHighLight;
+import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.transfer.fluid.IFluidHandlerModifiable;
 import com.gregtechceu.gtceu.client.renderer.cover.ICoverRenderer;
+import com.gregtechceu.gtceu.client.renderer.cover.IDynamicCoverRenderer;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.side.fluid.IFluidTransfer;
-import com.lowdragmc.lowdraglib.side.item.IItemTransfer;
 import com.lowdragmc.lowdraglib.syncdata.IEnhancedManaged;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
@@ -28,13 +29,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
 import lombok.Getter;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -44,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLight {
+public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighlight {
 
     public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(CoverBehavior.class);
 
@@ -94,8 +98,12 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLi
      *
      * @return true if cover can be attached, false otherwise
      */
+    @MustBeInvokedByOverriders
     public boolean canAttach() {
-        return true;
+        var machine = MetaMachine.getMachine(coverHolder.getLevel(), coverHolder.getPos());
+        return machine == null ||
+                (machine.getDefinition().isAllowCoverOnFront() || !machine.hasFrontFacing() ||
+                        coverHolder.getFrontFacing() != attachedSide);
     }
 
     /**
@@ -104,7 +112,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLi
      *
      * @param itemStack the item cover was attached from
      */
-    public void onAttached(ItemStack itemStack, ServerPlayer player) {
+    public void onAttached(ItemStack itemStack, @Nullable ServerPlayer player) {
         attachItem = itemStack.copy();
         attachItem.setCount(1);
     }
@@ -136,6 +144,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLi
     public void onNeighborChanged(Block block, BlockPos fromPos, boolean isMoving) {}
 
     public void setRedstoneSignalOutput(int redstoneSignalOutput) {
+        if (this.redstoneSignalOutput == redstoneSignalOutput) return;
         this.redstoneSignalOutput = redstoneSignalOutput;
         coverHolder.notifyBlockUpdate();
         coverHolder.markDirty();
@@ -153,8 +162,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLi
             if (playerIn instanceof ServerPlayer serverPlayer) {
                 CoverUIFactory.INSTANCE.openUI(this, serverPlayer);
             }
-            playerIn.swing(hand);
-            return InteractionResult.CONSUME;
+            return InteractionResult.sidedSuccess(playerIn.level().isClientSide);
         }
         return InteractionResult.PASS;
     }
@@ -177,7 +185,7 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLi
         return true;
     }
 
-    public ICoverRenderer getCoverRenderer() {
+    public @Nullable Supplier<ICoverRenderer> getCoverRenderer() {
         return coverDefinition.getCoverRenderer();
     }
 
@@ -189,16 +197,16 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLi
     public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held,
                                     Set<GTToolType> toolTypes) {
         return toolTypes.contains(GTToolType.CROWBAR) ||
-                (toolTypes.contains(GTToolType.SCREWDRIVER) && this instanceof IUICover);
+                ((toolTypes.isEmpty() || toolTypes.contains(GTToolType.SCREWDRIVER)) && this instanceof IUICover);
     }
 
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
+    public @Nullable ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
+                                              Direction side) {
         if (toolTypes.contains(GTToolType.CROWBAR)) {
             return GuiTextures.TOOL_REMOVE_COVER;
         }
-        if (toolTypes.contains(GTToolType.SCREWDRIVER) && this instanceof IUICover) {
+        if ((toolTypes.isEmpty() || toolTypes.contains(GTToolType.SCREWDRIVER)) && this instanceof IUICover) {
             return GuiTextures.TOOL_COVER_SETTINGS;
         }
         return null;
@@ -212,17 +220,21 @@ public abstract class CoverBehavior implements IEnhancedManaged, IToolGridHighLi
         return null;
     }
 
+    public Supplier<IDynamicCoverRenderer> getDynamicRenderer() {
+        return () -> null;
+    }
+
     //////////////////////////////////////
     // ******* Capabilities *******//
     //////////////////////////////////////
 
     @Nullable
-    public IItemTransfer getItemTransferCap(IItemTransfer defaultValue) {
+    public IItemHandlerModifiable getItemHandlerCap(IItemHandlerModifiable defaultValue) {
         return defaultValue;
     }
 
     @Nullable
-    public IFluidTransfer getFluidTransferCap(IFluidTransfer defaultValue) {
+    public IFluidHandlerModifiable getFluidHandlerCap(IFluidHandlerModifiable defaultValue) {
         return defaultValue;
     }
 }

@@ -3,7 +3,8 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
-import com.lowdragmc.lowdraglib.Platform;
+import lombok.Getter;
+import lombok.Setter;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -21,6 +22,8 @@ public class MaterialProperties {
     }
 
     private final Map<PropertyKey<? extends IMaterialProperty<?>>, IMaterialProperty<?>> propertyMap;
+    @Getter
+    @Setter
     private Material material;
 
     public MaterialProperties() {
@@ -36,11 +39,13 @@ public class MaterialProperties {
     }
 
     public <T extends IMaterialProperty<T>> boolean hasProperty(PropertyKey<T> key) {
-        return propertyMap.get(key) != null;
+        return propertyMap.containsKey(key);
     }
 
     public <T extends IMaterialProperty<T>> void setProperty(PropertyKey<T> key, IMaterialProperty<T> value) {
         if (value == null) throw new IllegalArgumentException("Material Property must not be null!");
+        if (!key.getType().isInstance(value))
+            throw new IllegalArgumentException("Material Property must be of the same type as the property key!");
         if (hasProperty(key))
             throw new IllegalArgumentException("Material Property " + key.toString() + " already registered!");
         propertyMap.put(key, value);
@@ -86,21 +91,13 @@ public class MaterialProperties {
 
         if (propertyMap.keySet().stream().noneMatch(baseTypes::contains)) {
             if (propertyMap.isEmpty()) {
-                if (Platform.isDevEnv()) {
+                if (GTCEu.isDev()) {
                     GTCEu.LOGGER.debug("Creating empty placeholder Material {}", material);
                 }
                 propertyMap.put(PropertyKey.EMPTY, PropertyKey.EMPTY.constructDefault());
             } else
                 throw new IllegalArgumentException("Material must have at least one of: " + baseTypes + " specified!");
         }
-    }
-
-    public void setMaterial(Material material) {
-        this.material = material;
-    }
-
-    public Material getMaterial() {
-        return material;
     }
 
     @Override

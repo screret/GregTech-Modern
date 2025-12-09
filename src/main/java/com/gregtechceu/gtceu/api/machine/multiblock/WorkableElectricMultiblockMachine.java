@@ -7,20 +7,23 @@ import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.IRecipeHandler;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
-import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
-import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
+import com.gregtechceu.gtceu.api.gui.fancy.*;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
+import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifierList;
+import com.gregtechceu.gtceu.common.data.GTRecipeModifiers;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
@@ -29,29 +32,34 @@ import net.minecraft.world.entity.player.Player;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-/**
- * @author KilaBash
- * @date 2023/3/6
- * @implNote WorkableElectricMachine
- */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine,
                                                IDisplayUIMachine, ITieredMachine, IOverclockMachine {
 
+    public static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
+            WorkableElectricMultiblockMachine.class, WorkableMultiblockMachine.MANAGED_FIELD_HOLDER);
     // runtime
     protected EnergyContainerList energyContainer;
     @Getter
     protected int tier;
+    @Persisted
+    @Getter
+    protected boolean batchEnabled;
 
     public WorkableElectricMultiblockMachine(IMachineBlockEntity holder, Object... args) {
         super(holder, args);
+    }
+
+    @Override
+    public ManagedFieldHolder getFieldHolder() {
+        return MANAGED_FIELD_HOLDER;
     }
 
     //////////////////////////////////////
@@ -78,29 +86,49 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         this.tier = 0;
     }
 
+    @Override
+    public void setBatchEnabled(boolean batch) {
+        this.batchEnabled = batch;
+    }
+
     //////////////////////////////////////
     // ********** GUI ***********//
     //////////////////////////////////////
 
     @Override
     public void addDisplayText(List<Component> textList) {
-        int numParallels = 0;
-        Optional<IParallelHatch> optional = this.getParts().stream().filter(IParallelHatch.class::isInstance)
-                .map(IParallelHatch.class::cast).findAny();
-        if (optional.isPresent()) {
-            IParallelHatch parallelHatch = optional.get();
-            numParallels = parallelHatch.getCurrentParallel();
+        int numParallels;
+        int subtickParallels;
+        int batchParallels;
+        int totalRuns;
+        boolean exact = false;
+        if (recipeLogic.isActive() && recipeLogic.getLastRecipe() != null) {
+            numParallels = recipeLogic.getLastRecipe().parallels;
+            subtickParallels = recipeLogic.getLastRecipe().subtickParallels;
+            batchParallels = recipeLogic.getLastRecipe().batchParallels;
+            totalRuns = recipeLogic.getLastRecipe().getTotalRuns();
+            exact = true;
+        } else {
+            numParallels = getParallelHatch()
+                    .map(IParallelHatch::getCurrentParallel)
+                    .orElse(0);
+            subtickParallels = 0;
+            batchParallels = 0;
+            totalRuns = 0;
         }
+
         MultiblockDisplayText.builder(textList, isFormed())
                 .setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive())
                 .addEnergyUsageLine(energyContainer)
                 .addEnergyTierLine(tier)
                 .addMachineModeLine(getRecipeType(), getRecipeTypes().length > 1)
-                .addParallelsLine(numParallels)
+                .addTotalRunsLine(totalRuns)
+                .addParallelsLine(numParallels, exact)
+                .addSubtickParallelsLine(subtickParallels)
+                .addBatchModeLine(isBatchEnabled(), batchParallels)
                 .addWorkingStatusLine()
-                .addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(),
-                        recipeLogic.getProgressPercent())
-                .addOutputLines(recipeLogic.getLastRecipe(), this.getChanceTier());
+                .addProgressLine(recipeLogic)
+                .addOutputLines(recipeLogic.getLastRecipe());
         getDefinition().getAdditionalDisplay().accept(this, textList);
         IDisplayUIMachine.super.addDisplayText(textList);
     }
@@ -126,6 +154,24 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Override
     public List<IFancyUIProvider> getSubTabs() {
         return getParts().stream().filter(Objects::nonNull).map(IFancyUIProvider.class::cast).toList();
+    }
+
+    @Override
+    public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
+        IVoidable.attachConfigurators(configuratorPanel, this);
+        if (getDefinition().getRecipeModifier() instanceof RecipeModifierList list && Arrays.stream(list.getModifiers())
+                .anyMatch(modifier -> modifier == GTRecipeModifiers.BATCH_MODE)) {
+            configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
+                    GuiTextures.BUTTON_BATCH.getSubTexture(0, 0, 1, 0.5),
+                    GuiTextures.BUTTON_BATCH.getSubTexture(0, 0.5, 1, 0.5),
+                    this::isBatchEnabled,
+                    (cd, p) -> setBatchEnabled(p))
+                    .setTooltipsSupplier(
+                            p -> List.of(
+                                    Component.translatable("gtceu.machine.batch_" + (p ? "enabled" : "disabled")))));
+        }
+
+        IFancyUIMachine.super.attachConfigurators(configuratorPanel);
     }
 
     @Override
@@ -189,21 +235,11 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     public EnergyContainerList getEnergyContainer() {
         List<IEnergyContainer> containers = new ArrayList<>();
-        var capabilities = capabilitiesProxy.get(IO.IN, EURecipeCapability.CAP);
-        if (capabilities != null) {
-            for (IRecipeHandler<?> handler : capabilities) {
-                if (handler instanceof IEnergyContainer container) {
-                    containers.add(container);
-                }
-            }
-        } else {
-            capabilities = capabilitiesProxy.get(IO.OUT, EURecipeCapability.CAP);
-            if (capabilities != null) {
-                for (IRecipeHandler<?> handler : capabilities) {
-                    if (handler instanceof IEnergyContainer container) {
-                        containers.add(container);
-                    }
-                }
+        var handlers = getCapabilitiesFlat(IO.IN, EURecipeCapability.CAP);
+        if (handlers.isEmpty()) handlers = getCapabilitiesFlat(IO.OUT, EURecipeCapability.CAP);
+        for (IRecipeHandler<?> handler : handlers) {
+            if (handler instanceof IEnergyContainer container) {
+                containers.add(container);
             }
         }
         return new EnergyContainerList(containers);

@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.BlockProperties;
+import com.gregtechceu.gtceu.api.block.property.GTBlockStateProperties;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
@@ -9,11 +9,11 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSavedData;
+import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -23,6 +23,8 @@ import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
 import com.gregtechceu.gtceu.common.capability.LocalizedHazardSavedData;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
+import com.gregtechceu.gtceu.common.network.GTNetwork;
+import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectBedrockFluid;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -30,6 +32,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -200,18 +203,17 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
 
             // General machine information
             if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_MACHINE_INFO) {
-                if (machineBlockEntity.getOwner() != null) {
-                    machineBlockEntity.getOwner().displayInfo(list);
+                if (machine.getOwner() != null) {
+                    machine.getOwner().displayInfo(list);
                 }
 
-                if (machine.getDefinition() instanceof MultiblockMachineDefinition multi &&
-                        multi.isAllowExtendedFacing()) {
+                if (machine.getDefinition().isAllowExtendedFacing()) {
                     list.add(Component.translatable("behavior.portable_scanner.divider"));
 
                     list.add(Component.translatable("behavior.portable_scanner.machine_front_facing",
                             machine.getFrontFacing().getSerializedName()));
                     list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing",
-                            machineBlockEntity.self().getBlockState().getValue(BlockProperties.UPWARDS_FACING_PROPERTY)
+                            machineBlockEntity.self().getBlockState().getValue(GTBlockStateProperties.UPWARDS_FACING)
                                     .getSerializedName()));
                 }
 
@@ -328,21 +330,16 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                         list.addAll(recipeLogic.getFancyTooltip());
                     } else if (recipe != null) {
                         list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        var EUt = RecipeHelper.getInputEUt(recipe);
-                        var isInput = true;
-                        if (EUt == 0) {
-                            isInput = false;
-                            EUt = RecipeHelper.getOutputEUt(recipe);
-                        }
+                        var EUt = RecipeHelper.getRealEUtWithIO(recipe);
 
                         list.add(Component.translatable(
-                                isInput ? "behavior.portable_scanner.workable_consumption" :
+                                EUt.isInput() ? "behavior.portable_scanner.workable_consumption" :
                                         "behavior.portable_scanner.workable_production",
-                                Component.translatable(FormattingUtil.formatNumbers(EUt))
+                                // TODO is this supposed to show voltage or total EU/t?
+                                Component.translatable(FormattingUtil.formatNumbers(EUt.getTotalEU()))
                                         .withStyle(ChatFormatting.RED),
-                                // TODO: Change number once there is multi amp behavior
                                 Component.translatable(
-                                        FormattingUtil.formatNumbers(1))
+                                        FormattingUtil.formatNumbers(EUt.amperage()))
                                         .withStyle(ChatFormatting.RED)));
                     }
                 }
@@ -389,19 +386,26 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
             if (level instanceof ServerLevel serverLevel) {
                 list.add(Component.translatable("behavior.portable_scanner.divider"));
                 var veinData = BedrockFluidVeinSavedData.getOrCreate(serverLevel);
-                Fluid fluid = veinData.getFluidInChunk(pos.getX() >> 4, pos.getZ() >> 4);
+                int chunkX = pos.getX() >> 4;
+                int chunkZ = pos.getZ() >> 4;
+                Fluid fluid = veinData.getFluidInChunk(chunkX, chunkZ);
 
                 if (fluid != null) {
                     FluidStack stack = new FluidStack(fluid,
-                            veinData.getOperationsRemaining(pos.getX() >> 4, pos.getZ() >> 4));
+                            veinData.getOperationsRemaining(chunkX, chunkZ));
                     double fluidPercent = stack.getAmount() * 100.0 / BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS;
+
+                    var fluidInfo = ProspectorMode.FluidInfo
+                            .fromVeinWorldEntry(veinData.getFluidVeinWorldEntry(chunkX, chunkZ));
+                    var packet = new SPacketProspectBedrockFluid(level.dimension(), pos, fluidInfo);
+                    GTNetwork.sendToPlayer((ServerPlayer) player, packet);
 
                     if (player.isCreative()) {
                         list.add(Component.translatable("behavior.portable_scanner.bedrock_fluid.amount",
                                 Component.translatable(stack.getTranslationKey())
                                         .withStyle(ChatFormatting.GOLD),
                                 Component.translatable(String.valueOf(
-                                        veinData.getFluidYield(pos.getX() >> 4, pos.getZ() >> 4)))
+                                        veinData.getFluidYield(chunkX, chunkZ)))
                                         .withStyle(ChatFormatting.GOLD),
                                 Component.translatable(String.valueOf(fluidPercent))
                                         .withStyle(ChatFormatting.YELLOW)));

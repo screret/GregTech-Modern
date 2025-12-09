@@ -17,6 +17,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -44,16 +45,19 @@ public class OreGenCache {
 
     private final Cache<ChunkPos, List<GeneratedVeinMetadata>> veinMetadataByOrigin = CacheBuilder.newBuilder()
             .maximumSize(veinMetadataCacheSize)
+            .expireAfterAccess(30, TimeUnit.SECONDS)
             .softValues()
             .build();
 
     private final Cache<ChunkPos, List<GeneratedVein>> generatedVeinsByOrigin = CacheBuilder.newBuilder()
             .maximumSize(oreGenerationCacheSize)
+            .expireAfterAccess(30, TimeUnit.SECONDS)
             .softValues()
             .build();
 
     private final Cache<ChunkPos, List<GeneratedIndicators>> indicatorsByOrigin = CacheBuilder.newBuilder()
             .maximumSize(oreIndicatorCacheSize)
+            .expireAfterAccess(30, TimeUnit.SECONDS)
             .softValues()
             .build();
 
@@ -123,12 +127,12 @@ public class OreGenCache {
 
         return Stream.generate(() -> {
             if (x.incrementAndGet() <= maxX) {
-                return new ChunkPos(x.getValue(), z.getValue());
+                return new ChunkPos(x.intValue(), z.intValue());
             }
 
             if (z.incrementAndGet() <= maxZ) {
                 x.setValue(minX);
-                return new ChunkPos(x.getValue(), z.getValue());
+                return new ChunkPos(x.intValue(), z.intValue());
             }
 
             return null;

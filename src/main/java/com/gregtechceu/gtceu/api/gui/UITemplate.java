@@ -1,16 +1,12 @@
 package com.gregtechceu.gtceu.api.gui;
 
+import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
+
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.world.entity.player.Inventory;
 
-/**
- * @author KilaBash
- * @date 2023/2/22
- * @implNote UITemplate
- */
 public class UITemplate {
 
     public static WidgetGroup bindPlayerInventory(Inventory inventoryPlayer, IGuiTexture imageLocation, int x, int y,

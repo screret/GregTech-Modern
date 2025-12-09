@@ -5,9 +5,11 @@ import com.gregtechceu.gtceu.api.fluids.FluidBuilder;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorage;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageImpl;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
+import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -30,6 +32,8 @@ public class FluidProperty implements IMaterialProperty<FluidProperty>, FluidSto
     @Getter
     @Setter
     private FluidStorageKey primaryKey = null;
+    @Setter
+    private @Nullable Fluid solidifyingFluid = null;
 
     private FluidProperty(@NotNull FluidStorageImpl storage, @Nullable FluidStorageKey primaryKey) {
         this.storage = storage;
@@ -84,6 +88,28 @@ public class FluidProperty implements IMaterialProperty<FluidProperty>, FluidSto
     @Override
     public @Nullable FluidBuilder getQueuedBuilder(@NotNull FluidStorageKey key) {
         return storage.getQueuedBuilder(key);
+    }
+
+    /**
+     * @return the Fluid which solidifies into the material.
+     */
+    public @Nullable Fluid solidifiesFrom() {
+        if (this.solidifyingFluid == null) {
+            this.solidifyingFluid = getStorage().get(FluidStorageKeys.LIQUID);
+        }
+        return solidifyingFluid;
+    }
+
+    /**
+     * @param amount the size of the returned FluidStack.
+     * @return a FluidStack of the Fluid which solidifies into the material.
+     */
+    public @NotNull FluidStack solidifiesFrom(int amount) {
+        Fluid fluid = solidifiesFrom();
+        if (fluid == null) {
+            return FluidStack.EMPTY;
+        }
+        return new FluidStack(fluid, amount);
     }
 
     @Override

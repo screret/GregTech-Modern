@@ -19,9 +19,7 @@ import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawItemStack;
 import static com.lowdragmc.lowdraglib.gui.util.DrawerHelper.drawText;
 
 /**
- * @Author GlodBlock
- * @Description Display a certain {@link appeng.api.stacks.GenericStack} element.
- * @Date 2023/4/19-21:23
+ * Display a certain {@link appeng.api.stacks.GenericStack} element.
  */
 public class AEItemDisplayWidget extends Widget {
 
@@ -44,9 +42,7 @@ public class AEItemDisplayWidget extends Widget {
         int stackX = position.x + 1;
         int stackY = position.y + 1;
         if (item != null) {
-            ItemStack realStack = item.what() instanceof AEItemKey key ?
-                    new ItemStack(key.getItem(), (int) item.amount()) : ItemStack.EMPTY;
-            realStack.setCount(1);
+            ItemStack realStack = item.what() instanceof AEItemKey key ? new ItemStack(key.getItem()) : ItemStack.EMPTY;
             drawItemStack(graphics, realStack, stackX, stackY, -1, null);
             String amountStr = String.format("x%,d", item.amount());
             drawText(graphics, amountStr, stackX + 20, stackY + 5, 1, 0xFFFFFFFF);

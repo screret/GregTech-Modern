@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.side.fluid.FluidStack;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
+import net.minecraftforge.fluids.FluidStack;
 
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -14,11 +14,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * @author KilaBash
- * @date 2023/3/14
- * @implNote FluidFilter
- */
 public interface FluidFilter extends Filter<FluidStack, FluidFilter> {
 
     Map<ItemLike, Function<ItemStack, FluidFilter>> FILTERS = new HashMap<>();
@@ -33,7 +28,7 @@ public interface FluidFilter extends Filter<FluidStack, FluidFilter> {
      * @return The amount configured for the supplied fluid stack.<br>
      *         If the stack is not matched by this filter, 0 is returned instead.
      */
-    long testFluidAmount(FluidStack fluidStack);
+    int testFluidAmount(FluidStack fluidStack);
 
     /**
      * @return Whether this filter supports querying for exact fluid amounts.
@@ -54,8 +49,8 @@ public interface FluidFilter extends Filter<FluidStack, FluidFilter> {
         }
 
         @Override
-        public long testFluidAmount(FluidStack fluidStack) {
-            return Long.MAX_VALUE;
+        public int testFluidAmount(FluidStack fluidStack) {
+            return Integer.MAX_VALUE;
         }
 
         @Override

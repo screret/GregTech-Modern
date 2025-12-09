@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.client;
 import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
 import com.gregtechceu.gtceu.common.particle.HazardParticleOptions;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.core.mixins.ClientLevelAccessor;
+import com.gregtechceu.gtceu.core.mixins.client.ClientLevelAccessor;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -19,8 +19,8 @@ import net.minecraftforge.common.MinecraftForge;
 import it.unimi.dsi.fastutil.floats.FloatIntPair;
 import lombok.Getter;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @OnlyIn(Dist.CLIENT)
 public class EnvironmentalHazardClientHandler {
@@ -44,8 +44,8 @@ public class EnvironmentalHazardClientHandler {
      * Map of source position to a triple of (trigger, material).
      */
     @Getter
-    private final Map<ChunkPos, EnvironmentalHazardSavedData.HazardZone> hazardZones = new HashMap<>();
-    private final Map<ChunkPos, FloatIntPair> chunkColorCache = new HashMap<>();
+    private final Map<ChunkPos, EnvironmentalHazardSavedData.HazardZone> hazardZones = new ConcurrentHashMap<>();
+    private final Map<ChunkPos, FloatIntPair> chunkColorCache = new ConcurrentHashMap<>();
 
     public void onClientTick() {
         if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards) {

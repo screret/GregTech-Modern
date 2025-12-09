@@ -19,6 +19,7 @@ import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import com.google.common.base.Preconditions;
@@ -37,7 +38,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @Accessors(fluent = true, chain = true)
 public class ClassicVeinGenerator extends VeinGenerator {
@@ -54,7 +54,8 @@ public class ClassicVeinGenerator extends VeinGenerator {
     private Layer secondary;
     private Layer between;
     private Layer sporadic;
-    private int yRadius = 3;
+    @Setter
+    private int yRadius = 6;
 
     // Provided for readability
     private int sporadicDivisor;
@@ -77,26 +78,13 @@ public class ClassicVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public List<Map.Entry<Either<BlockState, Material>, Integer>> getAllEntries() {
-        List<Map.Entry<Either<BlockState, Material>, Integer>> result = new ArrayList<>();
-        int totalWeight = primary.layers + secondary.layers + between.layers;
-        primary.target
-                .map(blockStates -> blockStates.stream().map(state -> Either.<BlockState, Material>left(state.state)),
-                        material -> Stream.of(Either.<BlockState, Material>right(material)))
-                .forEach(entry -> result.add(Map.entry(entry, primary.layers / totalWeight)));
-        secondary.target
-                .map(blockStates -> blockStates.stream().map(state -> Either.<BlockState, Material>left(state.state)),
-                        material -> Stream.of(Either.<BlockState, Material>right(material)))
-                .forEach(entry -> result.add(Map.entry(entry, secondary.layers / totalWeight)));
-        between.target
-                .map(blockStates -> blockStates.stream().map(state -> Either.<BlockState, Material>left(state.state)),
-                        material -> Stream.of(Either.<BlockState, Material>right(material)))
-                .forEach(entry -> result.add(Map.entry(entry, between.layers / totalWeight)));
-        sporadic.target
-                .map(blockStates -> blockStates.stream().map(state -> Either.<BlockState, Material>left(state.state)),
-                        material -> Stream.of(Either.<BlockState, Material>right(material)))
-                .forEach(entry -> result.add(Map.entry(entry, 1)));
-        return result;
+    public List<VeinEntry> getAllEntries() {
+        List<VeinEntry> entries = new ArrayList<>(primary.size() + secondary.size() + between.size() + sporadic.size());
+        VeinGenerator.mapTarget(primary.target, primary.layers).forEach(entries::add);
+        VeinGenerator.mapTarget(secondary.target, secondary.layers).forEach(entries::add);
+        VeinGenerator.mapTarget(between.target, between.layers).forEach(entries::add);
+        VeinGenerator.mapTarget(sporadic.target, 1).forEach(entries::add);
+        return entries;
     }
 
     @Override
@@ -104,7 +92,7 @@ public class ClassicVeinGenerator extends VeinGenerator {
                                                   BlockPos origin) {
         Map<BlockPos, OreBlockPlacer> generatedBlocks = new Object2ObjectOpenHashMap<>();
 
-        int radius = entry.clusterSize().sample(random);
+        int radius = entry.clusterSize().sample(random) / 2;
         int ySize = radius / 2;
         int xy2 = radius * radius * ySize * ySize;
         int xz2 = radius * radius * radius * radius;
@@ -187,7 +175,7 @@ public class ClassicVeinGenerator extends VeinGenerator {
 
         // Ensure "between" is not more than the total primary and secondary layers
         Preconditions.checkArgument(primary.layers + secondary.layers >= between.layers,
-                "Error: cannot be more \"between\" layers than primary and secondary layers combined!");
+                "Error: cannot have more \"between\" layers than primary and secondary layers combined!");
 
         this.sporadicDivisor = primary.layers + secondary.layers - 1;
         this.startPrimary = secondary.layers;
@@ -207,28 +195,32 @@ public class ClassicVeinGenerator extends VeinGenerator {
     }
 
     public ClassicVeinGenerator primary(Consumer<Layer.Builder> builder) {
-        Layer.Builder layerBuilder = new Layer.Builder(rules);
+        Layer.Builder layerBuilder = new Layer.Builder(
+                rules != null ? rules : new RuleTest[] { AlwaysTrueTest.INSTANCE });
         builder.accept(layerBuilder);
         primary = layerBuilder.build();
         return this;
     }
 
     public ClassicVeinGenerator secondary(Consumer<Layer.Builder> builder) {
-        Layer.Builder layerBuilder = new Layer.Builder(rules);
+        Layer.Builder layerBuilder = new Layer.Builder(
+                rules != null ? rules : new RuleTest[] { AlwaysTrueTest.INSTANCE });
         builder.accept(layerBuilder);
         secondary = layerBuilder.build();
         return this;
     }
 
     public ClassicVeinGenerator between(Consumer<Layer.Builder> builder) {
-        Layer.Builder layerBuilder = new Layer.Builder(rules);
+        Layer.Builder layerBuilder = new Layer.Builder(
+                rules != null ? rules : new RuleTest[] { AlwaysTrueTest.INSTANCE });
         builder.accept(layerBuilder);
         between = layerBuilder.build();
         return this;
     }
 
     public ClassicVeinGenerator sporadic(Consumer<Layer.Builder> builder) {
-        Layer.Builder layerBuilder = new Layer.Builder(rules);
+        Layer.Builder layerBuilder = new Layer.Builder(
+                rules != null ? rules : new RuleTest[] { AlwaysTrueTest.INSTANCE });
         builder.accept(layerBuilder);
         sporadic = layerBuilder.build();
         return this;
@@ -280,10 +272,14 @@ public class ClassicVeinGenerator extends VeinGenerator {
             return new Layer(this.target.mapBoth(ArrayList::new, Function.identity()), layers);
         }
 
+        public int size() {
+            return target.left().isPresent() ? target.left().get().size() : 1;
+        }
+
         public static class Builder {
 
             private Either<List<OreConfiguration.TargetBlockState>, Material> target;
-            private int size = 1;
+            private int size = -1;
             private final RuleTest[] rules;
 
             protected Builder(RuleTest... rules) {

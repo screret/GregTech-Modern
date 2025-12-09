@@ -18,11 +18,9 @@ import java.util.concurrent.*;
 
 public class MultiblockWorldSavedData extends SavedData {
 
-    private final ServerLevel serverLevel;
-
     public static MultiblockWorldSavedData getOrCreate(ServerLevel serverLevel) {
-        return serverLevel.getDataStorage().computeIfAbsent(tag -> new MultiblockWorldSavedData(serverLevel, tag),
-                () -> new MultiblockWorldSavedData(serverLevel), "gtceu_multiblock");
+        return serverLevel.getDataStorage()
+                .computeIfAbsent(MultiblockWorldSavedData::new, MultiblockWorldSavedData::new, "gtceu_multiblock");
     }
 
     /**
@@ -34,18 +32,17 @@ public class MultiblockWorldSavedData extends SavedData {
      */
     public final Map<ChunkPos, Set<MultiblockState>> chunkPosMapping;
 
-    private MultiblockWorldSavedData(ServerLevel serverLevel) {
-        this.serverLevel = serverLevel;
+    private MultiblockWorldSavedData() {
         this.mapping = new Object2ObjectOpenHashMap<>();
         this.chunkPosMapping = new HashMap<>();
     }
 
-    private MultiblockWorldSavedData(ServerLevel serverLevel, CompoundTag tag) {
-        this(serverLevel);
+    private MultiblockWorldSavedData(CompoundTag tag) {
+        this();
     }
 
-    public MultiblockState[] getControllerInChunk(ChunkPos chunkPos) {
-        return chunkPosMapping.getOrDefault(chunkPos, Collections.emptySet()).toArray(MultiblockState[]::new);
+    public Set<MultiblockState> getControllersInChunk(ChunkPos chunkPos) {
+        return chunkPosMapping.getOrDefault(chunkPos, Collections.emptySet());
     }
 
     public void addMapping(MultiblockState state) {
@@ -53,7 +50,6 @@ public class MultiblockWorldSavedData extends SavedData {
         for (BlockPos blockPos : state.getCache()) {
             chunkPosMapping.computeIfAbsent(new ChunkPos(blockPos), c -> new HashSet<>()).add(state);
         }
-        setDirty(true);
     }
 
     public void removeMapping(MultiblockState state) {
@@ -61,7 +57,6 @@ public class MultiblockWorldSavedData extends SavedData {
         for (Set<MultiblockState> set : chunkPosMapping.values()) {
             set.remove(state);
         }
-        setDirty(true);
     }
 
     @NotNull
@@ -112,12 +107,17 @@ public class MultiblockWorldSavedData extends SavedData {
 
     private void searchingTask() {
         try {
+            if (!GTCEu.canGetServerLevel()) return;
             IN_SERVICE.set(true);
             for (var controller : controllers) {
-                controller.asyncCheckPattern(periodID);
+                try {
+                    controller.asyncCheckPattern(periodID);
+                } catch (Throwable e) {
+                    GTCEu.LOGGER.error("Error while assembling multiblock {}: {}", controller, e.getMessage());
+                }
             }
         } catch (Throwable e) {
-            GTCEu.LOGGER.error("asyncThreadLogic error: {}", e.getMessage());
+            GTCEu.LOGGER.error("Error while assembling multiblocks: {}", e.getMessage());
         } finally {
             IN_SERVICE.set(false);
         }
@@ -125,7 +125,7 @@ public class MultiblockWorldSavedData extends SavedData {
     }
 
     public static boolean isThreadService() {
-        return IN_SERVICE.get();
+        return IN_SERVICE.get() && GTCEu.canGetServerLevel();
     }
 
     public void releaseExecutorService() {

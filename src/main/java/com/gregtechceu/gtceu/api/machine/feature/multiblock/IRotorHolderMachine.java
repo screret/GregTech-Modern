@@ -1,8 +1,11 @@
 package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
+import com.gregtechceu.gtceu.api.machine.property.GTMachineModelProperties;
+import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 
@@ -11,18 +14,20 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/**
- * @author KilaBash
- * @date 2023/7/10
- * @implNote IRotorHolderMachine
- */
 public interface IRotorHolderMachine extends IMultiPart {
 
     int SPEED_INCREMENT = 1;
     int SPEED_DECREMENT = 3;
+
+    BooleanProperty HAS_ROTOR_PROPERTY = GTMachineModelProperties.HAS_ROTOR;
+    BooleanProperty ROTOR_SPINNING_PROPERTY = GTMachineModelProperties.IS_ROTOR_SPINNING;
+    BooleanProperty EMISSIVE_ROTOR_PROPERTY = GTMachineModelProperties.IS_EMISSIVE_ROTOR;
 
     /**
      * @return the base efficiency of the rotor holder in %
@@ -30,6 +35,9 @@ public interface IRotorHolderMachine extends IMultiPart {
     static int getBaseEfficiency() {
         return 100;
     }
+
+    @NotNull
+    Material getRotorMaterial();
 
     ItemStack getRotorStack();
 
@@ -140,14 +148,14 @@ public interface IRotorHolderMachine extends IMultiPart {
      * @return true if the front face is unobstructed
      */
     default boolean isFrontFaceFree() {
-        var facing = self().getFrontFacing();
-        boolean permuteXZ = facing.getAxis() == Direction.Axis.Z;
-        var centerPos = self().getPos().relative(facing);
-        for (int x = -1; x < 2; x++) {
-            for (int y = -1; y < 2; y++) {
-                var blockPos = centerPos.offset(permuteXZ ? x : 0, y, permuteXZ ? 0 : x);
-                var blockState = self().getLevel().getBlockState(blockPos);
-                if (!blockState.isAir()) {
+        final var facing = self().getFrontFacing();
+        final var up = facing.getAxis() == Direction.Axis.Y ? Direction.NORTH : Direction.UP;
+        final var pos = self().getPos();
+        final var level = self().getLevel();
+        for (int dLeft = -1; dLeft < 2; dLeft++) {
+            for (int dUp = -1; dUp < 2; dUp++) {
+                final var checkPos = RelativeDirection.offsetPos(pos, facing, up, false, dUp, dLeft, 1);
+                if (!level.getBlockState(checkPos).isAir()) {
                     return false;
                 }
             }

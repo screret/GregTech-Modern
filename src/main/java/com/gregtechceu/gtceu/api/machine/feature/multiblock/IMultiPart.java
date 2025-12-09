@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
+import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
@@ -14,14 +14,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.List;
+import java.util.SortedSet;
 
-/**
- * @author KilaBash
- * @date 2023/3/3
- * @implNote IMultiPart
- */
 public interface IMultiPart extends IMachineFeature, IFancyUIMachine {
 
     /**
@@ -42,9 +39,12 @@ public interface IMultiPart extends IMachineFeature, IFancyUIMachine {
     boolean isFormed();
 
     /**
-     * Get all attached controllers
+     * Get this MultiPart's controllers
+     * 
+     * @return An Unmodifiable View of the part's controllers
      */
-    List<IMultiController> getControllers();
+    @UnmodifiableView
+    SortedSet<IMultiController> getControllers();
 
     /**
      * Called when it was removed from a multiblock.
@@ -59,7 +59,7 @@ public interface IMultiPart extends IMachineFeature, IFancyUIMachine {
     /**
      * Get all available traits for recipe logic.
      */
-    List<IRecipeHandlerTrait> getRecipeHandlers();
+    List<RecipeHandlerList> getRecipeHandlers();
 
     /**
      * whether its base model can be replaced by controller when it is formed.
@@ -109,7 +109,7 @@ public interface IMultiPart extends IMachineFeature, IFancyUIMachine {
     }
 
     /**
-     * Called in {@link RecipeLogic#setupRecipe(GTRecipe)} ()}
+     * Called in {@link RecipeLogic#setupRecipe(GTRecipe)}
      */
     default boolean beforeWorking(IWorkableMultiController controller) {
         return true;

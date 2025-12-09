@@ -3,38 +3,48 @@ package com.gregtechceu.gtceu.forge;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.MaterialBlock;
+import com.gregtechceu.gtceu.api.block.BlockAttributes;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.IMedicalConditionTracker;
 import com.gregtechceu.gtceu.api.capability.compat.EUToFEProvider;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.cosmetics.CapeRegistry;
+import com.gregtechceu.gtceu.api.cosmetics.event.RegisterGTCapesEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.HazardProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.item.DrumMachineItem;
-import com.gregtechceu.gtceu.api.item.IComponentItem;
-import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
+import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
+import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
+import com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.capability.EnvironmentalHazardSavedData;
 import com.gregtechceu.gtceu.common.capability.LocalizedHazardSavedData;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
+import com.gregtechceu.gtceu.common.capability.WorldIDSaveData;
 import com.gregtechceu.gtceu.common.commands.GTCommands;
 import com.gregtechceu.gtceu.common.commands.HazardCommands;
 import com.gregtechceu.gtceu.common.commands.MedicalConditionCommands;
-import com.gregtechceu.gtceu.common.data.GTBlocks;
-import com.gregtechceu.gtceu.common.data.GTItems;
-import com.gregtechceu.gtceu.common.data.GTMachines;
+import com.gregtechceu.gtceu.common.cosmetics.GTCapes;
+import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.data.machines.GTAEMachines;
+import com.gregtechceu.gtceu.common.fluid.potion.BottleItemFluidHandler;
+import com.gregtechceu.gtceu.common.fluid.potion.PotionItemFluidHandler;
 import com.gregtechceu.gtceu.common.item.ToggleEnergyConsumerBehavior;
 import com.gregtechceu.gtceu.common.item.armor.IJetpack;
+import com.gregtechceu.gtceu.common.item.armor.QuarkTechSuite;
+import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
-import com.gregtechceu.gtceu.common.network.packets.*;
+import com.gregtechceu.gtceu.common.network.packets.SPacketSendWorldID;
+import com.gregtechceu.gtceu.common.network.packets.SPacketSyncBedrockOreVeins;
+import com.gregtechceu.gtceu.common.network.packets.SPacketSyncFluidVeins;
+import com.gregtechceu.gtceu.common.network.packets.SPacketSyncOreVeins;
 import com.gregtechceu.gtceu.common.network.packets.hazard.SPacketAddHazardZone;
 import com.gregtechceu.gtceu.common.network.packets.hazard.SPacketRemoveHazardZone;
 import com.gregtechceu.gtceu.common.network.packets.hazard.SPacketSyncLevelHazards;
@@ -43,6 +53,9 @@ import com.gregtechceu.gtceu.data.loader.BedrockFluidLoader;
 import com.gregtechceu.gtceu.data.loader.BedrockOreLoader;
 import com.gregtechceu.gtceu.data.loader.GTOreLoader;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
+import com.gregtechceu.gtceu.integration.map.WaypointManager;
+import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.Direction;
@@ -52,29 +65,36 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.*;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.ChunkWatchEvent;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
@@ -90,39 +110,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.gregtechceu.gtceu.utils.FormattingUtil.toLowerCaseUnder;
+import static com.gregtechceu.gtceu.utils.FormattingUtil.toLowerCaseUnderscore;
 
-/**
- * @author KilaBash
- * @date 2022/8/27
- * @implNote ForgeCommonEventListener
- */
 @Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void registerItemStackCapabilities(AttachCapabilitiesEvent<ItemStack> event) {
-        if (event.getObject().getItem() instanceof IComponentItem componentItem) {
-            final ItemStack itemStack = event.getObject();
-            event.addCapability(GTCEu.id("capability"), new ICapabilityProvider() {
-
-                @NotNull
-                @Override
-                public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-                    return componentItem.getCapability(itemStack, cap);
-                }
-            });
-        }
-        if (event.getObject().getItem() instanceof DrumMachineItem drumMachineItem) {
-            final ItemStack itemStack = event.getObject();
-            event.addCapability(GTCEu.id("fluid"), new ICapabilityProvider() {
-
-                @Override
-                public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability,
-                                                                  @Nullable Direction arg) {
-                    return drumMachineItem.getCapability(itemStack, capability);
-                }
-            });
+        final ItemStack itemStack = event.getObject();
+        if (itemStack.getItem() instanceof PotionItem) {
+            event.addCapability(GTCEu.id("potion_item_handler"), new PotionItemFluidHandler(itemStack));
+        } else if (itemStack.is(Items.GLASS_BOTTLE)) {
+            event.addCapability(GTCEu.id("bottle_item_handler"), new BottleItemFluidHandler(itemStack));
         }
     }
 
@@ -153,8 +152,14 @@ public class ForgeCommonEventListener {
     }
 
     @SubscribeEvent
-    public static void attachCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
+    public static void registerBlockEntityCapabilities(AttachCapabilitiesEvent<BlockEntity> event) {
         event.addCapability(GTCEu.id("fe_capability"), new EUToFEProvider(event.getObject()));
+    }
+
+    @SubscribeEvent
+    public static void registerCapes(RegisterGTCapesEvent event) {
+        GTCapes.registerGTCapes(event);
+        GTCapes.giveDevCapes(event);
     }
 
     @SubscribeEvent
@@ -184,7 +189,7 @@ public class ForgeCommonEventListener {
         for (int i = 0; i < inventory.getSlots(); ++i) {
             ItemStack stack = inventory.getStackInSlot(i);
             Material material = HazardProperty.getValidHazardMaterial(stack);
-            if (material == null || !material.hasProperty(PropertyKey.HAZARD)) {
+            if (material.isNull() || !material.hasProperty(PropertyKey.HAZARD)) {
                 continue;
             }
             HazardProperty property = material.getProperty(PropertyKey.HAZARD);
@@ -195,6 +200,25 @@ public class ForgeCommonEventListener {
                 continue;
             }
             tracker.progressRelatedCondition(material);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onMobEffectEvent(MobEffectEvent.Applicable event) {
+        if (event.getEntity() instanceof Player player) {
+            ItemStack item = player.getItemBySlot(EquipmentSlot.HEAD);
+            if (item.is(GTItems.QUANTUM_HELMET.asItem()) && GTCapabilityHelper.getElectricItem(item) != null) {
+                IElectricItem helmet = GTCapabilityHelper.getElectricItem(item);
+                MobEffectInstance effect = event.getEffectInstance();
+                int cost = QuarkTechSuite.potionRemovalCost.getOrDefault(effect.getEffect(), -1);
+                if (cost != -1) {
+                    cost = cost * (effect.getAmplifier() + 1);
+                    if (helmet.canUse(cost)) {
+                        helmet.discharge(cost, helmet.getTier(), true, false, false);
+                        event.setResult(Event.Result.DENY);
+                    }
+                }
+            }
         }
     }
 
@@ -214,7 +238,7 @@ public class ForgeCommonEventListener {
     public static void onBreakEvent(BlockEvent.BreakEvent event) {
         var machine = MetaMachine.getMachine(event.getLevel(), event.getPos());
         if (machine != null) {
-            if (!MetaMachineBlock.canBreakOwnerMachine(event.getPlayer(), machine.holder)) {
+            if (!MachineOwner.canBreakOwnerMachine(event.getPlayer(), machine)) {
                 event.setCanceled(true);
             }
         }
@@ -229,6 +253,8 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void registerReloadListeners(AddReloadListenerEvent event) {
+        GTRegistries.updateFrozenRegistry(event.getRegistryAccess());
+
         event.addListener(new GTOreLoader());
         event.addListener(new BedrockFluidLoader());
         event.addListener(new BedrockOreLoader());
@@ -246,22 +272,63 @@ public class ForgeCommonEventListener {
     }
 
     @SubscribeEvent
+    public static void worldLoad(LevelEvent.Load event) {
+        if (event.getLevel().isClientSide()) {
+            WaypointManager.updateDimension(event.getLevel());
+        } else if (event.getLevel() instanceof ServerLevel serverLevel) {
+            ServerCache.instance.maybeInitWorld(serverLevel);
+        }
+    }
+
+    @SubscribeEvent
     public static void worldUnload(LevelEvent.Unload event) {
         if (event.getLevel() instanceof ServerLevel serverLevel) {
             TaskHandler.onWorldUnLoad(serverLevel);
+            MultiblockWorldSavedData.getOrCreate(serverLevel).releaseExecutorService();
+            ServerCache.instance.invalidateWorld(serverLevel);
+        } else if (event.getLevel().isClientSide()) {
+            ClientCacheManager.saveCaches();
+        }
+    }
+
+    @SubscribeEvent
+    public static void serverStarting(ServerStartingEvent event) {
+        ServerLevel mainLevel = event.getServer().overworld();
+        WorldIDSaveData.init(mainLevel);
+        CapeRegistry.registerToServer(mainLevel);
+    }
+
+    @SubscribeEvent
+    public static void serverStopped(ServerStoppedEvent event) {
+        ServerCache.instance.clear();
+        VirtualEnderRegistry.release();
+    }
+
+    @SubscribeEvent
+    public static void serverStopping(ServerStoppingEvent event) {
+        var levels = event.getServer().getAllLevels();
+        for (var level : levels) {
+            if (!level.isClientSide()) {
+                MultiblockWorldSavedData.getOrCreate(level).releaseExecutorService();
+            }
         }
     }
 
     @SubscribeEvent
     public static void onPlayerJoinServer(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+        Player player = event.getEntity();
+        if (player instanceof ServerPlayer serverPlayer) {
+            GTNetwork.sendToPlayer(serverPlayer, new SPacketSendWorldID());
+
             if (!ConfigHolder.INSTANCE.gameplay.environmentalHazards)
                 return;
 
             ServerLevel level = serverPlayer.serverLevel();
             var data = EnvironmentalHazardSavedData.getOrCreate(level);
-            GTNetwork.NETWORK.sendToPlayer(new SPacketSyncLevelHazards(data.getHazardZones()), serverPlayer);
+            GTNetwork.sendToPlayer(serverPlayer, new SPacketSyncLevelHazards(data.getHazardZones()));
         }
+        CapeRegistry.detectNewCapes(player);
+        CapeRegistry.loadCurrentCapesOnLogin(player);
     }
 
     @SubscribeEvent
@@ -269,17 +336,16 @@ public class ForgeCommonEventListener {
         ServerPlayer player = event.getPlayer();
         if (player == null) {
             // if player == null, the /reload command was ran. sync to all players.
-            GTNetwork.NETWORK.sendToAll(new SPacketSyncOreVeins(GTRegistries.ORE_VEINS.registry()));
-            GTNetwork.NETWORK.sendToAll(new SPacketSyncFluidVeins(GTRegistries.BEDROCK_FLUID_DEFINITIONS.registry()));
-            GTNetwork.NETWORK
-                    .sendToAll(new SPacketSyncBedrockOreVeins(GTRegistries.BEDROCK_ORE_DEFINITIONS.registry()));
+            GTNetwork.sendToAll(new SPacketSyncOreVeins(GTRegistries.ORE_VEINS.registry()));
+            GTNetwork.sendToAll(new SPacketSyncFluidVeins(GTRegistries.BEDROCK_FLUID_DEFINITIONS.registry()));
+            GTNetwork.sendToAll(new SPacketSyncBedrockOreVeins(GTRegistries.BEDROCK_ORE_DEFINITIONS.registry()));
         } else {
             // else it's a player logging in. sync to only that player.
-            GTNetwork.NETWORK.sendToPlayer(new SPacketSyncOreVeins(GTRegistries.ORE_VEINS.registry()), player);
-            GTNetwork.NETWORK.sendToPlayer(new SPacketSyncFluidVeins(GTRegistries.BEDROCK_FLUID_DEFINITIONS.registry()),
-                    player);
-            GTNetwork.NETWORK.sendToPlayer(
-                    new SPacketSyncBedrockOreVeins(GTRegistries.BEDROCK_ORE_DEFINITIONS.registry()), player);
+            GTNetwork.sendToPlayer(player, new SPacketSyncOreVeins(GTRegistries.ORE_VEINS.registry()));
+            GTNetwork.sendToPlayer(player,
+                    new SPacketSyncFluidVeins(GTRegistries.BEDROCK_FLUID_DEFINITIONS.registry()));
+            GTNetwork.sendToPlayer(player,
+                    new SPacketSyncBedrockOreVeins(GTRegistries.BEDROCK_ORE_DEFINITIONS.registry()));
         }
     }
 
@@ -305,6 +371,44 @@ public class ForgeCommonEventListener {
                         player.fallDistance = 0;
                         event.setCanceled(true);
                     }
+        }
+    }
+
+    @SubscribeEvent
+    public static void playerTickEvent(TickEvent.PlayerTickEvent event) {
+        Player player = event.player;
+        if (event.phase == TickEvent.Phase.START && !player.level().isClientSide) {
+            var speedAttrib = player.getAttribute(Attributes.MOVEMENT_SPEED);
+            if (speedAttrib == null) return;
+            var speedMod = speedAttrib.getModifier(BlockAttributes.BLOCK_SPEED_BOOST);
+
+            float speedBoost = 0.0f;
+            if (!player.onGround() || player.isInWater() || player.isCrouching()) {
+                speedBoost = 0.0f;
+            } else {
+                var state = player.level().getBlockState(player.getOnPos());
+                if (state.is(CustomTags.VERY_FAST_WALKABLE_BLOCKS)) {
+                    speedBoost = 0.6f; // value that is added to the base MC speed
+                } else if (state.is(CustomTags.FAST_WALKABLE_BLOCKS)) {
+                    speedBoost = 0.25f; // slower to walk on studs
+                } else if (state.is(CustomTags.SLOW_WALKABLE_BLOCKS)) {
+                    speedBoost = -0.20f; // slower on frames
+                }
+            }
+            if (speedMod != null) {
+                if (speedBoost == speedMod.getAmount()) {
+                    return;
+                } else {
+                    speedAttrib.removeModifier(BlockAttributes.BLOCK_SPEED_BOOST);
+                }
+            } else {
+                if (speedBoost == 0.0f) return;
+            }
+            if (speedBoost != 0.0f) {
+                speedAttrib.addTransientModifier(
+                        new AttributeModifier(BlockAttributes.BLOCK_SPEED_BOOST, "GT Block Speed Boost",
+                                speedBoost, AttributeModifier.Operation.MULTIPLY_BASE));
+            }
         }
     }
 
@@ -356,8 +460,7 @@ public class ForgeCommonEventListener {
 
         ServerLevel newLevel = event.getEntity().getServer().getLevel(event.getTo());
         var data = EnvironmentalHazardSavedData.getOrCreate(newLevel);
-        GTNetwork.NETWORK.sendToPlayer(new SPacketSyncLevelHazards(data.getHazardZones()),
-                (ServerPlayer) event.getEntity());
+        GTNetwork.sendToPlayer((ServerPlayer) event.getEntity(), new SPacketSyncLevelHazards(data.getHazardZones()));
     }
 
     @SubscribeEvent
@@ -368,7 +471,7 @@ public class ForgeCommonEventListener {
 
         var zone = data.getZoneByPos(pos);
         if (zone != null) {
-            GTNetwork.NETWORK.sendToPlayer(new SPacketAddHazardZone(pos, zone), player);
+            GTNetwork.sendToPlayer(player, new SPacketAddHazardZone(pos, zone));
         }
     }
 
@@ -380,7 +483,20 @@ public class ForgeCommonEventListener {
 
         var zone = data.getZoneByPos(pos);
         if (zone != null) {
-            GTNetwork.NETWORK.sendToPlayer(new SPacketRemoveHazardZone(pos), player);
+            GTNetwork.sendToPlayer(player, new SPacketRemoveHazardZone(pos));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
+        if (!event.getSlot().isArmor()) return;
+        if (!(event.getEntity() instanceof Player player)) return;
+
+        if (!event.getFrom().isEmpty() && event.getFrom().getItem() instanceof ArmorComponentItem armor) {
+            armor.getArmorLogic().onUnequip(player);
+        }
+        if (!event.getTo().isEmpty() && event.getTo().getItem() instanceof ArmorComponentItem armor) {
+            armor.getArmorLogic().onEquip(player);
         }
     }
 
@@ -390,10 +506,46 @@ public class ForgeCommonEventListener {
             if (mapping.getKey().equals(GTCEu.id("tungstensteel_coil_block"))) {
                 mapping.remap(GTBlocks.COIL_RTMALLOY.get());
             }
+            if (mapping.getKey().equals(GTCEu.id("steam_miner"))) {
+                mapping.remap(GTMachines.STEAM_MINER.first().getBlock());
+            }
         });
         event.getMappings(Registries.ITEM, GTCEu.MOD_ID).forEach(mapping -> {
             if (mapping.getKey().equals(GTCEu.id("tungstensteel_coil_block"))) {
                 mapping.remap(GTBlocks.COIL_RTMALLOY.get().asItem());
+            }
+            if (mapping.getKey().equals(GTCEu.id("steam_miner"))) {
+                mapping.remap(GTMachines.STEAM_MINER.first().getItem());
+            }
+            if (mapping.getKey().equals(GTCEu.id("tungstensteel_fluid_cell"))) {
+                mapping.remap(GTItems.FLUID_CELL_LARGE_TUNGSTEN_STEEL.get().asItem());
+            }
+            if (mapping.getKey().equals(GTCEu.id("avanced_nanomuscle_chestplate"))) {
+                mapping.remap(GTItems.NANO_CHESTPLATE_ADVANCED.get());
+            }
+            String path = mapping.getKey().getPath();
+            if (path.matches("[lhi]v_.+_wirecutter")) {
+                String suffix = "_wirecutter";
+                String typeString = path.substring(0, 2) + suffix; // [lhi]v_wirecutter -- tooltype name
+                String matString = path.substring(3, path.length() - suffix.length()); // material name
+
+                GTToolType type = GTToolType.getTypes().get(typeString);
+                Material material = GTMaterials.get(matString);
+                if (type == null || material.isNull()) {
+                    mapping.warn();
+                    return;
+                }
+                var tool = GTMaterialItems.TOOL_ITEMS.get(material, type);
+                if (tool == null) {
+                    mapping.warn();
+                    return;
+                }
+                mapping.remap(tool.asItem());
+            }
+        });
+        event.getMappings(Registries.BLOCK_ENTITY_TYPE, GTCEu.MOD_ID).forEach(mapping -> {
+            if (mapping.getKey().equals(GTCEu.id("steam_miner"))) {
+                mapping.remap(GTMachines.STEAM_MINER.first().getBlockEntityType());
             }
         });
 
@@ -476,13 +628,13 @@ public class ForgeCommonEventListener {
         });
 
         for (TagPrefix prefix : TagPrefix.values()) {
-            String first = prefix.invertedName ? toLowerCaseUnder(prefix.name) : "(.+?)";
-            String last = prefix.invertedName ? "(.+?)" : toLowerCaseUnder(prefix.name);
+            String first = prefix.invertedName ? toLowerCaseUnderscore(prefix.name) : "(.+?)";
+            String last = prefix.invertedName ? "(.+?)" : toLowerCaseUnderscore(prefix.name);
             Pattern idPattern = Pattern.compile(first + "_" + last);
             event.getMappings(Registries.BLOCK, GTCEu.MOD_ID).forEach(mapping -> {
                 Matcher matcher = idPattern.matcher(mapping.getKey().getPath());
                 if (matcher.matches()) {
-                    BlockEntry<? extends MaterialBlock> block = GTBlocks.MATERIAL_BLOCKS.get(prefix,
+                    BlockEntry<? extends Block> block = GTMaterialBlocks.MATERIAL_BLOCKS.get(prefix,
                             GTCEuAPI.materialManager.getRegistry(GTCEu.MOD_ID).get(matcher.group(1)));
                     if (block != null && block.isPresent()) {
                         mapping.remap(block.get());
@@ -492,12 +644,12 @@ public class ForgeCommonEventListener {
             event.getMappings(Registries.ITEM, GTCEu.MOD_ID).forEach(mapping -> {
                 Matcher matcher = idPattern.matcher(mapping.getKey().getPath());
                 if (matcher.matches()) {
-                    BlockEntry<? extends MaterialBlock> block = GTBlocks.MATERIAL_BLOCKS.get(prefix,
+                    BlockEntry<? extends Block> block = GTMaterialBlocks.MATERIAL_BLOCKS.get(prefix,
                             GTCEuAPI.materialManager.getRegistry(GTCEu.MOD_ID).get(matcher.group(1)));
                     if (block != null && block.isPresent()) {
                         mapping.remap(block.asItem());
                     } else {
-                        ItemEntry<? extends TagPrefixItem> item = GTItems.MATERIAL_ITEMS.get(prefix,
+                        ItemEntry<? extends Item> item = GTMaterialItems.MATERIAL_ITEMS.get(prefix,
                                 GTCEuAPI.materialManager.getRegistry(GTCEu.MOD_ID).get(matcher.group(1)));
                         if (item != null && item.isPresent()) {
                             mapping.remap(item.asItem());
@@ -505,6 +657,18 @@ public class ForgeCommonEventListener {
                     }
                 }
             });
+        }
+    }
+
+    @SubscribeEvent
+    public static void breakSpeed(PlayerEvent.BreakSpeed event) {
+        Player player = event.getEntity();
+        for (ItemStack stack : player.getArmorSlots()) {
+            if (stack.getItem() instanceof ArmorComponentItem componentItem) {
+                if (componentItem.getArmorLogic() instanceof IJetpack jetpack && jetpack.removeMiningSpeedPenalty()) {
+                    if (!player.onGround() || player.isUnderWater()) event.setNewSpeed(event.getOriginalSpeed() * 5);
+                }
+            }
         }
     }
 }

@@ -1,76 +1,128 @@
 dependencies {
-    compileOnly 'org.jetbrains:annotations:24.1.0'
+    compileOnly(libs.jetbrains.annotations)
 
     // LDLib
-    modApi(forge.ldlib.forge) { transitive = false }
-    jarJar(forge.ldlib.forge)
+    jarJar(modApi(forge.ldlib.get()))
 
     // Registrate
-    modImplementation(jarJar("com.tterrag.registrate:Registrate:${forge.versions.registrate.get()}"))
-
-    // Create and its dependencies
-    modImplementation("com.simibubi.create:create-${libs.versions.minecraft.get()}:${forge.versions.createForge.get()}:slim") { transitive = false }
-    modImplementation forge.flywheel
-
-    // JEI
-    modCompileOnly(forge.jei.common.api) { transitive = false }
-    modCompileOnly(forge.jei.forge.api) { transitive = false }
-    modCompileOnly(forge.jei.forge.impl) { transitive = false }
-
-    // REI
-    modCompileOnly forge.rei.plugin
-    modCompileOnly forge.rei.api
-    modCompileOnly forge.rei.forge
-
-    // EMI
-    //modCompileOnly("dev.emi:emi-forge:${forge.versions.emi.get()}:api")
-    modImplementation forge.emi
-
-    // TOP
-    modCompileOnly(forge.theoneprobe) { transitive = false }
-
-    // Jade
-    modImplementation(forge.jade)
-
-    modCompileOnly("top.theillusivec4.curios:curios-forge:${forge.versions.curios.get()}:api")
-    modRuntimeOnly("top.theillusivec4.curios:curios-forge:${forge.versions.curios.get()}")
-
-    // AE2
-    modImplementation(forge.ae2) { transitive = false }
-    modCompileOnly("curse.maven:ae2wtlib-459929:5217955")
-
-    // KJS
-    modImplementation(forge.kubejs) { transitive = false }
-    modImplementation(forge.architectury)
-    modImplementation(forge.rhino)
-
-    // Mixin (& Extras)
-    api(annotationProcessor("io.github.llamalad7:mixinextras-common:${this.forge.versions.mixinextras.get()}"))
-    jarJar("io.github.llamalad7:mixinextras-forge:${this.forge.versions.mixinextras.get()}")
-    annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
+    jarJar(modApi(forge.registrate.get()))
 
     // Configuration
-    modApi(forge.configuration)
-    jarJar(forge.configuration)
+    jarJar(modApi(forge.configuration.get()))
+
+    // Mixin (& Extras)
+    annotationProcessor(variantOf(libs.mixin) { classifier("processor") })
+    compileOnly(annotationProcessor(forge.mixinExtras.common.get()))
+    jarJar(api(forge.mixinExtras.forge.get())).version {
+        require("[${forge.versions.mixinExtras.get()},)")
+    }
+
+    // Recipe Viewers
+    modCompileOnly(forge.bundles.jei)
+    modCompileOnly(forge.bundles.rei)
+    modCompileOnly(forge.emi)
+
+    // WAILA-likes
+    modCompileOnly(forge.theoneprobe)
+    modCompileOnly(forge.jade)
+
+    // Curios
+    modCompileOnly(variantOf(forge.curios) { classifier("api") })
+
+    // AE2
+    modCompileOnly(forge.ae2)
+    modCompileOnly(forge.ae2wtlib)
+
+    // Create
+    modCompileOnly(forge.ponder)
+    modCompileOnly(variantOf(forge.create) { classifier("slim") })
+    modCompileOnly(forge.flywheel.forge.api)
+
+    // KJS
+    modCompileOnly(forge.kubejs)
+    modCompileOnly(forge.architectury)
+    modCompileOnly(forge.rhino)
 
     // Shimmer
-    modCompileOnly(forge.shimmer.forge) { transitive = false }
-    modCompileOnly("maven.modrinth:embeddium:0.3.19+mc1.20.1")
-    modCompileOnly("maven.modrinth:oculus:1.20.1-1.7.0")
+    modCompileOnly(forge.shimmer)
+    modCompileOnly(forge.embeddium)
+    modCompileOnly(forge.oculus)
+    modCompileOnly(forge.modernfix)
 
-    // JAVD
-    modImplementation(forge.javd) { transitive = false }
-    modRuntimeOnly("curse.maven:trenzalore-870210:4848244")
-
-    // FTB teams
-    modCompileOnly(forge.ftbteams)
+    // Teams
     modCompileOnly(forge.ftblibrary)
-
-    // Argonauts
+    modCompileOnly(forge.ftbteams)
+    modCompileOnly(forge.ftbquests)
+    modCompileOnly(forge.resourcefullib)
     modCompileOnly(forge.argonauts)
-    modCompileOnly(forge.resourceful)
+    modCompileOnly(forge.heracles)
+
+    // Maps
+    modCompileOnly(forge.ftbchunks)
+    modCompileOnly(forge.xaerosminimap)
+    modCompileOnly(forge.xaerosworldmap)
+    modCompileOnly(forge.journeymap.api)
+    modCompileOnly(forge.journeymap.forge)
+
+    // GameStages
+    modCompileOnly(forge.gamestages)
+
+    // CC: Tweaked
+    modCompileOnly(forge.cc.tweaked.core.api)
+    modCompileOnly(forge.cc.tweaked.forge.api)
 
     // Json Things
     modImplementation(forge.jsonThings)
+
+    // Standard runtime mods //
+    modLocalRuntime(forge.jade)
+    modLocalRuntime(forge.ae2)
+    modLocalRuntime(forge.spark)
+    modLocalRuntime(forge.modernfix)
+
+    // Runtime Recipe Viewers - uncomment whichever one you want to use //
+    modLocalRuntime(forge.emi)
+//    modLocalRuntime(forge.jei.forge.impl)
+//    modLocalRuntime(forge.bundles.rei.runtime)
+
+    // Client-only runtime mods //
+    modClientLocalRuntime(forge.embeddium)
+    modClientLocalRuntime(forge.oculus)
+    renderNurseCfg(libs.renderNurse)
+
+    //////////////////////////////////////////////////////
+    // Runtime mods for dev testing with unclean client //
+    //////////////////////////////////////////////////////
+    modExtraLocalRuntime(forge.javd)
+    modExtraLocalRuntime(forge.trenzalore)
+    modExtraLocalRuntime(forge.curios)
+//    modExtraLocalRuntime(forge.worldstripper)
+//    modExtraLocalRuntime(forge.cc.tweaked.forge.impl) for some reason this breaks create
+
+    modExtraLocalRuntime(forge.bundles.kjs)
+
+    modExtraLocalRuntime(forge.ftblibrary)
+    modExtraLocalRuntime(forge.ftbteams)
+    modExtraLocalRuntime(forge.ftbquests)
+
+    modExtraLocalRuntime(forge.heracles)
+    modExtraLocalRuntime(forge.resourcefullib)
+
+//    modExtraLocalRuntime(forge.xaerosminimap)
+//    modExtraLocalRuntime(forge.xaerosworldmap)
+//    modExtraLocalRuntime(forge.journeymap.forge)
+//    modExtraLocalRuntime(forge.ftbchunks)
+
+    modExtraLocalRuntime(forge.gamestages)
+    modExtraLocalRuntime(forge.bookshelf)
+
+    modExtraLocalRuntime(forge.jsonThings)
+
+    modExtraLocalRuntime(forge.kotlinforforge)
+    modExtraLocalRuntime(forge.observable)
+
+    modExtraLocalRuntime(forge.ponder)
+    modExtraLocalRuntime(variantOf(forge.create) { classifier("slim") })
+    modExtraLocalRuntime(forge.flywheel.forge)
 }
 

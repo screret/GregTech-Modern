@@ -12,12 +12,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.side.fluid.FluidActionResult;
-import com.lowdragmc.lowdraglib.side.fluid.FluidHelper;
-import com.lowdragmc.lowdraglib.side.fluid.FluidStack;
-import com.lowdragmc.lowdraglib.side.fluid.FluidTransferHelper;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
@@ -31,8 +29,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -41,6 +37,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
 
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import lombok.Getter;
@@ -62,6 +60,8 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @DescSynced
     @RequireRerender
     protected boolean autoOutputFluids;
+    @Persisted
+    protected boolean allowInputFromOutputSideFluids;
     @Getter
     private final int maxStoredFluids;
     @Persisted
@@ -74,7 +74,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @DescSynced
     @Getter
     @DropSaved // rename "Fluid" for Item capability
-    protected FluidStack stored = FluidStack.empty();
+    protected FluidStack stored = FluidStack.EMPTY;
     @Getter
     protected final Material material;
 
@@ -117,7 +117,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     private void updateStoredFluidFromCache() {
         FluidStack cachedFluid = cache.getFluidInTank(0);
-        this.stored = cachedFluid.isEmpty() ? FluidStack.empty() : cachedFluid;
+        this.stored = cachedFluid.isEmpty() ? FluidStack.EMPTY : cachedFluid;
     }
 
     @Override
@@ -137,7 +137,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     public void loadFromItem(CompoundTag tag) {
         IDropSaveMachine.super.loadFromItem(tag);
         if (!tag.contains("Fluid")) {
-            stored = FluidStack.empty();
+            stored = FluidStack.EMPTY;
         }
         // "stored" may not be same as cache (due to item's fluid cap). we should update it.
         cache.getStorages()[0].setFluid(stored.copy());
@@ -154,14 +154,20 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         updateAutoOutputSubscription();
     }
 
-    @Override
-    public boolean isAllowInputFromOutputSideFluids() {
-        return false;
+    private static boolean canInputFluidsFromOutputSide() {
+        return ConfigHolder.INSTANCE.machines.allowDrumsInputFluidsFromOutputSide;
     }
 
-    // always is facing down, and can never accept fluids from output side
     @Override
-    public void setAllowInputFromOutputSideFluids(boolean allow) {}
+    public boolean isAllowInputFromOutputSideFluids() {
+        return canInputFluidsFromOutputSide() && this.allowInputFromOutputSideFluids;
+    }
+
+    // always is facing down, and can never accept fluids from output side by default
+    @Override
+    public void setAllowInputFromOutputSideFluids(boolean allow) {
+        this.allowInputFromOutputSideFluids = allow;
+    }
 
     @Override
     public void setOutputFacingFluids(@Nullable Direction outputFacing) {
@@ -181,8 +187,8 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
-        if ((isAutoOutputFluids() && !cache.isEmpty()) && outputFacing != null && FluidTransferHelper
-                .getFluidTransfer(getLevel(), getPos().relative(outputFacing), outputFacing.getOpposite()) != null) {
+        if ((isAutoOutputFluids() && !cache.isEmpty()) && outputFacing != null &&
+                GTTransferUtils.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -199,50 +205,11 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         }
     }
 
-    @SuppressWarnings("resource")
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
                                    BlockHitResult hit) {
-        var currentStack = player.getMainHandItem();
-        if (!currentStack.isEmpty()) {
-            var handler = FluidTransferHelper.getFluidTransfer(player, InteractionHand.MAIN_HAND);
-            var fluidTank = cache.getStorages()[0];
-            if (handler != null && !isRemote()) {
-                if (cache.getStorages()[0].getFluidAmount() > 0) {
-                    FluidStack initialFluid = fluidTank.getFluid();
-                    FluidActionResult result = FluidTransferHelper.tryFillContainer(currentStack, fluidTank,
-                            Integer.MAX_VALUE, null, false);
-                    if (result.isSuccess()) {
-                        ItemStack remainingStack = FluidTransferHelper
-                                .tryFillContainer(currentStack, fluidTank, Integer.MAX_VALUE, null, true).getResult();
-                        currentStack.shrink(1);
-                        SoundEvent soundevent = FluidHelper.getFillSound(initialFluid);
-                        if (soundevent != null) {
-                            player.level().playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                                    soundevent, SoundSource.BLOCKS, 1.0F, 1.0F);
-                        }
-                        if (!remainingStack.isEmpty() && !player.addItem(remainingStack)) {
-                            Block.popResource(player.level(), player.getOnPos(), remainingStack);
-                        }
-                        return InteractionResult.SUCCESS;
-                    }
-                }
-
-                FluidActionResult result = FluidTransferHelper.tryEmptyContainer(currentStack, fluidTank,
-                        Integer.MAX_VALUE, null, false);
-                if (result.isSuccess()) {
-                    ItemStack remainingStack = FluidTransferHelper
-                            .tryEmptyContainer(currentStack, fluidTank, Integer.MAX_VALUE, null, true).getResult();
-                    currentStack.shrink(1);
-                    SoundEvent soundevent = FluidHelper.getEmptySound(fluidTank.getFluid());
-                    if (soundevent != null) {
-                        player.level().playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, soundevent,
-                                SoundSource.BLOCKS, 1.0F, 1.0F);
-                    }
-                    if (!remainingStack.isEmpty() && !player.getInventory().add(remainingStack)) {
-                        Block.popResource(player.level(), player.getOnPos(), remainingStack);
-                    }
-                }
+        if (!isRemote()) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, cache)) {
                 return InteractionResult.SUCCESS;
             }
         }
@@ -250,30 +217,73 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     }
 
     @Override
+    public boolean saveBreak() {
+        return !stored.isEmpty();
+    }
+
+    @Override
     protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide,
                                                    BlockHitResult hitResult) {
         if (!isRemote()) {
-            if (!playerIn.isShiftKeyDown()) {
+            if (canInputFluidsFromOutputSide()) {
+                setAllowInputFromOutputSideFluids(!isAllowInputFromOutputSideFluids());
+                playerIn.sendSystemMessage(
+                        Component
+                                .translatable("gtceu.machine.basic.input_from_output_side." +
+                                        (isAllowInputFromOutputSideFluids() ? "allow" : "disallow"))
+                                .append(Component.translatable("gtceu.creative.tank.fluid")));
+            } else if (!playerIn.isShiftKeyDown()) {
                 setAutoOutputFluids(!isAutoOutputFluids());
                 playerIn.sendSystemMessage(Component
                         .translatable("gtceu.machine.drum." + (autoOutputFluids ? "enable" : "disable") + "_output"));
                 return InteractionResult.SUCCESS;
             }
+            return InteractionResult.SUCCESS;
         }
         return super.onScrewdriverClick(playerIn, hand, gridSide, hitResult);
+    }
+
+    @Override
+    protected InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, Direction gridSide,
+                                                  BlockHitResult hitResult) {
+        if (!isRemote()) {
+            if (!playerIn.isShiftKeyDown()) {
+                setAutoOutputFluids(!isAutoOutputFluids());
+                playerIn.sendSystemMessage(
+                        Component.translatable(
+                                "gtceu.machine.drum." + (autoOutputFluids ? "enable" : "disable") + "_output"));
+                return InteractionResult.SUCCESS;
+            }
+        }
+        return super.onSoftMalletClick(playerIn, hand, gridSide, hitResult);
     }
 
     //////////////////////////////////////
     // ******* Rendering ********//
     //////////////////////////////////////
+
     @Override
-    public ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
-                                    Direction side) {
-        if (toolTypes.contains(GTToolType.SCREWDRIVER)) {
+    public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held,
+                                    Set<GTToolType> toolTypes) {
+        return super.shouldRenderGrid(player, pos, state, held, toolTypes) ||
+                toolTypes.contains(GTToolType.SOFT_MALLET) || toolTypes.contains(GTToolType.SCREWDRIVER);
+    }
+
+    @Override
+    public @Nullable ResourceTexture sideTips(Player player, BlockPos pos, BlockState state, Set<GTToolType> toolTypes,
+                                              Direction side) {
+        if (toolTypes.contains(GTToolType.SOFT_MALLET) ||
+                (!canInputFluidsFromOutputSide() && toolTypes.contains(GTToolType.SCREWDRIVER))) {
             if (side == getOutputFacingFluids()) {
                 return isAutoOutputFluids() ? GuiTextures.TOOL_DISABLE_AUTO_OUTPUT : GuiTextures.TOOL_AUTO_OUTPUT;
             }
         }
+        if (canInputFluidsFromOutputSide() && toolTypes.contains(GTToolType.SCREWDRIVER)) {
+            if (side == getOutputFacingFluids()) {
+                return GuiTextures.TOOL_ALLOW_INPUT;
+            }
+        }
+
         return super.sideTips(player, pos, state, toolTypes, side);
     }
 }
