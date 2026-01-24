@@ -31,7 +31,6 @@ import com.gregtechceu.gtceu.integration.map.ftbchunks.FTBChunksPlugin;
 import com.gregtechceu.gtceu.integration.map.layer.Layers;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.FluidRenderLayer;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.OreRenderLayer;
-import com.gregtechceu.gtceu.utils.input.KeyBind;
 import com.gregtechceu.gtceu.utils.input.SyncedKeyMapping;
 
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
@@ -93,7 +92,6 @@ public class ClientInit {
 
     @SubscribeEvent
     public static void registerKeyBindings(RegisterKeyMappingsEvent event) {
-        KeyBind.onRegisterKeyBinds(event);
         SyncedKeyMapping.onRegisterKeyBinds(event);
     }
 

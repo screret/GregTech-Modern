@@ -958,6 +958,7 @@ public class GTMaterials {
     public static Material Redstone;
     public static Material Dichloroethane;
     public static Material Diethylenetriamine;
+    public static Material Tuff;
 
     /**
      * Third Degree Materials
