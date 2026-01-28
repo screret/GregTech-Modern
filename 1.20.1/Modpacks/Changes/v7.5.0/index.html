@@ -3318,6 +3318,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#lamp-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lamp Predicates
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -4301,6 +4312,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#lamp-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lamp Predicates
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -4347,6 +4369,10 @@ You also need to adjust the generics of <code>getType()</code> and <code>createT
 <p>A new system for copying machines using the Machine Memory Card has been added, see <a href="../../Other-Topics/Cover-Machine-Copy-Paste-Support/">this page</a> if you want to add extra copy/paste behaviour to your own machines and covers.</p>
 <h2 id="mortar-recipe-fix">Mortar Recipe Fix</h2>
 <p>Previously, adding GTToolType.MORTAR to your tool did not automatically generate the recipe. This has been fixed. If you previously generated a recipe using this, you need to remove your manual recipe.</p>
+<h2 id="lamp-predicates">Lamp Predicates</h2>
+<p>Previously, lamps were not useable with the terminal in multiblocks. There are new lamp predicates that will help solve this problem.
+The predicate to use all lamps is: <code>Predicates.anyLamp()</code>
+The predicate to use a specific color is: <code>Predicates.lampsByColor(DyeColor.DYE_COLOR)</code>. Where DYE_COLOR is the name of the color you want.</p>
 
 
 
