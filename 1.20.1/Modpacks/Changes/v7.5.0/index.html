@@ -3275,21 +3275,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#machinebuilder-generics" class="md-nav__link">
+  <a href="#machine-builder-generics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        MachineBuilder Generics
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#recipecondition-generics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        RecipeCondition Generics
+        Machine Builder Generics
       
     </span>
   </a>
@@ -3308,10 +3297,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#recipecondition-generics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RecipeCondition Generics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#mortar-recipe-fix" class="md-nav__link">
     <span class="md-ellipsis">
       
         Mortar Recipe Fix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe-rendering-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe rendering changes
       
     </span>
   </a>
@@ -4269,21 +4280,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#machinebuilder-generics" class="md-nav__link">
+  <a href="#machine-builder-generics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        MachineBuilder Generics
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#recipecondition-generics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        RecipeCondition Generics
+        Machine Builder Generics
       
     </span>
   </a>
@@ -4302,10 +4302,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#recipecondition-generics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RecipeCondition Generics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#mortar-recipe-fix" class="md-nav__link">
     <span class="md-ellipsis">
       
         Mortar Recipe Fix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe-rendering-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe rendering changes
       
     </span>
   </a>
@@ -4352,8 +4374,10 @@
 
 
 <h1 id="updating-from-741-to-750">Updating from <code>7.4.1</code> to <code>7.5.0</code></h1>
-<h2 id="machinebuilder-generics">MachineBuilder Generics</h2>
-<p>We have added a second Generic argument to our (Multiblock)MachineBuilder. This effectively means that anywhere where you used to store a partially finished <code>MachineBuilder&lt;?&gt;</code>, you now need to store a <code>MachineBuilder&lt;?, ?&gt;</code>. The same holds for <code>MultiblockMachineBuilder&lt;?,?&gt;</code>.</p>
+<h2 id="machine-builder-generics">Machine Builder Generics</h2>
+<p>We have added a second Generic argument to our (Multiblock)MachineBuilder. This effectively means that anywhere where you used to store a partially finished <code>MachineBuilder&lt;?&gt;</code>, you now need to store a <code>MachineBuilder&lt;?, ?&gt;</code>. The same holds for <code>MultiblockMachineBuilder&lt;?, ?&gt;</code>.</p>
+<h2 id="machine-cover-copypaste-system">Machine &amp; Cover Copy/Paste System</h2>
+<p>A new system for copying machines using the Machine Memory Card has been added, see <a href="../../Other-Topics/Cover-Machine-Copy-Paste-Support/">this page</a> if you want to add extra copy/paste behaviour to your own machines and covers.</p>
 <h2 id="recipecondition-generics">RecipeCondition Generics</h2>
 <p>We have added a Generic argument to <code>RecipeCondition</code> describing the condition.<br />
 This means that your custom recipe conditions now need to extend <code>RecipeCondition&lt;MyCondition&gt;</code> (whereas before they just extended <code>RecipeCondition</code>).
@@ -4365,10 +4389,44 @@ You also need to adjust the generics of <code>getType()</code> and <code>createT
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>- public RecipeCondition createTemplate() {
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>+ public ExampleCondition createTemplate() {
 </code></pre></div></p>
-<h2 id="machine-cover-copypaste-system">Machine &amp; Cover Copy/Paste System</h2>
-<p>A new system for copying machines using the Machine Memory Card has been added, see <a href="../../Other-Topics/Cover-Machine-Copy-Paste-Support/">this page</a> if you want to add extra copy/paste behaviour to your own machines and covers.</p>
 <h2 id="mortar-recipe-fix">Mortar Recipe Fix</h2>
 <p>Previously, adding GTToolType.MORTAR to your tool did not automatically generate the recipe. This has been fixed. If you previously generated a recipe using this, you need to remove your manual recipe.</p>
+<h2 id="pipe-rendering-changes">Pipe rendering changes</h2>
+<p><em>This is only relevant to add-on mods with custom pipe types.</em>
+Addons with custom pipe implementations will have to tweak their code slightly to function with the new rendering code (see example below).</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>-public final PipeModel model = new PipeModel(pipeType.getThickness(), () -&gt; [side texture], () -&gt; [end texture], null, null); 
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>-@Getter
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>-private final PipeBlockRenderer renderer = new PipeBlockRenderer(model);
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a> ...
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a> @Override
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>-public PipeModel getPipeModel() {
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>-    return model;
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>+public PipeModel createPipeModel(GTBlockstateProvider provider) {
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>+    return new PipeModel(this, pipeType.getThickness(), [side texture], [end texture], provider);
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a> }
+</code></pre></div>
+If your pipe is generated from a material property (or equivalent), you should also call <code>PipeModel#dynamicModel()</code>
+to have models be generated at runtime.<br />
+If so, must also add a <strong>Mod bus</strong> event listener for <code>RegisterDynamicResourcesEvent</code>, like so:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@SubscribeEvent</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">registerDynamicResources</span><span class="p">(</span><span class="n">RegisterDynamicResourcesEvent</span><span class="w"> </span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">   </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">var</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MyBlocks</span><span class="p">.</span><span class="na">MY_PIPE_BLOCKS</span><span class="p">)</span><span class="w"> </span><span class="n">block</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">createPipeModel</span><span class="p">(</span><span class="n">RuntimeExistingFileHelper</span><span class="p">.</span><span class="na">INSTANCE</span><span class="p">).</span><span class="na">dynamicModel</span><span class="p">();</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
+</code></pre></div>
+Replace <code>MyBlocks.MY_PIPE_BLOCKS</code> with a reference to your pipe block array/map value collection.</p>
+<p>Conversely, if the pipe is <strong>not</strong> generated, but has a constant set of variants (such as optical fiber cables or laser pipes),
+you should <strong>NOT</strong> use <code>PipeModel#dynamicModel()</code> and instead set the model with <code>GTBlockBuilder#gtBlockstate</code> as such:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="w">    </span><span class="c1">// on your pipe block builder</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="p">...</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">REGISTRATE</span><span class="p">.</span><span class="na">block</span><span class="p">(...)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">             </span><span class="p">.</span><span class="na">properties</span><span class="p">(...)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">             </span><span class="p">.</span><span class="na">gtBlockstate</span><span class="p">(</span><span class="n">GTModels</span><span class="p">::</span><span class="n">createPipeBlockModel</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">             </span><span class="p">...</span><span class="na">more</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="n">things</span><span class="p">...</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">             </span><span class="p">.</span><span class="na">item</span><span class="p">(...)</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">             </span><span class="p">.</span><span class="na">model</span><span class="p">(</span><span class="n">NonNullBiConsumer</span><span class="p">.</span><span class="na">noop</span><span class="p">())</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">             </span><span class="p">...</span><span class="na">more</span><span class="w"> </span><span class="n">builder</span><span class="w"> </span><span class="n">things</span><span class="p">...</span>
+</code></pre></div></p>
 <h2 id="lamp-predicates">Lamp Predicates</h2>
 <p>Previously, lamps were not useable with the terminal in multiblocks. There are new lamp predicates that will help solve this problem.
 The predicate to use all lamps is: <code>Predicates.anyLamp()</code>
