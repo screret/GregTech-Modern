@@ -84,18 +84,7 @@ public class FacadeItemBehaviour implements ISubItemHandler, ICustomDescriptionI
         if (itemStack.getItem() instanceof BlockItem blockItem) {
             return blockItem.getBlock().defaultBlockState();
         }
-
-        BlockState unsafeState = getFacadeStateUnsafe(itemStack);
-        if (unsafeState == null) {
-            // backwards support
-            ItemStack unsafeStack = getFacadeStackUnsafe(itemStack);
-            if (unsafeStack.getItem() instanceof BlockItem blockItem) {
-                return blockItem.getBlock().defaultBlockState();
-            }
-
-            return null;
-        }
-        return unsafeState;
+        return getFacadeStateUnsafe(itemStack);
     }
 
     @Nullable
@@ -106,20 +95,5 @@ public class FacadeItemBehaviour implements ISubItemHandler, ICustomDescriptionI
         }
         return BlockState.CODEC.parse(NbtOps.INSTANCE, tagCompound.getCompound("Facade"))
                 .result().orElse(null);
-    }
-
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    @NotNull
-    private static ItemStack getFacadeStackUnsafe(ItemStack itemStack) {
-        var tagCompound = itemStack.getTag();
-        if (tagCompound == null || !tagCompound.contains("Facade", Tag.TAG_COMPOUND)) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack facadeStack = ItemStack.of(tagCompound.getCompound("Facade"));
-        if (facadeStack.isEmpty() || !isValidFacade(facadeStack)) {
-            return ItemStack.EMPTY;
-        }
-        return facadeStack;
     }
 }
