@@ -372,7 +372,6 @@ public class ComponentItem extends Item
     }
 
     @Override
-    @Deprecated
     @SuppressWarnings("deprecation")
     public @Nullable FoodProperties getFoodProperties() {
         // If item has `foodProperties` from super, return it.
