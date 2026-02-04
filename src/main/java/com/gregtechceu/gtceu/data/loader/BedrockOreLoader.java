@@ -50,7 +50,6 @@ public class BedrockOreLoader extends SimpleJsonResourceReloadListener {
         }
         GTRegistries.BEDROCK_ORE_DEFINITIONS.clear();
 
-        AddonFinder.getAddons().forEach(IGTAddon::registerBedrockOreVeins);
         ModLoader.get().postEvent(
                 new GTCEuAPI.RegisterEvent<>(GTRegistries.BEDROCK_ORE_DEFINITIONS, BedrockOreDefinition.class));
         if (GTCEu.Mods.isKubeJSLoaded()) {

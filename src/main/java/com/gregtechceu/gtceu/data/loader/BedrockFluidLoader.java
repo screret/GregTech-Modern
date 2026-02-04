@@ -49,7 +49,6 @@ public class BedrockFluidLoader extends SimpleJsonResourceReloadListener {
         GTRegistries.BEDROCK_FLUID_DEFINITIONS.clear();
 
         GTBedrockFluids.init();
-        AddonFinder.getAddons().forEach(IGTAddon::registerFluidVeins);
         ModLoader.get().postEvent(
                 new GTCEuAPI.RegisterEvent<>(GTRegistries.BEDROCK_FLUID_DEFINITIONS, BedrockFluidDefinition.class));
         if (GTCEu.Mods.isKubeJSLoaded()) {

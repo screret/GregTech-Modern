@@ -38,35 +38,6 @@ public interface IGTAddon {
     default void registerTagPrefixes() {}
 
     /**
-     * Call init on your custom Element class(es) here
-     */
-    default void registerElements() {}
-
-    /**
-     * Call init on your custom Material class(es) here
-     * 
-     * @deprecated use {@link com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent} and
-     *             {@link com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent} instead.
-     */
-    @Deprecated(forRemoval = true, since = "1.0.21")
-    default void registerMaterials() {}
-
-    /**
-     * Call init on your custom Sound class(es) here
-     */
-    default void registerSounds() {}
-
-    /**
-     * Call init on your custom Cover class(es) here
-     */
-    default void registerCovers() {}
-
-    /**
-     * Call init on your custom Recipe Capabilities here
-     */
-    default void registerRecipeCapabilities() {}
-
-    /**
      * Call init on your custom IWorldGenLayer class(es) here
      */
     default void registerWorldgenLayers() {}
@@ -84,22 +55,6 @@ public interface IGTAddon {
     default void addRecipes(Consumer<FinishedRecipe> provider) {}
 
     default void removeRecipes(Consumer<ResourceLocation> consumer) {}
-
-    /**
-     * Use {@link GTOres#create(ResourceLocation, Consumer)} to register the veins.
-     */
-    default void registerOreVeins() {}
-
-    /**
-     * Use {@link BedrockFluidDefinition#builder(ResourceLocation)} to register the veins.
-     */
-    default void registerFluidVeins() {}
-
-    /**
-     * Use {@link com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition#builder(ResourceLocation)} to
-     * register the veins.
-     */
-    default void registerBedrockOreVeins() {}
 
     /**
      * Register Material -> Casing block mappings here
