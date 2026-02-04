@@ -747,7 +747,6 @@ public class FirstDegreeMaterials {
                 .flags(DECOMPOSITION_BY_CENTRIFUGING, BLAST_FURNACE_CALCITE_DOUBLE)
                 .components(Iron, 1, Hydrogen, 1, Oxygen, 2)
                 .buildAndRegister();
-        YellowLimonite = Limonite;
 
         YttriumBariumCuprate = new Material.Builder(GTCEu.id("yttrium_barium_cuprate"))
                 .ingot()

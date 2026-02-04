@@ -539,8 +539,6 @@ public class GTMaterials {
     public static Material WroughtIron;
     public static Material Wulfenite;
     public static Material Limonite;
-    @Deprecated
-    public static Material YellowLimonite;
     public static Material YttriumBariumCuprate;
     public static Material NetherQuartz;
     public static Material CertusQuartz;
