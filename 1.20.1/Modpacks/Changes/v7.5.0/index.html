@@ -3412,6 +3412,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gtrecipebuilderadjacentfluidtag-and-gtrecipebuilderadjacentblocktag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GTRecipeBuilder#adjacentFluidTag() and GTRecipeBuilder#adjacentBlockTag()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#machine-recipe-failure-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Machine Recipe Failure Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#painted-output-buseshatches" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3427,6 +3449,17 @@
     <span class="md-ellipsis">
       
         Change to GTRecipe constructor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#added-biometagcondition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added BiomeTagCondition
       
     </span>
   </a>
@@ -4450,6 +4483,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#gtrecipebuilderadjacentfluidtag-and-gtrecipebuilderadjacentblocktag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GTRecipeBuilder#adjacentFluidTag() and GTRecipeBuilder#adjacentBlockTag()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#machine-recipe-failure-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Machine Recipe Failure Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#painted-output-buseshatches" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4465,6 +4520,17 @@
     <span class="md-ellipsis">
       
         Change to GTRecipe constructor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#added-biometagcondition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added BiomeTagCondition
       
     </span>
   </a>
@@ -4559,6 +4625,34 @@ you should <strong>NOT</strong> use <code>PipeModel#dynamicModel()</code> and in
 <p>Previously, lamps were not useable with the terminal in multiblocks. There are new lamp predicates that will help solve this problem.
 The predicate to use all lamps is: <code>Predicates.anyLamp()</code>
 The predicate to use a specific color is: <code>Predicates.lampsByColor(DyeColor.DYE_COLOR)</code>. Where DYE_COLOR is the name of the color you want.</p>
+<h2 id="gtrecipebuilderadjacentfluidtag-and-gtrecipebuilderadjacentblocktag"><code>GTRecipeBuilder#adjacentFluidTag()</code> and <code>GTRecipeBuilder#adjacentBlockTag()</code></h2>
+<p><em>This is only relevant to <strong>add-on mods</strong> with custom recipe types that use the condition(s). <strong>KubeJS recipes are not affected.</strong></em></p>
+<p>The renames of <code>GTRecipeBuilder#adjacentFluid(TagKey&lt;Fluid&gt;...)</code> -&gt; <code>#adjacentFluidTag(TagKey&lt;Fluid&gt;...)</code> and <code>GTRecipeBuilder#adjacentBlock(TagKey&lt;Block&gt;...)</code> -&gt; <code>#adjacentBlockTag(TagKey&lt;Block&gt;...)</code>
+have been deprecated in favor of naming every variant <code>adjacentFluids</code> and <code>adjacentBlocks</code>, respectively.<br />
+Please update your addon mods' recipes to use these new methods, as the now deprecated methods will be removed come 8.0.0.</p>
+<p>A full list of all deprecated methods &amp; their replacement is as follows:<br />
+Fluids: <code>adjacentFluid</code>, <code>adjacentFluidTag</code> -&gt; <code>adjacentFluids</code><br />
+Blocks: <code>adjacentBlock</code>, <code>adjacentBlockTag</code> -&gt; <code>adjacentBlocks</code></p>
+<h2 id="machine-recipe-failure-diagnostics">Machine Recipe Failure Diagnostics</h2>
+<p>Machines now provide detailed diagnostics explaining why recipes fail to start.</p>
+<p>Failure reasons are displayed in:
+- the sidebar of simple machines
+- the UI of multiblock machines
+- the Jade tooltip for all machines</p>
+<p>You are supposed to replace <code>ModifierFunction.NULL</code> with <code>ModifierFunction.cancel(reason)</code> to tell the machine why the recipe fails to start.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>- return ModifierFunction.NULL;
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>+ return ModifierFunction.cancel(Component.translatable(&quot;gtceu.recipe_modifier.xxx&quot;));
+</code></pre></div></p>
+<p>Also, if you cancel a recipe in <code>IRecipeLogicMachine#beforeWorking()</code>, you are supposed to add some custom reason info like:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>@Override
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>public boolean beforeWorking(@Nullable GTRecipe recipe) {
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    if(xxx){
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>        RecipeLogic.putFailureReason(this, recipe, Component.literal(&quot;Machine spirit is displeased&quot;));
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        return false
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    }
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    return true;
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>}
+</code></pre></div></p>
 <h2 id="painted-output-buseshatches">Painted Output Buses/Hatches</h2>
 <p>For some time, Spray Paint cans could be used to paint Input and Output Buses/Hatches on multiblock machines.
 Version 7.0.0  added the feature that Painted Input Buses/Hatches of different colors would not share their ingredients with
@@ -4573,6 +4667,8 @@ Painted Input Group that the recipe drew its inputs from.</p>
 <p>Addon mods which explicitly attempt to construct, copy, or apply their own ModifierFunctions to a GTRecipe 
 (not using the standard builder or kjs functions) will need to either add the additional <code>int</code> parameter to the end of 
 their constructor calls, or the additional <code>recipe.groupColor</code> to their copy calls.</p>
+<h2 id="added-biometagcondition">Added BiomeTagCondition</h2>
+<p>Added a new RecipeCondition called BiomeTagCondition for needing a specific biome tag. This can be used with KubeJS using <code>.biomeTag("biome")</code>.</p>
 
 
 
