@@ -4566,6 +4566,11 @@
 
 
 <h1 id="updating-from-741-to-750">Updating from <code>7.4.1</code> to <code>7.5.0</code></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because of these changes, when using GTM 7.5.0+ you can not compile your mod(pack) against addons or coremods that are compiled for 7.4.1 and touch anything related to machines.
+Make sure that your dependencies have updated.</p>
+</div>
 <h2 id="machine-builder-generics">Machine Builder Generics</h2>
 <p>We have added a second Generic argument to our (Multiblock)MachineBuilder. This effectively means that anywhere where you used to store a partially finished <code>MachineBuilder&lt;?&gt;</code>, you now need to store a <code>MachineBuilder&lt;?, ?&gt;</code>. The same holds for <code>MultiblockMachineBuilder&lt;?, ?&gt;</code>.</p>
 <h2 id="machine-cover-copypaste-system">Machine &amp; Cover Copy/Paste System</h2>
