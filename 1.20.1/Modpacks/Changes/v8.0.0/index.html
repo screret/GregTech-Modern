@@ -3503,6 +3503,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#other-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Changes
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -4457,6 +4468,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#other-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Changes
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -4612,6 +4634,13 @@ A number of methods have been renamed across a number of different interfaces an
 <li><code>IHPCAComponentHatch</code> - Use <code>HPCAComponentTrait</code></li>
 <li><code>IHPCAComputationProvider</code> - Use <code>HPCAComputationProviderTrait</code></li>
 <li><code>IHPCACoolantProvider</code> - Use <code>HPCACoolantProviderTrait</code></li>
+</ul>
+<h2 id="other-changes">Other Changes</h2>
+<ul>
+<li><code>BlastingRecipeBuilder</code>, <code>CampfireRecipeBuilder</code>, <code>SmeltingRecipeBuilder</code> and <code>SmokingRecipeBuilder</code> have been merged into <code>SimpleCookingRecipeBuilder</code><ul>
+<li>Example usage: <code>SimpleCookingRecipeBuilder.campfireCooking("cooking_chicken").input(new ItemStack(Items.CHICKEN)).output(new ItemStacks(Items.COOKED_CHICKEN)).cookingTime(100).experience(100).save(provider);</code></li>
+</ul>
+</li>
 </ul>
 
 
