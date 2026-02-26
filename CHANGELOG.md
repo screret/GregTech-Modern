@@ -1,5 +1,25 @@
 # ChangeLog
 
+## Version [v999.0.0](https://github.com/screret/GregTech-Modern/compare/v7.5.2-1.20.1...v999.0.0-1.20.1)
+## What's Changed
+
+CHANGELOG GENERATION TEST:
+
+### Other Changes
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/100
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/101
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/102
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/103
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/104
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/105
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/106
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/107
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/108
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/109
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/110
+* [pull] 1.20.1 from GregTechCEu:1.20.1 by @pull[bot] in https://github.com/screret/GregTech-Modern/pull/111
+
+
 ## Version [v7.5.2](https://github.com/GregTechCEu/GregTech-Modern/compare/v7.5.1-1.20.1...v7.5.2-1.20.1)
 ### Fixed
 
