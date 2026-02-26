@@ -15,11 +15,11 @@ on:
         required: true
         type: string
       release-body:
-        description: 'Body for published release notes'
+        description: 'Body for published release notes, also inserted into CHANGELOG.md'
         required: false
         type: string
-      changelog-body:
-        description: 'Body of change notes to insert into CHANGELOG.md'
+      changelog-title:
+        description: 'Title of change notes to insert into CHANGELOG.md'
         required: false
         type: string
 
@@ -78,8 +78,8 @@ jobs:
           files: ./*.jar
           fail_on_unmatched_files: true
 
-  publish-modrinth:
-    name: Publish to Modrinth
+  publish:
+    name: Publish to CF & Modrinth
     needs: build
     if: ${{ !inputs.simulate }}
     runs-on: ubuntu-latest
@@ -98,41 +98,12 @@ jobs:
           VERSION_TYPE: ${{ inputs.branch == '1.21' && 'beta' || 'beta' }}
         uses: Kir-Antipov/mc-publish@v3.3.0
         with:
-          modrinth-id: 7tG215v7
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          files: |
-            ./gtceu-${{ env.MC_VERSION }}-${{ needs.build.outputs.ver }}.jar
-            ./!(gtceu-${{ env.MC_VERSION }}-${{ needs.build.outputs.ver }}.jar)
-          name: 'GregTech CEu ${{ env.MC_VERSION }}-${{ needs.build.outputs.ver }}'
-          version: 'mc${{ env.MC_VERSION }}-${{ needs.build.outputs.ver }}'
-          version-type: ${{ env.VERSION_TYPE }}
-          changelog: ${{ inputs.release-body }}
-          loaders: ${{ env.LOADER }}
-          java: ${{ env.JAVA }}
-          fail-mode: fail
-
-  publish-cf:
-    name: Publish to CF
-    needs: build
-    if: ${{ !inputs.simulate }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts-${{ inputs.branch }}
-      - name: Publish Mod
-        env:
-          MC_VERSION: ${{ inputs.branch == '1.21' && '1.21.1' || '1.20.1' }}
-          LOADER: ${{ inputs.branch == '1.21' && 'neoforge' || 'forge' }}
-          JAVA: ${{ inputs.branch == '1.21' && '21' || '17' }}
-          VERSION_TYPE: ${{ inputs.branch == '1.21' && 'alpha' || 'beta' }}
-        uses: Kir-Antipov/mc-publish@v3.3.0
-        with:
           curseforge-id: 890405
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          modrinth-id: 7tG215v7
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
           files: |
             ./gtceu-${{ env.MC_VERSION }}-${{ needs.build.outputs.ver }}.jar
             ./!(gtceu-${{ env.MC_VERSION }}-${{ needs.build.outputs.ver }}.jar)
@@ -142,7 +113,7 @@ jobs:
           changelog: ${{ inputs.release-body }}
           loaders: ${{ env.LOADER }}
           java: ${{ env.JAVA }}
-          fail-mode: fail
+          fail-mode: skip
 
   # After successful release, PR version bump and changelog
   bump-version-and-changelog:
@@ -166,9 +137,17 @@ jobs:
           sed -i "s/= ${{ needs.build.outputs.ver }}/= ${BUMPED}/" gradle.properties
           git commit -am "Bump version to ${BUMPED}"
       - name: Prepend to CHANGELOG
-        if: inputs.changelog-body
+        if: ${{ inputs.release-body && inputs.changelog-title }}
+        # Insert these into environment variables because using GitHub's input replacement with multi-line inputs will more often than not break the script, as they're inserted 'as-is'.
+        # e.g. if the input contains ` (backtick) characters, bash tries to use those backticks' contents as actual function input.
+        # Environment variables don't have that issue.
+        env:
+          RELEASE_BODY: ${{ inputs.release-body }}
+          CHANGELOG_TITLE: ${{ inputs.changelog-title }}
         run: |
-          { head -n 2 CHANGELOG.md; echo -e "${{ inputs.changelog-body }}"; tail -n +3 CHANGELOG.md; } > temp.md && mv temp.md CHANGELOG.md
+          BODY=$( echo -e "$RELEASE_BODY" | head -n -1 - | tail -n +2 - )
+          
+          { head -n 2 CHANGELOG.md; echo -e "$CHANGELOG_TITLE"; echo -e "$BODY"; tail -n +3 CHANGELOG.md; } > temp.md && mv temp.md CHANGELOG.md
           git commit -am "Updated CHANGELOG"
       - name: Push and PR
         env:
