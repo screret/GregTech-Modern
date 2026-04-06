@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.integration.map.layer.Layers;
 import journeymap.client.api.IClientAPI;
 import journeymap.client.api.option.BooleanOption;
 import journeymap.client.api.option.OptionCategory;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,12 +25,12 @@ public class JourneymapOptions {
     }
 
     public boolean showLayer(String name) {
-        return layerOptions.get(name).get();
+        return layerOptions.get(name).get() == Boolean.TRUE;
     }
 
-    public void toggleLayer(String name, boolean active) {
+    public void toggleLayer(String name, @Nullable Boolean active) {
         layerOptions.get(name).set(active);
-        if (!active) {
+        if (active != Boolean.TRUE) {
             JourneymapRenderer.getMarkers().forEach((id, marker) -> {
                 if (id.split("@")[0].equals(name)) {
                     IClientAPI api = JourneyMapPlugin.getJmApi();

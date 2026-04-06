@@ -12,6 +12,8 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +45,7 @@ public abstract class GenericMapRenderer {
 
     public abstract boolean doShowLayer(String name);
 
-    public abstract void setLayerActive(String name, boolean active);
+    public abstract void setLayerActive(String name, @Nullable Boolean active);
 
     public abstract void clear();
 }

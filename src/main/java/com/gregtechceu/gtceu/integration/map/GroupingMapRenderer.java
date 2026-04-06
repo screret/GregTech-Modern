@@ -15,6 +15,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class GroupingMapRenderer extends GenericMapRenderer {
     }
 
     @Override
-    public void setLayerActive(String name, boolean active) {
+    public void setLayerActive(String name, @Nullable Boolean active) {
         for (GenericMapRenderer renderer : rendererList) {
             renderer.setLayerActive(name, active);
         }

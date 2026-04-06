@@ -12,6 +12,7 @@ import net.minecraft.world.level.Level;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import org.jetbrains.annotations.Nullable;
 
 public class XaerosRenderer extends GenericMapRenderer {
 
@@ -48,7 +49,7 @@ public class XaerosRenderer extends GenericMapRenderer {
     }
 
     @Override
-    public void setLayerActive(String name, boolean active) {
+    public void setLayerActive(String name, @Nullable Boolean active) {
         XaerosMapPlugin.toggleOption(name, active);
     }
 

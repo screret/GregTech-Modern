@@ -34,6 +34,7 @@ import journeymap.client.api.model.ShapeProperties;
 import journeymap.client.api.util.PolygonHelper;
 import journeymap.client.api.util.UIState;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.geom.Point2D;
 import java.util.HashMap;
@@ -112,7 +113,7 @@ public class JourneymapRenderer extends GenericMapRenderer {
     }
 
     @Override
-    public void setLayerActive(String name, boolean active) {
+    public void setLayerActive(String name, @Nullable Boolean active) {
         JourneyMapPlugin.getOptions().toggleLayer(name, active);
     }
 

@@ -16,6 +16,7 @@ import com.google.common.collect.Table;
 import dev.ftb.mods.ftblibrary.ui.Widget;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -53,7 +54,7 @@ public class FTBChunksRenderer extends GenericMapRenderer {
     }
 
     @Override
-    public void setLayerActive(String name, boolean active) {
+    public void setLayerActive(String name, @Nullable Boolean active) {
         FTBChunksOptions.toggleLayer(name, active);
     }
 

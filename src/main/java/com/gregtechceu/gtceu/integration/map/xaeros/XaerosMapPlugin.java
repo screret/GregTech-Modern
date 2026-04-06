@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import org.jetbrains.annotations.Nullable;
 import xaero.common.minimap.highlight.DimensionHighlighterHandler;
 import xaero.common.minimap.write.MinimapWriter;
 import xaero.hud.minimap.BuiltInHudModules;
@@ -23,7 +24,7 @@ public class XaerosMapPlugin {
         isActive = true;
     }
 
-    public static void toggleOption(String name, boolean active) {
+    public static void toggleOption(String name, @Nullable Boolean active) {
         OPTIONS.put(name, active);
 
         MinimapWriter write = BuiltInHudModules.MINIMAP.getCurrentSession().getProcessor().getMinimapWriter();

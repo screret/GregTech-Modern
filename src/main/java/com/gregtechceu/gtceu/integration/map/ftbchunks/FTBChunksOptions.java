@@ -4,6 +4,7 @@ import dev.ftb.mods.ftbchunks.api.FTBChunksAPI;
 import dev.ftb.mods.ftblibrary.snbt.config.BooleanValue;
 import dev.ftb.mods.ftblibrary.snbt.config.ConfigUtil;
 import dev.ftb.mods.ftblibrary.snbt.config.SNBTConfig;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,13 +33,13 @@ public class FTBChunksOptions {
         return layerOptions.get(name).get();
     }
 
-    public static void toggleLayer(String name, boolean active) {
+    public static void toggleLayer(String name, @Nullable Boolean active) {
         layerOptions.get(name).set(active);
         saveConfig();
         FTBChunksAPI.clientApi().getWaypointManager()
                 .ifPresent(manager -> manager.getAllWaypoints().forEach(waypoint -> {
                     if (waypoint.getName().equals(name)) {
-                        waypoint.setHidden(!active);
+                        waypoint.setHidden(active != Boolean.TRUE);
                     }
                 }));
     }
