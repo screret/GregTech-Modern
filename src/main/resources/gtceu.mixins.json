@@ -77,7 +77,8 @@
         "registrate.AbstractRegistrateAccessor",
         "registrate.RegistrateDataProviderAccessor",
         "rei.InputSlotCrafterMixin",
-        "rei.RecipeFinderMixin"
+        "rei.RecipeFinderMixin",
+        "xaeroworldmap.WorldMapProfiledConfigOptionsMixin"
     ],
     "injectors": {
         "defaultRequire": 1,
