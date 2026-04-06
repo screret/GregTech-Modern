@@ -6,9 +6,9 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.ftbchunks.FTBChunksWaypointHandler;
 import com.gregtechceu.gtceu.integration.map.journeymap.JourneymapWaypointHandler;
 import com.gregtechceu.gtceu.integration.map.xaeros.XaeroWaypointHandler;
-import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -16,35 +16,37 @@ import net.minecraft.world.level.LevelAccessor;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Getter;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class WaypointManager {
 
-    public static ResourceKey<Level> currentDimension;
+    private static ResourceKey<Level> currentDimension;
 
     @Getter
     private static boolean active = false;
 
+    @ApiStatus.Internal
     public static void init() {
-        var toggle = ConfigHolder.INSTANCE.compat.minimap.toggle;
-        if (toggle.xaerosMapIntegration && GTCEu.isModLoaded(GTValues.MODID_XAEROS_MINIMAP)) {
+        var compatToggles = ConfigHolder.INSTANCE.compat.minimap.toggle;
+        if (compatToggles.xaerosMapIntegration && GTCEu.isModLoaded(GTValues.MODID_XAEROS_MINIMAP)) {
             WaypointManager.registerWaypointHandler(new XaeroWaypointHandler());
             active = true;
         }
-        if (toggle.journeyMapIntegration && GTCEu.isModLoaded(GTValues.MODID_JOURNEYMAP)) {
+        if (compatToggles.journeyMapIntegration && GTCEu.isModLoaded(GTValues.MODID_JOURNEYMAP)) {
             WaypointManager.registerWaypointHandler(new JourneymapWaypointHandler());
             active = true;
         }
-        if (toggle.ftbChunksIntegration && GTCEu.isModLoaded(GTValues.MODID_FTB_CHUNKS)) {
+        if (compatToggles.ftbChunksIntegration && GTCEu.isModLoaded(GTValues.MODID_FTB_CHUNKS)) {
             WaypointManager.registerWaypointHandler(new FTBChunksWaypointHandler());
             active = true;
         }
     }
 
-    private static final Set<IWaypointHandler> handlers = new HashSet<>();
-    private static final Object2ObjectMap<String, WaypointKey> waypoints = new Object2ObjectArrayMap<>();
+    private static final Set<IWaypointHandler> HANDLERS = new HashSet<>();
+    private static final Object2ObjectMap<String, WaypointKey> WAYPOINTS = new Object2ObjectArrayMap<>();
 
     public static void updateDimension(LevelAccessor dim) {
         if (dim instanceof ClientLevel level) {
@@ -52,59 +54,34 @@ public class WaypointManager {
         }
     }
 
-    public static void setWaypoint(String key, String name, int color, ResourceKey<Level> dim, int x, int y, int z) {
+    public static void setWaypoint(String key, String name, int color, ResourceKey<Level> dim, BlockPos pos) {
         if (dim == null) dim = currentDimension;
-        for (IWaypointHandler handler : handlers) {
-            handler.setWaypoint(key, name, color, dim, x, y, z);
+        for (IWaypointHandler handler : HANDLERS) {
+            handler.setWaypoint(key, name, color, dim, pos);
         }
-        waypoints.put(key, new WaypointKey(dim, x, y, z));
+        WAYPOINTS.put(key, new WaypointKey(dim, pos));
     }
 
     public static void removeWaypoint(String key) {
-        for (IWaypointHandler handler : handlers) {
+        for (IWaypointHandler handler : HANDLERS) {
             handler.removeWaypoint(key);
         }
-        waypoints.remove(key);
+        WAYPOINTS.remove(key);
     }
 
-    public static boolean toggleWaypoint(String key, String name, int color, ResourceKey<Level> dim, int x, int y,
-                                         int z) {
+    public static boolean toggleWaypoint(String key, String name, int color, ResourceKey<Level> dim, BlockPos pos) {
         if (dim == null) dim = currentDimension;
-        if ((new WaypointKey(dim, x, y, z)).equals(waypoints.get(key))) {
+        if (WAYPOINTS.get(key).equals(new WaypointKey(dim, pos))) {
             removeWaypoint(key);
             return false;
         }
-        setWaypoint(key, name, color, dim, x, y, z);
+        setWaypoint(key, name, color, dim, pos);
         return true;
     }
 
     public static void registerWaypointHandler(IWaypointHandler handler) {
-        handlers.add(handler);
+        HANDLERS.add(handler);
     }
 
-    private static class WaypointKey {
-
-        ResourceKey<Level> dim;
-        int x, y, z;
-
-        public WaypointKey(ResourceKey<Level> dim, int x, int y, int z) {
-            this.dim = dim;
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            WaypointKey that = (WaypointKey) o;
-            return dim == that.dim && x == that.x && y == that.y && z == that.z;
-        }
-
-        @Override
-        public int hashCode() {
-            return GTMath.hashInts(dim.hashCode(), x, y, z);
-        }
-    }
+    private record WaypointKey(ResourceKey<Level> dim, BlockPos pos) {}
 }

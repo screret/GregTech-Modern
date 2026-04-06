@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.integration.map.xaeros;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
@@ -11,9 +12,9 @@ public class WaypointWithDimension extends Waypoint {
 
     private final ResourceKey<Level> dim;
 
-    public WaypointWithDimension(ResourceKey<Level> dim, int x, int y, int z, String name, String symbol,
-                                 WaypointColor color) {
-        super(x, y, z, name, symbol, color);
+    public WaypointWithDimension(ResourceKey<Level> dim, BlockPos pos,
+                                 String name, String symbol, WaypointColor color) {
+        super(pos.getX(), pos.getY(), pos.getZ(), name, symbol, color);
         this.dim = dim;
     }
 
