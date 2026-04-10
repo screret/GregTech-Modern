@@ -57,7 +57,7 @@ public class AdjacentFluidConditionTest {
     @GameTest(template = "charged_hv_rock_breaker", batch = "AdjacentFluidCondition")
     public static void adjacentFluidConditionCorrectFluidPresentTest(GameTestHelper helper) {
         // Machine is at 1,1,1 so 0,1,1 is next to it
-        helper.setBlock(new BlockPos(0, 1, 1), Blocks.WATER);
+        helper.setBlock(0, 1, 1, Blocks.WATER);
 
         SimpleTieredMachine machine = (SimpleTieredMachine) helper.getBlockEntity(new BlockPos(1, 1, 1));
 

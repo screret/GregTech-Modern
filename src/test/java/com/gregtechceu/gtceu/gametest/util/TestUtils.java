@@ -20,7 +20,6 @@ import com.gregtechceu.gtceu.utils.fakeplayer.FakeServerGamePacketListenerImpl;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTestAssertPosException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
@@ -41,11 +40,15 @@ import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.mojang.authlib.GameProfile;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.IntFunction;
+import java.util.function.IntPredicate;
 
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.ELECTRIC;
 
@@ -273,8 +276,16 @@ public class TestUtils {
         helper.assertBlockProperty(pos, RedstoneLampBlock.LIT, true);
     }
 
+    public static void assertLampOn(GameTestHelper helper, int x, int y, int z) {
+        assertLampOn(helper, new BlockPos(x, y, z));
+    }
+
     public static void assertLampOff(GameTestHelper helper, BlockPos pos) {
         helper.assertBlockProperty(pos, RedstoneLampBlock.LIT, false);
+    }
+
+    public static void assertLampOff(GameTestHelper helper, int x, int y, int z) {
+        assertLampOff(helper, new BlockPos(x, y, z));
     }
 
     /**
@@ -300,30 +311,23 @@ public class TestUtils {
         helper.assertTrue(pos1 != null && pos1.equals(pos2), "Expected %s to equal to %s".formatted(pos1, pos2));
     }
 
-    public static void assertRedstone(GameTestHelper helper, BlockPos pos, int min, int max) {
-        BlockPos absolutePos = helper.absolutePos(pos);
-        int strength = helper.getLevel().getBestNeighborSignal(absolutePos);
-        if (strength > max || strength < min) {
-            throw new GameTestAssertPosException(
-                    "Expected redstone signal between %d and %d, got %d".formatted(min, max, strength),
-                    absolutePos, pos, helper.getTick());
-        }
+    public static void assertRedstoneSignal(GameTestHelper helper, BlockPos pos, int min, int max) {
+        assertBestRedstoneSignal(helper, pos, strength -> strength >= min && strength <= max,
+                strength -> "Expected redstone signal to be between " + min + " and " + max + ", got " + strength);
     }
 
-    public static void assertRedstoneEither(GameTestHelper helper, BlockPos pos, int... values) {
+    public static void assertRedstoneSignal(GameTestHelper helper, BlockPos pos, int... values) {
+        assertBestRedstoneSignal(helper, pos, strength -> ArrayUtils.contains(values, strength),
+                strength -> "Expected redstone signal to be one of " + Arrays.toString(values) + ", got " + strength);
+    }
+
+    public static void assertBestRedstoneSignal(GameTestHelper helper, BlockPos pos,
+                                                IntPredicate signalStrengthPredicate,
+                                                IntFunction<String> exceptionMessage) {
         BlockPos absolutePos = helper.absolutePos(pos);
         int strength = helper.getLevel().getBestNeighborSignal(absolutePos);
-        boolean pass = false;
-        for (int i : values) {
-            if (i == strength) {
-                pass = true;
-                break;
-            }
-        }
-        if (!pass) {
-            throw new GameTestAssertPosException(
-                    "Expected redstone signal to be one of %s, got %d".formatted(values, strength),
-                    absolutePos, pos, helper.getTick());
+        if (!signalStrengthPredicate.test(strength)) {
+            helper.fail(exceptionMessage.apply(strength), pos);
         }
     }
 
@@ -385,7 +389,7 @@ public class TestUtils {
             helper.assertTrue(stack.is(item), "Item stack " + stack + " in hand " + hand + " is not a " + item);
         }
         helper.assertTrue(stack.getCount() == count,
-                "Item stack " + stack + " in hand " + hand + " should have " + count + " items, has " +
+                "Item stack " + stack + " in hand " + hand + " should have " + count + " items, but has " +
                         stack.getCount());
     }
 

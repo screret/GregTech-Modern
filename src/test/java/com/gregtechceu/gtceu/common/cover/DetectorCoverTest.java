@@ -18,33 +18,33 @@ public class DetectorCoverTest {
 
     @GameTest(template = "electrolyzer", batch = "coverTests")
     public static void testActivityDetectorCover(GameTestHelper helper) {
-        helper.pullLever(new BlockPos(2, 2, 2));
+        helper.pullLever(2, 2, 2);
         MetaMachine machine = ((MetaMachine) helper.getBlockEntity(new BlockPos(1, 2, 1)));
         TestUtils.placeCover(helper, machine, GTItems.COVER_ACTIVITY_DETECTOR.asStack(), Direction.WEST);
         helper.runAtTickTime(40, () -> {
-            TestUtils.assertLampOn(helper, new BlockPos(0, 2, 1));
+            TestUtils.assertLampOn(helper, 0, 2, 1);
             helper.succeed();
         });
     }
 
     @GameTest(template = "electrolyzer", batch = "coverTests")
     public static void testFluidDetectorCover(GameTestHelper helper) {
-        helper.pullLever(new BlockPos(2, 2, 2));
+        helper.pullLever(2, 2, 2);
         MetaMachine machine = ((MetaMachine) helper.getBlockEntity(new BlockPos(1, 2, 1)));
         TestUtils.placeCover(helper, machine, GTItems.COVER_FLUID_DETECTOR.asStack(), Direction.WEST);
         helper.runAtTickTime(40, () -> {
-            TestUtils.assertLampOn(helper, new BlockPos(0, 2, 1));
+            TestUtils.assertLampOn(helper, 0, 2, 1);
             helper.succeed();
         });
     }
 
     @GameTest(template = "electrolyzer", batch = "coverTests")
     public static void testItemDetectorCover(GameTestHelper helper) {
-        helper.pullLever(new BlockPos(2, 2, 2));
+        helper.pullLever(2, 2, 2);
         MetaMachine machine = ((MetaMachine) helper.getBlockEntity(new BlockPos(1, 2, 1)));
         TestUtils.placeCover(helper, machine, GTItems.COVER_ITEM_DETECTOR.asStack(), Direction.WEST);
         helper.runAtTickTime(40, () -> {
-            TestUtils.assertLampOff(helper, new BlockPos(0, 2, 1));
+            TestUtils.assertLampOff(helper, 0, 2, 1);
             helper.succeed();
         });
     }

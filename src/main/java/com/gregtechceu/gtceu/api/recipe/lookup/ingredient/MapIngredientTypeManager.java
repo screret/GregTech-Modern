@@ -44,8 +44,9 @@ public final class MapIngredientTypeManager {
         if (!stopAt.isAssignableFrom(objClass)) {
             stopAt = Object.class;
         }
+
         var functions = getTypesForClass(objClass, stopAt);
-        // this is the same as writing `object instanceof stopClass`, but it keeps track of the boxed primitives
+        // if the ingredient is not an instance of the base type, and we can't find any specific ones for it, return a default
         if (!objClass.isAssignableFrom(stopAt)) {
             var defaults = getDefaultIngredients(object, cap, stopAt, functions);
             if (defaults != null) return defaults;
@@ -63,24 +64,29 @@ public final class MapIngredientTypeManager {
         Preconditions.checkArgument(stopAt.isAssignableFrom(objClass),
                 "stopAt must be a superclass of %s", objClass);
 
-        var types = ingredientFunctions.get(objClass);
-        if (types == null && objClass != stopAt) {
-            Class<? super T> superclass = objClass.getSuperclass();
-            if (superclass == null || superclass == stopAt) return Collections.emptyList();
-            return getTypesForClass(superclass, stopAt);
+        var types = ingredientFunctions.getOrDefault(objClass, Collections.emptyList());
+        if (!types.isEmpty() || objClass == stopAt) {
+            return (List<MapIngredientFunction<T>>) types;
         }
-        return (List<MapIngredientFunction<T>>) types;
+        Class<? super T> superclass = objClass.getSuperclass();
+        // do not traverse all the way up to stopAt, as that'd (for example) make this assume
+        // all 'unknown' ingredients are vanilla, and that's usually wrong.
+        if (superclass == null || superclass == stopAt || superclass == Object.class) {
+            return (List<MapIngredientFunction<T>>) types;
+        }
+        return getTypesForClass(superclass, stopAt);
     }
 
     private static <T> @Nullable List<AbstractMapIngredient> getDefaultIngredients(T object, RecipeCapability<?> cap,
                                                                                    Class<?> stopAt,
                                                                                    List<? extends MapIngredientFunction<? super T>> functions) {
+        // check if any of the functions we found are actually for the base type and continue as normal if so
         for (var function : functions) {
             if (ingredientTypes.get(function) != stopAt) {
                 return null;
             }
         }
-        // if the ingredient is not of the base type, and we didn't find any specific ones for it, return a default
+        // we didn't find any specific ones for it -> return a default
         return Objects.requireNonNullElseGet(cap.getDefaultMapIngredient(object), Collections::emptyList);
     }
 

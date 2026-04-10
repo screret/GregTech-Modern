@@ -88,7 +88,7 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
         if (fluidHandler == null)
             return;
 
-        long storedFluid = 0;
+        int storedFluid = 0;
 
         for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
             FluidStack content = fluidHandler.getFluidInTank(tank);
@@ -98,10 +98,10 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
         }
 
         if (isLatched) {
-            setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(storedFluid, maxValue, minValue,
+            setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(storedFluid, minValue, maxValue,
                     isInverted(), redstoneSignalOutput));
         } else {
-            setRedstoneSignalOutput(computeRedstoneBetweenValues(storedFluid, maxValue, minValue, isInverted()));
+            setRedstoneSignalOutput(computeRedstoneBetweenValues(storedFluid, minValue, maxValue, isInverted()));
         }
     }
 

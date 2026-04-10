@@ -79,8 +79,6 @@ public class RecipeLogicTest {
 
     @GameTest(template = "lcr_input_separation", batch = "RecipeLogic")
     public static void recipeLogicMultiBlockTest(GameTestHelper helper) {
-        BlockEntity holder = helper.getBlockEntity(new BlockPos(1, 2, 0));
-
         RecipeLogicTest.BusHolder busHolder = getBussesAndForm(helper);
 
         helper.assertTrue(busHolder.controller.isFormed(), "Controller didn't form after structure check");

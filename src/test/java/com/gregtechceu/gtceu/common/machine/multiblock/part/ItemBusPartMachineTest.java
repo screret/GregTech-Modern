@@ -26,8 +26,8 @@ public class ItemBusPartMachineTest {
     // Test for input busses auto importing
     @GameTest(template = "empty_5x5", batch = "ItemBusPartMachine")
     public static void ItemBusPartMachineAutoImportTest(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BRONZE_CRATE.getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.ITEM_IMPORT_BUS[1].getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.ITEM_IMPORT_BUS[1].getBlock());
         CrateMachine crate = (CrateMachine) helper.getBlockEntity(new BlockPos(0, 1, 0));
         ItemBusPartMachine itemBus = (ItemBusPartMachine) helper
                 .getBlockEntity(new BlockPos(0, 2, 0));
@@ -43,8 +43,8 @@ public class ItemBusPartMachineTest {
     // Test for input busses not auto importing when off
     @GameTest(template = "empty_5x5", batch = "ItemBusPartMachine")
     public static void ItemBusPartMachineAutoImportFalseWhenOffTest(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BRONZE_CRATE.getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.ITEM_IMPORT_BUS[1].getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.ITEM_IMPORT_BUS[1].getBlock());
         CrateMachine crate = (CrateMachine) helper.getBlockEntity(new BlockPos(0, 1, 0));
         ItemBusPartMachine itemBus = (ItemBusPartMachine) helper
                 .getBlockEntity(new BlockPos(0, 2, 0));
@@ -62,8 +62,8 @@ public class ItemBusPartMachineTest {
     // Test for output busses auto exporting
     @GameTest(template = "empty_5x5", batch = "ItemBusPartMachine")
     public static void ItemBusPartMachineAutoExportTest(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BRONZE_CRATE.getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.ITEM_EXPORT_BUS[1].getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.ITEM_EXPORT_BUS[1].getBlock());
         CrateMachine crate = (CrateMachine) helper.getBlockEntity(new BlockPos(0, 1, 0));
         ItemBusPartMachine itemBus = (ItemBusPartMachine) helper
                 .getBlockEntity(new BlockPos(0, 2, 0));
@@ -79,8 +79,8 @@ public class ItemBusPartMachineTest {
     // Test for export busses not auto export when off
     @GameTest(template = "empty_5x5", batch = "ItemBusPartMachine")
     public static void ItemBusPartMachineAutoExportFalseWhenOffTest(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BRONZE_CRATE.getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.ITEM_EXPORT_BUS[1].getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.ITEM_EXPORT_BUS[1].getBlock());
         CrateMachine crate = (CrateMachine) helper.getBlockEntity(new BlockPos(0, 1, 0));
         ItemBusPartMachine itemBus = (ItemBusPartMachine) helper
                 .getBlockEntity(new BlockPos(0, 2, 0));
@@ -98,9 +98,9 @@ public class ItemBusPartMachineTest {
     // Test for passthrough busses auto passthrough'ing
     @GameTest(template = "empty_5x5", batch = "ItemBusPartMachine")
     public static void ItemBusPartMachineAutoPassthroughTest(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BRONZE_CRATE.getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.ITEM_PASSTHROUGH_HATCH[1].getBlock());
-        helper.setBlock(new BlockPos(0, 3, 0), GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.ITEM_PASSTHROUGH_HATCH[1].getBlock());
+        helper.setBlock(0, 3, 0, GTMachines.BRONZE_CRATE.getBlock());
         CrateMachine crate = (CrateMachine) helper.getBlockEntity(new BlockPos(0, 1, 0));
         ItemBusPartMachine itemBus = (ItemBusPartMachine) helper
                 .getBlockEntity(new BlockPos(0, 2, 0));
@@ -117,9 +117,9 @@ public class ItemBusPartMachineTest {
     // Test for passthrough busses not auto passthrough when off
     @GameTest(template = "empty_5x5", batch = "ItemBusPartMachine")
     public static void ItemBusPartMachineAutoPassthroughFalseWhenOffTest(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BRONZE_CRATE.getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.ITEM_PASSTHROUGH_HATCH[1].getBlock());
-        helper.setBlock(new BlockPos(0, 3, 0), GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.ITEM_PASSTHROUGH_HATCH[1].getBlock());
+        helper.setBlock(0, 3, 0, GTMachines.BRONZE_CRATE.getBlock());
         CrateMachine crate = (CrateMachine) helper.getBlockEntity(new BlockPos(0, 1, 0));
         ItemBusPartMachine itemBus = (ItemBusPartMachine) helper
                 .getBlockEntity(new BlockPos(0, 2, 0));

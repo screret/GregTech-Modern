@@ -71,29 +71,30 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
         if (isBigInt) {
             if (usePercent) {
                 if (energyInfo.capacity().compareTo(BigInteger.ZERO) > 0) {
-                    float ratio = GTMath.ratio(energyInfo.stored(), energyInfo.capacity());
-                    setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(ratio * 100, maxValue,
-                            minValue, isInverted(), redstoneSignalOutput));
+                    BigInteger ratio = energyInfo.stored().multiply(BigInteger.valueOf(100)).divide(energyInfo.capacity());
+                    setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(ratio,
+                            BigInteger.valueOf(this.minValue), BigInteger.valueOf(this.maxValue),
+                            isInverted(), redstoneSignalOutput));
                 } else {
                     setRedstoneSignalOutput(isInverted() ? 15 : 0);
                 }
             } else {
                 setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(energyInfo.stored(),
-                        BigInteger.valueOf(this.maxValue), BigInteger.valueOf(this.minValue),
+                        BigInteger.valueOf(this.minValue), BigInteger.valueOf(this.maxValue),
                         isInverted(), redstoneSignalOutput));
             }
         } else {
             if (usePercent) {
                 if (energyInfo.capacity().longValue() > 0) {
-                    float ratio = energyInfo.stored().floatValue() / energyInfo.capacity().floatValue();
-                    setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(ratio * 100, maxValue,
-                            minValue, isInverted(), redstoneSignalOutput));
+                    long ratio = energyInfo.stored().longValue() * 100 / energyInfo.capacity().longValue();
+                    setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(ratio, minValue, maxValue,
+                            isInverted(), redstoneSignalOutput));
                 } else {
                     setRedstoneSignalOutput(isInverted() ? 15 : 0);
                 }
             } else {
                 setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(energyInfo.stored().longValue(),
-                        this.maxValue, this.minValue,
+                        this.minValue, this.maxValue,
                         isInverted(), redstoneSignalOutput));
             }
         }

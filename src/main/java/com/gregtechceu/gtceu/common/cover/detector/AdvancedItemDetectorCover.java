@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.sync_system.annotations.SaveField;
 import com.gregtechceu.gtceu.api.sync_system.annotations.SyncToClient;
-import com.gregtechceu.gtceu.utils.RedstoneUtil;
 
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextBoxWidget;
@@ -32,6 +31,9 @@ import lombok.Getter;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+
+import static com.gregtechceu.gtceu.utils.RedstoneUtil.computeLatchedRedstoneBetweenValues;
+import static com.gregtechceu.gtceu.utils.RedstoneUtil.computeRedstoneBetweenValues;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -88,11 +90,10 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
         }
 
         if (isLatched) {
-            setRedstoneSignalOutput(RedstoneUtil.computeLatchedRedstoneBetweenValues(storedItems, maxValue, minValue,
+            setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(storedItems, minValue, maxValue,
                     isInverted(), redstoneSignalOutput));
         } else {
-            setRedstoneSignalOutput(
-                    RedstoneUtil.computeRedstoneBetweenValues(storedItems, maxValue, minValue, isInverted()));
+            setRedstoneSignalOutput(computeRedstoneBetweenValues(storedItems, minValue, maxValue, isInverted()));
         }
     }
 

@@ -25,8 +25,8 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 public class PumpCoverTest {
 
     public static void setupCrates(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BUFFER[GTValues.LV].getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.BUFFER[GTValues.LV].getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BUFFER[GTValues.LV].getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.BUFFER[GTValues.LV].getBlock());
     }
 
     // Test for seeing if pumps pass fluids

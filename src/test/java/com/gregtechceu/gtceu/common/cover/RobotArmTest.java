@@ -22,8 +22,8 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 public class RobotArmTest {
 
     public static void setupCrates(GameTestHelper helper) {
-        helper.setBlock(new BlockPos(0, 1, 0), GTMachines.BRONZE_CRATE.getBlock());
-        helper.setBlock(new BlockPos(0, 2, 0), GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 1, 0, GTMachines.BRONZE_CRATE.getBlock());
+        helper.setBlock(0, 2, 0, GTMachines.BRONZE_CRATE.getBlock());
     }
 
     // Test for seeing if robot arm transfers more than keepExact's limit

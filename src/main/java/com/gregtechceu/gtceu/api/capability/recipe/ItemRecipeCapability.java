@@ -80,23 +80,20 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
     @Override
     public List<Object> compressIngredients(@Unmodifiable Collection<Object> ingredients) {
         List<Object> list = new ObjectArrayList<>(ingredients.size());
+        MAIN_LOOP:
         for (Object item : ingredients) {
             if (item instanceof Ingredient ingredient) {
-                boolean isEqual = false;
                 for (Object obj : list) {
                     if (obj instanceof Ingredient ingredient1) {
                         if (IngredientEquality.ingredientEquals(ingredient, ingredient1)) {
-                            isEqual = true;
-                            break;
+                            continue MAIN_LOOP;
                         }
                     } else if (obj instanceof ItemStack stack) {
                         if (ingredient.test(stack)) {
-                            isEqual = true;
-                            break;
+                            continue MAIN_LOOP;
                         }
                     }
                 }
-                if (isEqual) continue;
                 // spotless:off
                 if (ingredient instanceof IntCircuitIngredient) {
                     list.add(0, ingredient);
@@ -111,21 +108,17 @@ public class ItemRecipeCapability extends RecipeCapability<Ingredient> {
                 }
                 // spotless:on
             } else if (item instanceof ItemStack stack) {
-                boolean isEqual = false;
                 for (Object obj : list) {
                     if (obj instanceof Ingredient ingredient) {
                         if (ingredient.test(stack)) {
-                            isEqual = true;
-                            break;
+                            continue MAIN_LOOP;
                         }
                     } else if (obj instanceof ItemStack stack1) {
                         if (GTUtil.isSameItemSameTags(stack, stack1)) {
-                            isEqual = true;
-                            break;
+                            continue MAIN_LOOP;
                         }
                     }
                 }
-                if (isEqual) continue;
                 list.add(stack);
             }
         }
