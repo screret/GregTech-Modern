@@ -37,9 +37,8 @@ public class TextureOverrideModel<T extends BakedModel> extends BakedModelWrappe
     }
 
     @Override
-    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side,
-                                             @NotNull RandomSource rand, @NotNull ModelData extraData,
-                                             @Nullable RenderType renderType) {
+    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side,
+                                    RandomSource rand, ModelData extraData, @Nullable RenderType renderType) {
         return retextureQuads(super.getQuads(state, side, rand, extraData, renderType), textureOverrides);
     }
 

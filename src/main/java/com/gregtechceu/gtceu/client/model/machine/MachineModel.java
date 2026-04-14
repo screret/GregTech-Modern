@@ -302,20 +302,15 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
         for (MultiblockControllerMachine controller : controllers) {
             var state = controller.getBlockState();
             BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(state);
-            List<BakedQuad> newQuads = null;
 
-            // spotless:off
-            if (model instanceof IControllerModelRenderer controllerRenderer) {
+            if (model instanceof MachineModel controllerModel) {
+                return renderPartOverrides(controllerModel, controller, originalQuads, part, frontFacing,
+                        side, rand, modelData, renderType);
+            } else if (model instanceof IControllerModelRenderer controllerRenderer) {
+                // only do this if the model isn't also a MachineModel
                 controllerRenderer.renderPartModel(originalQuads, controller, part, frontFacing, side,
                         rand, modelData, renderType);
-            } else if (model instanceof MachineModel controllerModel) {
-                newQuads = renderPartOverrides(controllerModel, controller, originalQuads, part, frontFacing,
-                        side, rand, modelData, renderType);
             }
-            if (newQuads != null) {
-                return newQuads;
-            }
-            // spotless:on
         }
         return originalQuads;
     }
@@ -334,7 +329,7 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
                                                 List<BakedQuad> quads, IMultiPart part, Direction frontFacing,
                                                 @Nullable Direction side, RandomSource rand,
                                                 ModelData modelData, @Nullable RenderType renderType) {
-        var overrides = controllerModel.textureOverrides;
+        Map<String, TextureAtlasSprite> overrides = controllerModel.textureOverrides;
 
         List<BakedQuad> renderQuads = new LinkedList<>();
         for (var render : controllerModel.getDynamicRenders()) {
@@ -342,7 +337,7 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
                 controllerRenderer.renderPartModel(renderQuads, controller, part, frontFacing, side,
                         rand, modelData, renderType);
                 if (!renderQuads.isEmpty()) {
-                    // assume the renderer drew the base model, and replace the override textures with empty ones
+                    // assume the renderer drew the base model, replace override textures with empty ones
                     overrides = new HashMap<>();
                     for (String key : this.replaceableTextures) {
                         overrides.put(key, blankSprite);
@@ -358,21 +353,23 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
         }
 
         // parse out valid overrides
-        Map<String, String> remaps = new IdentityHashMap<>();
         final TextureAtlasSprite missingno = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
                 .apply(MissingTextureAtlasSprite.getLocation());
+
+        final Map<String, String> remaps = new IdentityHashMap<>();
         final Map<String, TextureAtlasSprite> finalOverrides = overrides;
         overrides = finalOverrides.keySet().stream()
                 .flatMap(key -> {
-                    var remapped = remapReplaceableTextures(key);
+                    List<String> remapped = remapReplaceableTextures(key);
                     for (String r : remapped) {
                         remaps.put(r, key);
                     }
                     return remapped.stream();
                 })
-                .collect(Collectors.toMap(Function.identity(),
-                        key -> finalOverrides.getOrDefault(remaps.get(key), missingno),
-                        (o1, o2) -> o1));
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        key -> finalOverrides.getOrDefault(remaps.get(key), missingno))
+                );
 
         // actually process the sprite replacement
         quads = TextureOverrideModel.retextureQuads(quads, overrides);
