@@ -1,7 +1,60 @@
 {
-  "parent": "gtceu:block/cube_2_layer/all",
-  "textures": {
-    "bot_all": "gtceu:block/casings/coils/machine_coil_naquadah",
-    "top_all": "gtceu:block/casings/coils/machine_coil_naquadah_bloom"
-  }
+  "parent": "gtceu:block/naquadah_coil_block",
+  "children": {
+    "base": {
+      "parent": "gtceu:block/naquadah_coil_block"
+    },
+    "bloom": {
+      "elements": [
+        {
+          "faces": {
+            "down": {
+              "cullface": "down",
+              "texture": "#all"
+            },
+            "east": {
+              "cullface": "east",
+              "texture": "#all"
+            },
+            "north": {
+              "cullface": "north",
+              "texture": "#all"
+            },
+            "south": {
+              "cullface": "south",
+              "texture": "#all"
+            },
+            "up": {
+              "cullface": "up",
+              "texture": "#all"
+            },
+            "west": {
+              "cullface": "west",
+              "texture": "#all"
+            }
+          },
+          "from": [
+            0,
+            0,
+            0
+          ],
+          "shade": false,
+          "to": [
+            16,
+            16,
+            16
+          ]
+        }
+      ],
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "all": "gtceu:block/casings/coils/machine_coil_naquadah_bloom"
+      }
+    }
+  },
+  "item_render_order": [
+    "base",
+    "bloom"
+  ],
+  "loader": "forge:composite"
 }

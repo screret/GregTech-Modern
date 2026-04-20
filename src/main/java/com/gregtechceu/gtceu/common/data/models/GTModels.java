@@ -31,6 +31,7 @@ import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
 import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
+import net.minecraftforge.client.model.generators.loaders.CompositeModelBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,6 +41,8 @@ public class GTModels {
     public static final ResourceLocation BLANK_TEXTURE = GTCEu.id("block/void");
 
     public static final String ACTIVE_SUFFIX = "_active";
+
+    public static final ResourceLocation RENDERTYPE_TRANSLUCENT = new ResourceLocation("translucent");
 
     // region BLOCK MODELS
 
@@ -202,9 +205,24 @@ public class GTModels {
             String name = ctx.getName();
             ActiveBlock block = ctx.getEntry();
             ModelFile inactive = prov.models().cubeAll(name, coilType.getTexture());
-            ModelFile active = prov.models().withExistingParent(name + "_active", GTCEu.id("block/cube_2_layer/all"))
-                    .texture("bot_all", coilType.getTexture())
-                    .texture("top_all", coilType.getTexture().withSuffix("_bloom"));
+
+            // make a composite model for the 2nd layer so the bloom's translucent pixels look right
+            ModelFile active = prov.models().getBuilder(name + "_active")
+                    .parent(inactive)
+                    .customLoader(CompositeModelBuilder::begin)
+                    .child("base", prov.models().nested().parent(inactive))
+                    // spotless:off   disable spotless so the element builder's indents stay as they are
+                    .child("bloom", prov.models().nested()
+                            .renderType(RENDERTYPE_TRANSLUCENT)
+                            .texture("all", coilType.getTexture().withSuffix("_bloom"))
+                            .element()
+                                .shade(false)
+                                .emissivity(15, 15)
+                                .cube("#all")
+                            .end())
+                    // spotless:on
+                    .end();
+
             prov.getVariantBuilder(block)
                     .partialState().with(GTBlockStateProperties.ACTIVE, false).modelForState().modelFile(inactive)
                     .addModel()
