@@ -365,6 +365,8 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike, 
                 if (effective) {
                     if (areaOfEffectBlockBreakRoutine(stack, serverPlayer, pos)) {
                         if (playSoundOnBlockDestroy()) playSound(player);
+                        // cancel further vanilla processing
+                        return true;
                     } else {
                         if (result == -1) {
                             var tag = getBehaviorsTag(stack);

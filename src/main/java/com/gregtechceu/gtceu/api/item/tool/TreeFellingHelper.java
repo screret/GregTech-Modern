@@ -96,8 +96,8 @@ public class TreeFellingHelper {
                         continue;
                     }
                     if (helper.tick % ConfigHolder.INSTANCE.tools.treeFellingDelay == 0)
-                        ToolHelper.breakBlockRoutine(helper.player, helper.tool, helper.orderedBlocks.removeLast(),
-                                true);
+                        ToolHelper.breakBlockWithConditionalParticles(helper.player, helper.tool,
+                                helper.orderedBlocks.removeLast(), true);
                     helper.tick++;
                 }
             }

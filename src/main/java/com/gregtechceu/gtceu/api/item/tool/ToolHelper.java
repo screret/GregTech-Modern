@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
+import com.gregtechceu.gtceu.api.item.tool.aoe.DestroyParticleToggle;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
@@ -301,25 +302,31 @@ public class ToolHelper {
         int currentDurability = stack.getDamageValue();
         int maximumDurability = stack.getMaxDamage();
         int remainingUses = maximumDurability - currentDurability;
-        var harvestableBlocks = getHarvestableBlocks(stack, player);
-        if (!harvestableBlocks.isEmpty()) {
-            for (BlockPos pos : harvestableBlocks) {
-                if (!breakBlockRoutine(player, stack, pos, pos.equals(targeted))) {
-                    return true;
-                }
 
-                remainingUses--;
-                if (stack.getItem() instanceof IGTTool gtTool && !gtTool.isElectric() && remainingUses == 0) {
-                    return true;
-                }
-                // If the tool is an electric tool, catch the tool breaking and cancel the remaining AOE
-                else if (!ItemStack.isSameItem(player.getMainHandItem(), stack)) {
-                    return true;
-                }
-            }
-            return true;
+        List<BlockPos> harvestableBlocks = getHarvestableBlocks(stack, player);
+
+        if (harvestableBlocks.isEmpty()) {
+            return false;
         }
-        return false;
+        boolean brokeABlock = false;
+
+        for (BlockPos pos : harvestableBlocks) {
+            if (!breakBlockWithConditionalParticles(player, stack, pos, pos.equals(targeted))) {
+                // return false if we couldn't actually break any blocks
+                return brokeABlock;
+            }
+            brokeABlock = true;
+
+            remainingUses--;
+            if (stack.getItem() instanceof IGTTool gtTool && !gtTool.isElectric() && remainingUses == 0) {
+                return true;
+            }
+            // If the tool is an electric tool, catch the tool breaking and cancel the remaining AOE
+            else if (!ItemStack.isSameItem(player.getMainHandItem(), stack)) {
+                return true;
+            }
+        }
+        return true;
     }
 
     public static AoESymmetrical getMaxAoEDefinition(ItemStack stack) {
@@ -458,54 +465,16 @@ public class ToolHelper {
         }
     }
 
-    public static boolean breakBlockRoutine(ServerPlayer player, ItemStack tool, BlockPos pos, boolean playSound) {
-        // This is *not* a vanilla/forge convention, Forge never added "shears" to ItemShear's tool classes.
-        if (isTool(tool, GTToolType.SHEARS) && shearBlockRoutine(player, tool, pos) == 0) {
-            return false;
+    public static boolean breakBlockWithConditionalParticles(ServerPlayer player, ItemStack tool, BlockPos pos,
+                                                             boolean destroyParticlesEnabled) {
+        // swap the item in the player's main hand temporarily
+        ItemStack currentlyHeld = player.getMainHandItem();
+        try (var ignored = DestroyParticleToggle.runWithParticles(destroyParticlesEnabled)) {
+            player.setItemInHand(InteractionHand.MAIN_HAND, tool);
+            return player.gameMode.destroyBlock(pos);
+        } finally {
+            player.setItemInHand(InteractionHand.MAIN_HAND, currentlyHeld);
         }
-        Level world = player.level();
-
-        boolean canBreak = onBlockBreakEvent(world, player.gameMode.getGameModeForPlayer(), player, pos);
-        if (!canBreak) {
-            return false;
-        } else {
-            BlockState state = world.getBlockState(pos);
-            Block block = state.getBlock();
-            BlockEntity tile = world.getBlockEntity(pos);
-            if (block instanceof GameMasterBlock && !player.canUseGameMasterBlocks()) {
-                world.sendBlockUpdated(pos, state, state, 3);
-                return false;
-            } else if (player.blockActionRestricted(world, pos, player.gameMode.getGameModeForPlayer())) {
-                return false;
-            } else if (player.isCreative()) {
-                return removeBlockRoutine(state, world, player, pos, playSound);
-            } else {
-                world.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, pos, Block.getId(state));
-
-                ItemStack copiedTool = tool.copy();
-                boolean canHarvest = player.hasCorrectToolForDrops(state);
-                if (!tool.isEmpty()) {
-                    tool.mineBlock(world, state, pos, player);
-                    if (tool.isEmpty() && !copiedTool.isEmpty()) {
-                        onPlayerDestroyItem(player, copiedTool, InteractionHand.MAIN_HAND);
-                    }
-                }
-                boolean successful = removeBlockRoutine(null, world, player, pos, playSound);
-                if (successful && canHarvest) {
-                    block.playerDestroy(world, player, pos, state, tile, copiedTool);
-                }
-
-                return successful;
-            }
-        }
-    }
-
-    public static boolean onBlockBreakEvent(Level level, GameType gameType, ServerPlayer player, BlockPos pos) {
-        return ForgeHooks.onBlockBreakEvent(level, gameType, player, pos) != -1;
-    }
-
-    public static void onPlayerDestroyItem(Player player, ItemStack stack, InteractionHand hand) {
-        ForgeEventFactory.onPlayerDestroyItem(player, stack, hand);
     }
 
     public static double getPlayerBlockReach(@NotNull Player player) {
@@ -525,21 +494,6 @@ public class ToolHelper {
 
     public static boolean onBlockStartBreak(ItemStack itemstack, BlockPos pos, Player player) {
         return itemstack.onBlockStartBreak(pos, player);
-    }
-
-    public static boolean removeBlockRoutine(@Nullable BlockState state, Level world, ServerPlayer player, BlockPos pos,
-                                             boolean playSound) {
-        state = state == null ? world.getBlockState(pos) : state;
-        state.getBlock().playerWillDestroy(world, pos, state, player);
-
-        boolean successful = world.removeBlock(pos, false);
-
-        if (playSound) world.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, pos, Block.getId(state));
-
-        if (successful) {
-            state.getBlock().destroy(world, pos, state);
-        }
-        return successful;
     }
 
     /**
