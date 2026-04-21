@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.core.mixins.client;
 
+import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 
 import net.minecraft.client.Minecraft;
@@ -9,7 +10,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -44,16 +46,16 @@ public class MultiPlayerGameModeMixin {
         state.getBlock().destroy(level, pos, state);
     }
 
-    @Shadow
-    private ItemStack destroyingItem;
-    @Shadow
-    private BlockPos destroyBlockPos;
-
-    @Inject(method = "sameDestroyTarget", at = @At("RETURN"), cancellable = true)
-    private void gtceu$sameDestroyTarget(BlockPos pos, CallbackInfoReturnable<Boolean> cir,
-                                         @Local ItemStack itemstack) {
-        boolean gtmTarget = pos.equals(this.destroyBlockPos) && ItemStack.isSameItem(itemstack, this.destroyingItem) &&
-                !this.destroyingItem.shouldCauseBlockBreakReset(itemstack);
-        cir.setReturnValue(gtmTarget || cir.getReturnValue());
+    @WrapOperation(method = "sameDestroyTarget",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemStack;isSameItemSameTags(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z"))
+    private boolean gtceu$sameDestroyTarget(ItemStack mainHandItem, ItemStack destroyingItem,
+                                            Operation<Boolean> original) {
+        // Fix Tool charging resetting block break progress
+        if (mainHandItem.getItem() instanceof IGTTool && destroyingItem.getItem() instanceof IGTTool) {
+            return ItemStack.isSameItem(mainHandItem, destroyingItem);
+        } else {
+            return original.call(mainHandItem, destroyingItem);
+        }
     }
 }
