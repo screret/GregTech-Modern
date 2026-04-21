@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.BlockAttributes;
 import com.gregtechceu.gtceu.api.cosmetics.CapeRegistry;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.client.renderer.BlockHighlightRenderer;
 import com.gregtechceu.gtceu.client.renderer.MultiblockInWorldPreviewRenderer;
@@ -12,23 +13,36 @@ import com.gregtechceu.gtceu.client.renderer.cover.FacadeCoverRenderer;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
 import com.gregtechceu.gtceu.common.commands.GTClientCommands;
 import com.gregtechceu.gtceu.core.mixins.client.AbstractClientPlayerAccessor;
+import com.gregtechceu.gtceu.core.mixins.client.LevelRendererAccessor;
 import com.gregtechceu.gtceu.core.mixins.client.PlayerInfoAccessor;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.*;
@@ -44,6 +58,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -124,8 +139,51 @@ public class ClientEventListener {
 
     @SubscribeEvent
     public static void onBlockHighlightEvent(RenderHighlightEvent.Block event) {
-        BlockHighlightRenderer.renderBlockHighlight(event.getPoseStack(), event.getCamera(), event.getTarget(),
-                event.getMultiBufferSource(), event.getPartialTick());
+        PoseStack poseStack = event.getPoseStack();
+        BlockHitResult hitResult = event.getTarget();
+        MultiBufferSource bufferSource = event.getMultiBufferSource();
+        Camera camera = event.getCamera();
+
+        BlockHighlightRenderer.renderBlockHighlight(poseStack, camera, hitResult, bufferSource, event.getPartialTick());
+
+        Level level = Minecraft.getInstance().level;
+        Player player = Minecraft.getInstance().player;
+        assert level != null && player != null;
+        if (player.isSecondaryUseActive()) {
+            return;
+        }
+
+        BlockPos pos = hitResult.getBlockPos();
+        BlockState state = level.getBlockState(pos);
+        // Forge's patch is before these are checked, so check them here
+        if (state.isAir() || !level.getWorldBorder().isWithinBounds(pos)) {
+            return;
+        }
+
+        ItemStack mainHandItem = player.getMainHandItem();
+
+        if (mainHandItem.isEmpty() || !ToolHelper.hasBehaviorsTag(mainHandItem) ||
+                !mainHandItem.isCorrectToolForDrops(state)) {
+            return;
+        }
+        AoESymmetrical aoeDefinition = ToolHelper.getAoEDefinition(mainHandItem);
+        if (aoeDefinition.isZero()) return;
+
+        event.setCanceled(true);
+
+
+        LevelRendererAccessor renderer = (LevelRendererAccessor) event.getLevelRenderer();
+        VertexConsumer lineVertexConsumer = bufferSource.getBuffer(RenderType.lines());
+        Entity cameraEntity = camera.getEntity();
+        Vec3 cameraPos = camera.getPosition();
+
+        UseOnContext context = new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult);
+        ToolHelper.getHarvestableBlocks(aoeDefinition, context)
+                .forEach(aoePos -> {
+                    renderer.callRenderHitOutline(poseStack, lineVertexConsumer,
+                            cameraEntity, cameraPos.x, cameraPos.y, cameraPos.z,
+                            aoePos, level.getBlockState(aoePos));
+                });
     }
 
     @SubscribeEvent

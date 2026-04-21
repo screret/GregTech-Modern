@@ -18,6 +18,7 @@
         "client.GuiHeartTypeMixin",
         "client.HumanoidArmorLayerMixin",
         "client.ItemEntityMixin",
+        "client.LevelRendererAccessor",
         "client.LevelRendererMixin",
         "client.ModelManagerMixin",
         "client.MultiPlayerGameModeMixin",

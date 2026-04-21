@@ -21,7 +21,6 @@ import net.minecraft.client.renderer.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.FastColor;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +31,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.model.data.ModelData;
 
 import com.google.common.collect.Sets;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -41,7 +39,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -65,10 +62,7 @@ public abstract class LevelRendererMixin {
     private Long2ObjectMap<SortedSet<BlockDestructionProgress>> destructionProgress;
 
     @Shadow
-    private @Nullable ClientLevel level;
-
-    @Unique
-    private final RandomSource gtceu$modelRandom = RandomSource.create();
+    private ClientLevel level;
 
     @Inject(method = "destroyBlockProgress(ILnet/minecraft/core/BlockPos;I)V",
             at = @At(value = "INVOKE",
@@ -122,42 +116,6 @@ public abstract class LevelRendererMixin {
                                     double x, double y, double z,
                                     float red, float green, float blue, float alpha) {
         throw new AssertionError();
-    }
-
-    @WrapOperation(method = "renderLevel",
-                   at = @At(value = "INVOKE",
-                            target = "Lnet/minecraft/client/renderer/LevelRenderer;renderHitOutline(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/entity/Entity;DDDLnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V"))
-    private void gtceu$handleAOEOutline(LevelRenderer instance, PoseStack poseStack, VertexConsumer consumer,
-                                        Entity entity, double camX, double camY, double camZ,
-                                        BlockPos pos, BlockState state, Operation<Void> original) {
-        if (minecraft.player == null || level == null) return;
-
-        ItemStack mainHandItem = minecraft.player.getMainHandItem();
-
-        if (state.isAir() || minecraft.player.isShiftKeyDown() || !level.isInWorldBounds(pos) ||
-                !mainHandItem.isCorrectToolForDrops(state) || !ToolHelper.hasBehaviorsTag(mainHandItem) ||
-                !(minecraft.hitResult instanceof BlockHitResult hitResult)) {
-            gtceu$renderContextAwareOutline(instance, poseStack, consumer, entity, camX, camY, camZ,
-                    pos, state, original);
-            return;
-        }
-
-        UseOnContext context = new UseOnContext(minecraft.player, InteractionHand.MAIN_HAND, hitResult);
-        var blocks = ToolHelper.getHarvestableBlocks(ToolHelper.getAoEDefinition(mainHandItem), context);
-        blocks.sort((o1, o2) -> {
-            if (level.getBlockState(o1).getBlock() instanceof MaterialBlock) {
-                if (level.getBlockState(o2).getBlock() instanceof MaterialBlock) {
-                    return 0;
-                }
-                return 1;
-            }
-            if (level.getBlockState(o2).getBlock() instanceof MaterialBlock) {
-                return -1;
-            }
-            return 0;
-        });
-        blocks.forEach(blockPos -> gtceu$renderContextAwareOutline(instance, poseStack, consumer, entity,
-                camX, camY, camZ, blockPos, level.getBlockState(blockPos), original));
     }
 
     @Unique
