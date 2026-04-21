@@ -1,10 +1,19 @@
 package com.gregtechceu.gtceu.client.util;
 
+import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.block.MaterialPipeBlock;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
+import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
+import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
+import com.gregtechceu.gtceu.api.machine.steam.SteamMachine;
+import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTMatrixUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
@@ -323,5 +332,35 @@ public class RenderUtil {
             }
         }
         return false;
+    }
+
+    public static int getBlockOutlineColor(Level level, BlockPos pos, BlockState state) {
+        var rendererCfg = ConfigHolder.INSTANCE.client.renderer;
+
+        // spotless:off
+        MaterialEntry materialEntry = ChemicalHelper.getMaterialEntry(state.getBlock());
+        if (rendererCfg.coloredMaterialBlockOutline && !materialEntry.isEmpty()) {
+            return materialEntry.material().getMaterialRGB();
+        }
+        if (rendererCfg.coloredTieredMachineOutline) {
+            if (level.getBlockEntity(pos) instanceof SteamMachine steam) {
+                return steam.isHighPressure() ? GTValues.VC_HP_STEAM : GTValues.VC_LP_STEAM;
+            } else if (level.getBlockEntity(pos) instanceof ITieredMachine tiered) {
+                return GTValues.VCM[tiered.getTier()];
+            }
+        }
+        if (rendererCfg.coloredWireOutline && level.getBlockEntity(pos) instanceof IPipeNode<?, ?> pipe) {
+            if (!pipe.getFrameMaterial().isNull()) {
+                return pipe.getFrameMaterial().getMaterialRGB();
+            }
+            if (pipe instanceof CableBlockEntity cable) {
+                return GTValues.VCM[GTUtil.getTierByVoltage(cable.getNodeData().getVoltage())];
+            } else if (state.getBlock() instanceof MaterialPipeBlock<?, ?, ?> materialPipe) {
+                return materialPipe.material.getMaterialRGB();
+            }
+        }
+        // spotless:on
+
+        return 0;
     }
 }

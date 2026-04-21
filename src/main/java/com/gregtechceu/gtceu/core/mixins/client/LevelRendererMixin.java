@@ -1,19 +1,9 @@
 package com.gregtechceu.gtceu.core.mixins.client;
 
-import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.MaterialBlock;
-import com.gregtechceu.gtceu.api.block.MaterialPipeBlock;
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
-import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
-import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
-import com.gregtechceu.gtceu.api.machine.steam.SteamMachine;
-import com.gregtechceu.gtceu.api.pipenet.IPipeNode;
-import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
-import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.client.util.RenderUtil;
 import com.gregtechceu.gtceu.core.IBlockDestructionProgressExt;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -22,12 +12,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -42,7 +30,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -72,7 +59,7 @@ public abstract class LevelRendererMixin {
                                            CallbackInfo ci,
                                            @Local BlockDestructionProgress progressObj) {
         ItemStack mainHandItem = minecraft.player.getMainHandItem();
-        if (minecraft.player.isShiftKeyDown() || !ToolHelper.hasBehaviorsTag(mainHandItem) ||
+        if (minecraft.player.isShiftKeyDown() || mainHandItem.isEmpty() || !ToolHelper.hasBehaviorsTag(mainHandItem) ||
                 !(minecraft.hitResult instanceof BlockHitResult hitResult)) {
             return;
         }
@@ -111,57 +98,24 @@ public abstract class LevelRendererMixin {
         }
     }
 
-    @Shadow
-    private static void renderShape(PoseStack poseStack, VertexConsumer consumer, VoxelShape shape,
-                                    double x, double y, double z,
-                                    float red, float green, float blue, float alpha) {
-        throw new AssertionError();
-    }
+    @WrapOperation(method = "renderHitOutline",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/LevelRenderer;renderShape(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/world/phys/shapes/VoxelShape;DDDFFFF)V"))
+    private void gtceu$renderContextAwareOutline(PoseStack poseStack, VertexConsumer consumer,
+                                                 VoxelShape shape, double x, double y, double z,
+                                                 float red, float green, float blue, float alpha,
+                                                 Operation<Void> original,
+                                                 @Local(argsOnly = true) BlockPos pos,
+                                                 @Local(argsOnly = true) BlockState state) {
+        int rgb = RenderUtil.getBlockOutlineColor(level, pos, state);
 
-    @Unique
-    private void gtceu$renderContextAwareOutline(LevelRenderer instance, PoseStack poseStack, VertexConsumer consumer,
-                                                 Entity entity, double camX, double camY, double camZ,
-                                                 BlockPos pos, BlockState state, Operation<Void> original) {
-        assert level != null;
-        var rendererCfg = ConfigHolder.INSTANCE.client.renderer;
-        int rgb = 0;
-        boolean renderColoredOutline = false;
-
-        // spotless:off
-        MaterialEntry materialEntry = ChemicalHelper.getMaterialEntry(state.getBlock());
-        if (rendererCfg.coloredMaterialBlockOutline && !materialEntry.isEmpty()) {
-            renderColoredOutline = true;
-            rgb = materialEntry.material().getMaterialRGB();
-        } else if (rendererCfg.coloredTieredMachineOutline) {
-                if (level.getBlockEntity(pos) instanceof SteamMachine steam) {
-                    renderColoredOutline = true;
-                    rgb = steam.isHighPressure() ? GTValues.VC_HP_STEAM : GTValues.VC_LP_STEAM;
-                } else if (level.getBlockEntity(pos) instanceof ITieredMachine tiered) {
-                    renderColoredOutline = true;
-                    rgb = GTValues.VCM[tiered.getTier()];
-                }
-        } else if (rendererCfg.coloredWireOutline && level.getBlockEntity(pos) instanceof IPipeNode<?, ?> pipe) {
-            renderColoredOutline = true;
-            if (!pipe.getFrameMaterial().isNull()) {
-                rgb = pipe.getFrameMaterial().getMaterialRGB();
-            } else if (pipe instanceof CableBlockEntity cable) {
-                rgb = GTValues.VCM[GTUtil.getTierByVoltage(cable.getNodeData().getVoltage())];
-            } else if (state.getBlock() instanceof MaterialPipeBlock<?,?,?> materialPipe) {
-                rgb = materialPipe.material.getMaterialRGB();
-            }
+        // only override color if we changed it so other mods' patches don't get ignored
+        if (rgb != 0) {
+            red = FastColor.ARGB32.red(rgb) / 255f;
+            green = FastColor.ARGB32.green(rgb) / 255f;
+            blue = FastColor.ARGB32.blue(rgb) / 255f;
         }
-        // spotless:on
-        VoxelShape blockShape = state.getShape(level, pos, CollisionContext.of(entity));
 
-        if (renderColoredOutline) {
-            float red = FastColor.ARGB32.red(rgb) / 255f;
-            float green = FastColor.ARGB32.green(rgb) / 255f;
-            float blue = FastColor.ARGB32.blue(rgb) / 255f;
-            renderShape(poseStack, consumer, blockShape,
-                    pos.getX() - camX, pos.getY() - camY, pos.getZ() - camZ,
-                    red, green, blue, 0.4f);
-            return;
-        }
-        original.call(instance, poseStack, consumer, entity, camX, camY, camZ, pos, state);
+        original.call(poseStack, consumer, shape, x, y, z, red, green, blue, alpha);
     }
 }
