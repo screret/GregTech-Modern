@@ -96,8 +96,7 @@ public class TreeFellingHelper {
                         continue;
                     }
                     if (helper.tick % ConfigHolder.INSTANCE.tools.treeFellingDelay == 0)
-                        ToolHelper.destroyBlockInAOE(helper.player, helper.tool,
-                                helper.orderedBlocks.removeLast(), true);
+                        ToolHelper.destroyBlockInAOE(helper.player, helper.tool, helper.orderedBlocks.removeLast());
                     helper.tick++;
                 }
             }

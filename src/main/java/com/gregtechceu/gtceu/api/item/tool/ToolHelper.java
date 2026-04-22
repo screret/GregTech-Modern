@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
-import com.gregtechceu.gtceu.api.item.tool.aoe.DestroyParticleToggle;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
@@ -313,7 +312,7 @@ public class ToolHelper {
         boolean brokeABlock = false;
 
         for (BlockPos pos : harvestableBlocks) {
-            if (!destroyBlockInAOE(player, stack, pos, pos.equals(targeted))) {
+            if (!destroyBlockInAOE(player, stack, pos)) {
                 // return false if we couldn't actually break any blocks
                 return brokeABlock;
             }
@@ -472,8 +471,7 @@ public class ToolHelper {
      *
      * @see ServerPlayerGameMode#destroyBlock
      */
-    public static boolean destroyBlockInAOE(ServerPlayer player, ItemStack tool, BlockPos pos,
-                                            boolean destroyParticlesEnabled) {
+    public static boolean destroyBlockInAOE(ServerPlayer player, ItemStack tool, BlockPos pos) {
         var gameMode = player.gameMode;
         ServerLevel level = player.serverLevel();
 
@@ -496,9 +494,7 @@ public class ToolHelper {
             else if (player.blockActionRestricted(level, pos, gameMode.getGameModeForPlayer())) {
                 return false;
             } else if (player.isCreative()) {
-                try (var ignored = DestroyParticleToggle.runWithParticles(destroyParticlesEnabled)) {
-                    return ((ServerPlayerGameModeAccessor) gameMode).callRemoveBlock(pos, false);
-                }
+                return ((ServerPlayerGameModeAccessor) gameMode).callRemoveBlock(pos, false);
             } else {
                 ItemStack copiedTool = tool.copy();
                 boolean canHarvest = state.canHarvestBlock(level, pos, player);
@@ -506,10 +502,7 @@ public class ToolHelper {
                 if (tool.isEmpty() && !copiedTool.isEmpty()) {
                     ForgeEventFactory.onPlayerDestroyItem(player, copiedTool, InteractionHand.MAIN_HAND);
                 }
-                boolean removed;
-                try (var ignored = DestroyParticleToggle.runWithParticles(destroyParticlesEnabled)) {
-                    removed = ((ServerPlayerGameModeAccessor) gameMode).callRemoveBlock(pos, false);
-                }
+                boolean removed = ((ServerPlayerGameModeAccessor) gameMode).callRemoveBlock(pos, false);
 
                 if (removed) {
                     Block block = state.getBlock();
