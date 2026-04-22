@@ -337,11 +337,11 @@ public class RenderUtil {
     public static int getBlockOutlineColor(Level level, BlockPos pos, BlockState state) {
         var rendererCfg = ConfigHolder.INSTANCE.client.renderer;
 
-        // spotless:off
         MaterialEntry materialEntry = ChemicalHelper.getMaterialEntry(state.getBlock());
         if (rendererCfg.coloredMaterialBlockOutline && !materialEntry.isEmpty()) {
             return materialEntry.material().getMaterialRGB();
         }
+
         if (rendererCfg.coloredTieredMachineOutline) {
             if (level.getBlockEntity(pos) instanceof SteamMachine steam) {
                 return steam.isHighPressure() ? GTValues.VC_HP_STEAM : GTValues.VC_LP_STEAM;
@@ -349,6 +349,7 @@ public class RenderUtil {
                 return GTValues.VCM[tiered.getTier()];
             }
         }
+
         if (rendererCfg.coloredWireOutline && level.getBlockEntity(pos) instanceof IPipeNode<?, ?> pipe) {
             if (!pipe.getFrameMaterial().isNull()) {
                 return pipe.getFrameMaterial().getMaterialRGB();
@@ -359,7 +360,6 @@ public class RenderUtil {
                 return materialPipe.material.getMaterialRGB();
             }
         }
-        // spotless:on
 
         return 0;
     }

@@ -477,7 +477,7 @@ public class ToolHelper {
         var gameMode = player.gameMode;
         ServerLevel level = player.serverLevel();
 
-        // swap the item in the player's main hand temporarily so the forge event etc. work
+        // swap the item in the player's main hand temporarily so the forge event, correct tool checks, etc. work
         ItemStack currentlyHeld = player.getMainHandItem();
         try {
             player.setItemInHand(InteractionHand.MAIN_HAND, tool);
