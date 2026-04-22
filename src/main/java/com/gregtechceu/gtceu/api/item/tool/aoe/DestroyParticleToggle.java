@@ -14,17 +14,17 @@ package com.gregtechceu.gtceu.api.item.tool.aoe;
  */
 public final class DestroyParticleToggle implements AutoCloseable {
 
-    private static final DestroyParticleToggle INSTANCE = new DestroyParticleToggle();
+    private static final ThreadLocal<DestroyParticleToggle> INSTANCE = ThreadLocal.withInitial(DestroyParticleToggle::new);
 
     private boolean enableDestroyParticles = true;
 
     public static DestroyParticleToggle runWithParticles(boolean enabled) {
-        INSTANCE.enableDestroyParticles = enabled;
-        return INSTANCE;
+        INSTANCE.get().enableDestroyParticles = enabled;
+        return INSTANCE.get();
     }
 
     public static boolean destroyParticlesEnabled() {
-        return INSTANCE.enableDestroyParticles;
+        return INSTANCE.get().enableDestroyParticles;
     }
 
     @Override
