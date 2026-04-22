@@ -1,8 +1,8 @@
 {
-  "ldlib": {
-    "connection": "gtceu:block/lamps/white_ctm_emissive"
-  },
-  "shimmer": {
-    "bloom": true
-  }
+    "ldlib": {
+        "connection": "gtceu:block/lamps/white_ctm_emissive"
+    },
+    "shimmer": {
+        "bloom": true
+    }
 }
