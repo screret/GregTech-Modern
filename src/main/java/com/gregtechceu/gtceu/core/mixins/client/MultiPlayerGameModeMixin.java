@@ -19,12 +19,13 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(MultiPlayerGameMode.class)
 public class MultiPlayerGameModeMixin {
 
-    @WrapOperation(method = "destroyBlock",
+    // is this actually required?
+    @WrapOperation(method =  "destroyBlock",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/world/level/block/state/BlockState;onDestroyedByPlayer(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/player/Player;ZLnet/minecraft/world/level/material/FluidState;)Z"))
-    private boolean gtceu$destroyBlock(BlockState state, Level level, BlockPos pos,
-                                       Player player, boolean willHarvest, FluidState fluidState,
-                                       Operation<Boolean> original) {
+    private boolean gtceu$cancelBlockBreakInAOE(BlockState state, Level level, BlockPos pos, Player player,
+                                                boolean willHarvest, FluidState fluidState,
+                                                Operation<Boolean> original) {
         if (player.isShiftKeyDown()) {
             return original.call(state, level, pos, player, willHarvest, fluidState);
         }
@@ -35,13 +36,15 @@ public class MultiPlayerGameModeMixin {
                 !mainHandItem.isCorrectToolForDrops(state)) {
             return original.call(state, level, pos, player, willHarvest, fluidState);
         }
+        // If AOE should be done, skip calling BlockState#onDestroyedByPlayer
+        // returning true here will still call Block#destroy, which we want to happen.
         return true;
     }
 
     @WrapOperation(method = "sameDestroyTarget",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/world/item/ItemStack;isSameItemSameTags(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z"))
-    private boolean gtceu$sameDestroyTarget(ItemStack mainHandItem, ItemStack destroyingItem,
+    private boolean gtceu$fixToolDestroyTarget(ItemStack mainHandItem, ItemStack destroyingItem,
                                             Operation<Boolean> original) {
         // Fix Tool charging resetting block break progress
         if (mainHandItem.getItem() instanceof IGTTool && destroyingItem.getItem() instanceof IGTTool) {
