@@ -340,47 +340,46 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike, 
     }
 
     default boolean definition$onBlockStartBreak(ItemStack stack, BlockPos pos, Player player) {
-        if (player.level().isClientSide) return false;
+        if (!(player instanceof ServerPlayer serverPlayer)) return false;
         getToolStats().getBehaviors().forEach(behavior -> behavior.onBlockStartBreak(stack, pos, player));
 
-        if (!player.isShiftKeyDown()) {
-            ServerPlayer serverPlayer = (ServerPlayer) player;
-            int result = -1;
-            if (isTool(stack, GTToolType.SHEARS)) {
-                result = shearBlockRoutine(serverPlayer, stack, pos);
+        if (player.isShiftKeyDown()) {
+            return false;
+        }
+        int result = -1;
+        if (isTool(stack, GTToolType.SHEARS)) {
+            result = shearBlockRoutine(serverPlayer, stack, pos);
+        }
+        if (result == 0) {
+            return false;
+        }
+        // prevent exploits with instantly breakable blocks
+        BlockState state = player.level().getBlockState(pos);
+        boolean effective = false;
+        for (GTToolType type : getToolClasses(stack)) {
+            if (type.harvestTags.stream().anyMatch(state::is)) {
+                effective = true;
+                break;
             }
-            if (result != 0) {
-                // prevent exploits with instantly breakable blocks
-                BlockState state = player.level().getBlockState(pos);
-                boolean effective = false;
-                for (GTToolType type : getToolClasses(stack)) {
-                    if (type.harvestTags.stream().anyMatch(state::is)) {
-                        effective = true;
-                        break;
-                    }
-                }
+        }
 
-                effective |= isToolEffective(state, getToolClasses(stack), getTotalHarvestLevel(stack));
+        effective |= isToolEffective(state, getToolClasses(stack), getTotalHarvestLevel(stack));
 
-                if (effective) {
-                    if (areaOfEffectBlockBreakRoutine(stack, serverPlayer, pos)) {
-                        if (playSoundOnBlockDestroy()) playSound(player);
-                        // cancel further vanilla processing
-                        return true;
-                    } else {
-                        if (result == -1) {
-                            var tag = getBehaviorsTag(stack);
-                            if (tag.getBoolean(TREE_FELLING_KEY) &&
-                                    !tag.getBoolean(DISABLE_TREE_FELLING_KEY) &&
-                                    state.is(BlockTags.LOGS)) {
-                                TreeFellingHelper.fellTree(stack, player.level(), state, pos, player);
-                            }
-                            if (playSoundOnBlockDestroy()) playSound(player);
-                        } else {
-                            return true;
-                        }
-                    }
+        if (effective) {
+            if (areaOfEffectBlockBreakRoutine(stack, serverPlayer, pos)) {
+                if (playSoundOnBlockDestroy()) playSound(player);
+                // cancel further vanilla processing
+                return true;
+            } else if (result == -1) {
+                var tag = getBehaviorsTag(stack);
+                if (tag.getBoolean(TREE_FELLING_KEY) &&
+                        !tag.getBoolean(DISABLE_TREE_FELLING_KEY) &&
+                        state.is(BlockTags.LOGS)) {
+                    TreeFellingHelper.fellTree(stack, player.level(), state, pos, player);
                 }
+                if (playSoundOnBlockDestroy()) playSound(player);
+            } else {
+                return true;
             }
         }
         return false;
