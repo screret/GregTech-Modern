@@ -59,7 +59,7 @@
         "RepairItemRecipeMixin",
         "ServerChunkProviderMixin",
         "ServerGamePacketListenerImplAccessor",
-        "ServerPlayerGameModeMixin",
+        "ServerPlayerGameModeAccessor",
         "ShapedRecipeAccessor",
         "SidedRedstoneConnectivityMixin",
         "SmithingTransformRecipeMixin",

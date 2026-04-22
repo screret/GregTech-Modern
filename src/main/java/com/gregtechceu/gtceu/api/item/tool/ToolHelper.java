@@ -23,6 +23,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.core.mixins.ServerPlayerGameModeAccessor;
 import com.gregtechceu.gtceu.utils.DummyRecipeUtils;
 
 import net.minecraft.advancements.CriteriaTriggers;
@@ -32,6 +33,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stat;
 import net.minecraft.stats.Stats;
@@ -51,7 +53,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -197,7 +198,8 @@ public class ToolHelper {
 
     public static void damageItem(@NotNull ItemStack stack, @Nullable LivingEntity user, int damage) {
         if (!(stack.getItem() instanceof IGTTool tool)) {
-            if (user != null) stack.hurtAndBreak(damage, user, p -> {});
+            if (user != null) stack.hurtAndBreak(damage, user, p -> {
+            });
         } else {
             if (stack.getTag() != null && stack.getTag().getBoolean(UNBREAKABLE_KEY)) {
                 return;
@@ -311,7 +313,7 @@ public class ToolHelper {
         boolean brokeABlock = false;
 
         for (BlockPos pos : harvestableBlocks) {
-            if (!breakBlockWithConditionalParticles(player, stack, pos, pos.equals(targeted))) {
+            if (!destroyBlockInAOE(player, stack, pos, pos.equals(targeted))) {
                 // return false if we couldn't actually break any blocks
                 return brokeABlock;
             }
@@ -465,13 +467,63 @@ public class ToolHelper {
         }
     }
 
-    public static boolean breakBlockWithConditionalParticles(ServerPlayer player, ItemStack tool, BlockPos pos,
-                                                             boolean destroyParticlesEnabled) {
-        // swap the item in the player's main hand temporarily
+    /**
+     * This method skips some checks, only use during AOE!
+     *
+     * @see ServerPlayerGameMode#destroyBlock
+     */
+    public static boolean destroyBlockInAOE(ServerPlayer player, ItemStack tool, BlockPos pos,
+                                            boolean destroyParticlesEnabled) {
+        var gameMode = player.gameMode;
+        ServerLevel level = player.serverLevel();
+
+        // swap the item in the player's main hand temporarily so the forge event etc. work
         ItemStack currentlyHeld = player.getMainHandItem();
-        try (var ignored = DestroyParticleToggle.runWithParticles(destroyParticlesEnabled)) {
+        try {
             player.setItemInHand(InteractionHand.MAIN_HAND, tool);
-            return player.gameMode.destroyBlock(pos);
+            int exp = ForgeHooks.onBlockBreakEvent(level, gameMode.getGameModeForPlayer(), player, pos);
+            if (exp == -1) {
+                // exp = -1 means the event was canceled
+                return false;
+            }
+
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof GameMasterBlock && !player.canUseGameMasterBlocks()) {
+                level.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL);
+                return false;
+            }
+            // Skip calling onBlockStartBreak, that'll cause infinite recursion
+            else if (player.blockActionRestricted(level, pos, gameMode.getGameModeForPlayer())) {
+                return false;
+            } else if (player.isCreative()) {
+                try (var ignored = DestroyParticleToggle.runWithParticles(destroyParticlesEnabled)) {
+                    return ((ServerPlayerGameModeAccessor) gameMode).callRemoveBlock(pos, false);
+                }
+            } else {
+                ItemStack copiedTool = tool.copy();
+                boolean canHarvest = state.canHarvestBlock(level, pos, player);
+                tool.mineBlock(level, state, pos, player);
+                if (tool.isEmpty() && !copiedTool.isEmpty()) {
+                    ForgeEventFactory.onPlayerDestroyItem(player, copiedTool, InteractionHand.MAIN_HAND);
+                }
+                boolean removed;
+                try (var ignored = DestroyParticleToggle.runWithParticles(destroyParticlesEnabled)) {
+                    removed = ((ServerPlayerGameModeAccessor) gameMode).callRemoveBlock(pos, false);
+                }
+
+                if (removed) {
+                    Block block = state.getBlock();
+                    if (canHarvest) {
+                        BlockEntity blockEntity = level.getBlockEntity(pos);
+                        block.playerDestroy(level, player, pos, state, blockEntity, copiedTool);
+                    }
+                    if (exp > 0) {
+                        block.popExperience(level, pos, exp);
+                    }
+                }
+
+                return removed;
+            }
         } finally {
             player.setItemInHand(InteractionHand.MAIN_HAND, currentlyHeld);
         }
