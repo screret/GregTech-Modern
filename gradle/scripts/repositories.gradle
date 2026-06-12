@@ -97,4 +97,8 @@ repositories {
         forRepository { maven { url = "https://chocolateminecraft.com/maven/" } }
         filter { includeGroupAndSubgroups("xaero") }
     }
+    exclusiveContent { // Mixin ModifyArgs Shim
+        forRepository { maven { url = "https://maven.screret.dev/releases/" } }
+        filter { includeGroup("dev.screret") }
+    }
 }
