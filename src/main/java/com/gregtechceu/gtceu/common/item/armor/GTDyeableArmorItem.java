@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ArmorProperty;
 import com.gregtechceu.gtceu.client.renderer.item.ArmorItemRenderer;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.*;
 
 public class GTDyeableArmorItem extends GTArmorItem implements DyeableLeatherItem {
@@ -15,5 +16,15 @@ public class GTDyeableArmorItem extends GTArmorItem implements DyeableLeatherIte
         if (GTCEu.isClientSide()) {
             ArmorItemRenderer.create(this, type);
         }
+    }
+
+    // Override to change the default color
+    @Override
+    public int getColor(ItemStack stack) {
+        CompoundTag displayTag = stack.getTagElement(TAG_DISPLAY);
+        if (displayTag != null && displayTag.contains(TAG_COLOR, 99)) {
+            return displayTag.getInt(TAG_COLOR);
+        }
+        return this.material.getMaterialRGB();
     }
 }
