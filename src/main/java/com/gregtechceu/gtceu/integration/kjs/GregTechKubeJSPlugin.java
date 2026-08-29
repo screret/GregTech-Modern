@@ -96,6 +96,7 @@ import com.gregtechceu.gtceu.integration.kjs.recipe.GTShapedRecipeSchema;
 import com.gregtechceu.gtceu.integration.kjs.recipe.KJSHelpers;
 import com.gregtechceu.gtceu.integration.kjs.recipe.components.*;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -114,7 +115,8 @@ import dev.latvian.mods.kubejs.registry.RegistryObjectStorage;
 import dev.latvian.mods.kubejs.registry.ServerRegistryRegistry;
 import dev.latvian.mods.kubejs.script.BindingRegistry;
 import dev.latvian.mods.kubejs.script.TypeWrapperRegistry;
-import dev.latvian.mods.kubejs.util.RegistryAccessContainer;
+import dev.latvian.mods.rhino.Context;
+import dev.latvian.mods.rhino.type.TypeInfo;
 
 public class GregTechKubeJSPlugin implements KubeJSPlugin {
 
@@ -323,11 +325,24 @@ public class GregTechKubeJSPlugin implements KubeJSPlugin {
 
         registry.register(MaterialEntry.class, MaterialEntry::of);
 
-        registry.register(RecipeCapability.class, (RegistryAccessContainer registries, Object o) -> {
-            if (o instanceof RecipeCapability<?> capability) return capability;
-            GTResourceLocation wrapper = GTResourceLocation.wrap(o);
-            if (wrapper == null) return null;
-            return registries.access().registryOrThrow(GTRegistries.Keys.RECIPE_CAPABILITY).get(wrapper.wrapped());
+        registry.register(RecipeCapability.class, (Context cx, Object from, TypeInfo target) -> {
+            if (from instanceof RecipeCapability<?> capability) return capability;
+            // noinspection rawtypes,unchecked
+            if (from instanceof Holder holder &&
+                    holder.canSerializeIn(GTRegistries.RECIPE_CAPABILITIES.holderOwner())) {
+                return (RecipeCapability<?>) holder.value();
+            } else {
+                GTResourceLocation wrapper = GTResourceLocation.wrap(from);
+                if (wrapper == null) return null;
+
+                RecipeCapability<?> value = GTRegistries.RECIPE_CAPABILITIES.get(wrapper.wrapped());
+                if (value != null) {
+                    return value;
+                } else {
+                    throw Context.reportRuntimeError(
+                            "Can't interpret '" + from + "' as 'gtceu:recipe_capability': entry not found", cx);
+                }
+            }
         });
 
         registry.register(MaterialStack.class, o -> {
