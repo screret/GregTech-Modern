@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.cosmetics.CapeRegistry;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
-import com.gregtechceu.gtceu.api.data.chemical.Element;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet;
@@ -36,7 +35,6 @@ import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.attribute.FluidAttributes;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.SimpleGeneratorMachine;
 import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
@@ -47,7 +45,6 @@ import com.gregtechceu.gtceu.api.multiblock.pattern.MultiblockPatternBuilder;
 import com.gregtechceu.gtceu.api.multiblock.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.OverclockingLogic;
-import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.ingredient.EnergyStack;
 import com.gregtechceu.gtceu.api.recipe.modifier.ModifierFunction;
@@ -99,10 +96,8 @@ import com.gregtechceu.gtceu.integration.kjs.recipe.GTShapedRecipeSchema;
 import com.gregtechceu.gtceu.integration.kjs.recipe.KJSHelpers;
 import com.gregtechceu.gtceu.integration.kjs.recipe.components.*;
 
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
@@ -120,7 +115,6 @@ import dev.latvian.mods.kubejs.registry.ServerRegistryRegistry;
 import dev.latvian.mods.kubejs.script.BindingRegistry;
 import dev.latvian.mods.kubejs.script.TypeWrapperRegistry;
 import dev.latvian.mods.kubejs.util.RegistryAccessContainer;
-import dev.latvian.mods.rhino.Wrapper;
 
 public class GregTechKubeJSPlugin implements KubeJSPlugin {
 
@@ -323,38 +317,13 @@ public class GregTechKubeJSPlugin implements KubeJSPlugin {
         event.add("CapeRegistry", CapeRegistry.class);
     }
 
-    private <T> void registryObjectTypeWrapper(TypeWrapperRegistry typeWrappers, Class<T> clazz,
-                                               ResourceKey<Registry<T>> registry) {
-        typeWrappers.register(clazz, (RegistryAccessContainer registries, Object o) -> {
-            o = Wrapper.unwrapped(o);
-            if (clazz.isInstance(o)) return clazz.cast(o);
-            GTResourceLocation wrapper = GTResourceLocation.wrap(o);
-            if (wrapper == null) return null;
-            return registries.access().registryOrThrow(registry)
-                    .get(wrapper.wrapped());
-        });
-    }
-
     @Override
     public void registerTypeWrappers(TypeWrapperRegistry registry) {
         registry.register(GTResourceLocation.class, GTResourceLocation::wrap);
 
-        registryObjectTypeWrapper(registry, GTRecipeType.class, GTRegistries.Keys.RECIPE_TYPE);
-        registryObjectTypeWrapper(registry, GTRecipeCategory.class, GTRegistries.Keys.RECIPE_CATEGORY);
-        registryObjectTypeWrapper(registry, ChanceLogic.class, GTRegistries.Keys.CHANCE_LOGIC);
-
-        registryObjectTypeWrapper(registry, Element.class, GTRegistries.Keys.ELEMENT);
-        registryObjectTypeWrapper(registry, Material.class, GTRegistries.Keys.MATERIAL);
-        registryObjectTypeWrapper(registry, MaterialIconSet.class, GTRegistries.Keys.MATERIAL_ICON_SET);
-        registryObjectTypeWrapper(registry, MachineDefinition.class, GTRegistries.Keys.MACHINE);
-        registryObjectTypeWrapper(registry, TagPrefix.class, GTRegistries.Keys.TAG_PREFIX);
-        registryObjectTypeWrapper(registry, IWorldGenLayer.class, GTRegistries.Keys.WORLD_GEN_LAYER);
-        registryObjectTypeWrapper(registry, MedicalCondition.class, GTRegistries.Keys.MEDICAL_CONDITION);
-
         registry.register(MaterialEntry.class, MaterialEntry::of);
 
         registry.register(RecipeCapability.class, (RegistryAccessContainer registries, Object o) -> {
-            o = Wrapper.unwrapped(o);
             if (o instanceof RecipeCapability<?> capability) return capability;
             GTResourceLocation wrapper = GTResourceLocation.wrap(o);
             if (wrapper == null) return null;
@@ -362,14 +331,12 @@ public class GregTechKubeJSPlugin implements KubeJSPlugin {
         });
 
         registry.register(MaterialStack.class, o -> {
-            o = Wrapper.unwrapped(o);
             if (o instanceof MaterialStack stack) return stack;
             if (o instanceof Material material) return new MaterialStack(material, 1);
             if (o instanceof CharSequence chars) return MaterialStack.fromString(chars);
             return null;
         });
         registry.register(MaterialStackWrapper.class, o -> {
-            o = Wrapper.unwrapped(o);
             if (o instanceof MaterialStackWrapper wrapper) return wrapper;
             if (o instanceof MaterialStack stack) return new MaterialStackWrapper(stack::material, stack.amount());
             if (o instanceof Material material) return new MaterialStackWrapper(() -> material, 1);
@@ -386,9 +353,6 @@ public class GregTechKubeJSPlugin implements KubeJSPlugin {
 
         registry.register(IWorldGenLayer.RuleTestSupplier.class, (cx, o, t) -> {
             if (o instanceof IWorldGenLayer.RuleTestSupplier supplier) return supplier;
-            if (o instanceof CharSequence) {
-                return () -> BlockStatePredicate.wrap(cx, o).asRuleTest();
-            } ;
             return () -> BlockStatePredicate.wrapRuleTest(cx, o);
         });
 
