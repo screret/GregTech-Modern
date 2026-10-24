@@ -44,10 +44,11 @@ public class GTCEu {
      * <li>0: 1.3.0-7.5.2</li>
      * <li>1: upgrade to 7.5.3</li>
      * <li>2-3: upgrade to 8.0.0</li>
+     * <li>4: Convert turbine rotors to separate items</li>
      * <li>4: 8.0.1-SNAPSHOT-???????</li>
      * </ul>
      */
-    public static final int GT_DATA_VERSION = 3;
+    public static final int GT_DATA_VERSION = 4;
 
     public GTCEu() {
         GTCEu.init();

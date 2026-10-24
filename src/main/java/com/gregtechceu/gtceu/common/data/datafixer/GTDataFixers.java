@@ -194,6 +194,9 @@ public class GTDataFixers {
                 createRenamer("gtceu:mega_blast_furnace", "gtceu:rotary_hearth_furnace"));
         createBlockItemEntityRenameFix(builder, v3_1, "Rename Bulk Blast Chiller",
                 createRenamer("gtceu:mega_vacuum_freezer", "gtceu:bulk_blast_chiller"));
+
+        Schema v4 = builder.addSchema(4, V4::new);
+        builder.addFixer(new ItemStackTurbineRotorFix(v4));
     }
 
     private static void createBlockItemRenameFix(FixedDataFixerBuilder builder, Schema schema, String name,
