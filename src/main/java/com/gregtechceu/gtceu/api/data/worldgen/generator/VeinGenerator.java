@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
@@ -85,8 +86,8 @@ public abstract class VeinGenerator {
      * respective ore placers are invoked at a later time, when the chunk containing them is actually generated.
      */
     @HideFromJS
-    public abstract Map<BlockPos, OreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
-                                                           GTOreDefinition entry, BlockPos origin);
+    public abstract Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
+                                                            GTOreDefinition entry, BlockPos origin);
 
     @HideFromJS
     public abstract VeinGenerator build();
