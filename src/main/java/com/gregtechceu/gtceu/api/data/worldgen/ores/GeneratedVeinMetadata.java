@@ -24,17 +24,15 @@ public final class GeneratedVeinMetadata {
 
     // spotless:off
     public static final Codec<ChunkPos> CHUNK_POS_CODEC = Codec.LONG.xmap(ChunkPos::new, ChunkPos::toLong);
-    public static final Codec<GTOreDefinition> CLIENT_DEFINITION_CODEC = ResourceLocation.CODEC
-            .flatXmap(rl -> {
-                        return Optional.ofNullable(ClientProxy.CLIENT_ORE_VEINS.get(rl))
-                                .map(DataResult::success)
-                                .orElseGet(() -> DataResult.error(() -> "Unknown registry key in client ore veins: " + rl));
-                    },
-                    obj -> {
-                        return Optional.ofNullable(ClientProxy.CLIENT_ORE_VEINS.inverse().get(obj))
-                                .map(DataResult::success)
-                                .orElseGet(() -> DataResult.error(() -> "Unknown registry element in client ore veins: " + obj));
-                    });
+    public static final Codec<GTOreDefinition> CLIENT_DEFINITION_CODEC = ResourceLocation.CODEC.flatXmap(rl -> {
+        return Optional.ofNullable(ClientProxy.CLIENT_ORE_VEINS.get(rl))
+                .map(DataResult::success)
+                .orElseGet(() -> DataResult.error(() -> "Unknown registry key in client ore veins: " + rl));
+        }, obj -> {
+        return Optional.ofNullable(ClientProxy.CLIENT_ORE_VEINS.inverse().get(obj))
+                .map(DataResult::success)
+                .orElseGet(() -> DataResult.error(() -> "Unknown registry element in client ore veins: " + obj));
+    });
 
     public static final Codec<GeneratedVeinMetadata> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("id").forGetter(GeneratedVeinMetadata::id),

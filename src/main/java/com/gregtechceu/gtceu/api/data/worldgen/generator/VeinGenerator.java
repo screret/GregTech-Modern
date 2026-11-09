@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 
+import com.gregtechceu.gtceu.client.ClientProxy;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -30,15 +31,18 @@ import java.util.stream.Stream;
 
 public abstract class VeinGenerator {
 
-    public static final Codec<Codec<? extends VeinGenerator>> REGISTRY_CODEC = ResourceLocation.CODEC
-            .flatXmap(rl -> Optional.ofNullable(WorldGeneratorUtils.VEIN_GENERATORS.get(rl))
-                    .map(DataResult::success)
-                    .orElseGet(() -> DataResult.error(() -> "No VeinGenerator with id " + rl + " registered")),
-                    obj -> Optional.ofNullable(WorldGeneratorUtils.VEIN_GENERATORS.inverse().get(obj))
-                            .map(DataResult::success)
-                            .orElseGet(() -> DataResult.error(() -> "VeinGenerator " + obj + " not registered")));
-    public static final Codec<VeinGenerator> DIRECT_CODEC = REGISTRY_CODEC.dispatchStable(VeinGenerator::codec,
-            Function.identity());
+    // spotless:off
+    public static final Codec<Codec<? extends VeinGenerator>> REGISTRY_CODEC = ResourceLocation.CODEC.flatXmap(rl -> {
+        return Optional.ofNullable(WorldGeneratorUtils.VEIN_GENERATORS.get(rl))
+                .map(DataResult::success)
+                .orElseGet(() -> DataResult.error(() -> "No VeinGenerator with id " + rl + " registered"));
+        }, obj -> {
+        return Optional.ofNullable(WorldGeneratorUtils.VEIN_GENERATORS.inverse().get(obj))
+                .map(DataResult::success)
+                .orElseGet(() -> DataResult.error(() -> "VeinGenerator " + obj + " not registered"));
+    });
+    public static final Codec<VeinGenerator> DIRECT_CODEC = REGISTRY_CODEC.dispatchStable(VeinGenerator::codec, Function.identity());
+    // spotless:on
 
     protected GTOreDefinition entry;
 
