@@ -56,19 +56,17 @@ public class OrePlacer {
             generatedVeins.forEach(vein -> {
                 for (int y = minSection; y < maxSection; y++) {
                     long sectionPos = SectionPos.asLong(chunkPos.x, y, chunkPos.z);
-                    placeVein(sectionPos, random, access, vein, null);
+                    placeVein(sectionPos, random, level, access, vein, null);
                 }
                 placeIndicators(level, chunkPos, access, vein);
             });
         }
     }
 
-    public void placeVein(long sectionPos, RandomSource random, BulkSectionAccess access,
+    public void placeVein(long sectionPos, RandomSource random, WorldGenLevel level, BulkSectionAccess access,
                           GeneratedVein generatedVein, @Nullable RuleTest targetOverride) {
-        LevelChunkSection section = access.getSection(SectionPos.of(sectionPos).origin());
-        if (section == null) {
-            return;
-        }
+        LevelChunkSection section = getSection(level, access, sectionPos);
+        if (section == null) return;
 
         RuleTest layerTarget = targetOverride != null ? targetOverride : generatedVein.getLayer().getTarget();
 
@@ -88,5 +86,28 @@ public class OrePlacer {
         if (placer == null) return;
 
         placer.placeIndicators(access, level);
+    }
+
+    @Nullable
+    private static LevelChunkSection getSection(WorldGenLevel level, BulkSectionAccess _access, long packedSectionPos) {
+        BulkSectionAccessAccessor access = (BulkSectionAccessAccessor) _access;
+        int idx = level.getSectionIndexFromSectionY(SectionPos.y(packedSectionPos));
+        if (idx < 0 || idx >= level.getSectionsCount()) {
+            return null;
+        }
+
+        LevelChunkSection lastSection = access.getLastSection();
+        if (lastSection == null || access.getLastSectionKey() != packedSectionPos) {
+            lastSection = access.getAcquiredSections().computeIfAbsent(packedSectionPos, (pos) -> {
+                ChunkAccess chunk = level.getChunk(SectionPos.x(pos), SectionPos.z(pos));
+                LevelChunkSection section = chunk.getSection(idx);
+                section.acquire();
+                return section;
+            });
+            access.setLastSection(lastSection);
+            access.setLastSectionKey(packedSectionPos);
+        }
+
+        return lastSection;
     }
 }
