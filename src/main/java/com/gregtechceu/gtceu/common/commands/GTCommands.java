@@ -344,14 +344,16 @@ public class GTCommands {
         RandomSource random = level.random;
 
         try (BulkSectionAccess access = new BulkSectionAccess(level)) {
-            var generated = generator.generateOres(new OreGenerator.VeinConfiguration(metadata, random), level, chunkPos);
+            var generated = generator.generateOres(new OreGenerator.VeinConfiguration(metadata, random), level,
+                    chunkPos);
             if (generated.isEmpty()) {
                 throw new CommandRuntimeException(Component.translatable("command.gtceu.place_vein.failure",
                         id.toString(), sourcePos.toString()));
             }
             for (long sectionPos : generated.get().getGeneratedSections()) {
                 placer.placeVein(sectionPos, random, level, access, generated.get(), AlwaysTrueTest.INSTANCE);
-                ChunkAccess chunk = level.getChunk(SectionPos.x(sectionPos), SectionPos.z(sectionPos), ChunkStatus.FULL, false);
+                ChunkAccess chunk = level.getChunk(SectionPos.x(sectionPos), SectionPos.z(sectionPos), ChunkStatus.FULL,
+                        false);
                 if (chunk != null) {
                     chunk.setUnsaved(true);
                 }

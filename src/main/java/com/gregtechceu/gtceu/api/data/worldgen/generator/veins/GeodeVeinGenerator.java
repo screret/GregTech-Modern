@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.*;
-import net.minecraft.world.level.levelgen.feature.GeodeFeature;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import net.minecraft.world.level.material.FluidState;
@@ -39,7 +38,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.AllArgsConstructor;
@@ -49,7 +47,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 @Accessors(chain = true, fluent = true)
 @AllArgsConstructor
@@ -170,8 +167,10 @@ public class GeodeVeinGenerator extends VeinGenerator {
         }
         List<BlockPos> positions = new ArrayList<>();
 
-        SectionPos.betweenClosedStream(origin.getX() - minGenOffset, origin.getY() - minGenOffset, origin.getZ() - minGenOffset,
-                origin.getX() + maxGenOffset, origin.getY() + maxGenOffset, origin.getZ() + maxGenOffset)
+        SectionPos
+                .betweenClosedStream(origin.getX() - minGenOffset, origin.getY() - minGenOffset,
+                        origin.getZ() - minGenOffset,
+                        origin.getX() + maxGenOffset, origin.getY() + maxGenOffset, origin.getZ() + maxGenOffset)
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
                     generatedBlocks.put(sectionPos.asLong(), (access, section) -> {
@@ -225,35 +224,36 @@ public class GeodeVeinGenerator extends VeinGenerator {
             }
             if (filling >= fillingSize) {
                 this.safeSetBlock(access, section, pos,
-                        getStateFromEither(geodeBlockSettings.fillingProvider, geodeBlockSettings, random, pos)
-                );
+                        getStateFromEither(geodeBlockSettings.fillingProvider, geodeBlockSettings, random, pos));
                 continue;
             }
             if (filling >= innerSize) {
                 boolean useAltLayer = random.nextDouble() < this.useAlternateLayer0Chance;
                 if (useAltLayer) {
-                    BlockState state = getStateFromEither(geodeBlockSettings.alternateInnerLayerProvider, geodeBlockSettings, random, pos);
+                    BlockState state = getStateFromEither(geodeBlockSettings.alternateInnerLayerProvider,
+                            geodeBlockSettings, random, pos);
                     this.safeSetBlock(access, section, pos, state);
                 } else {
-                    BlockState state = getStateFromEither(geodeBlockSettings.innerLayerProvider, geodeBlockSettings, random, pos);
+                    BlockState state = getStateFromEither(geodeBlockSettings.innerLayerProvider, geodeBlockSettings,
+                            random, pos);
                     this.safeSetBlock(access, section, pos, state);
                 }
-                if (this.placementsRequireLayer0Alternate && !useAltLayer || random.nextDouble() >= this.usePotentialPlacementsChance) continue;
+                if (this.placementsRequireLayer0Alternate && !useAltLayer ||
+                        random.nextDouble() >= this.usePotentialPlacementsChance)
+                    continue;
 
                 positions.add(pos.immutable());
                 continue;
             }
             if (filling >= middleSize) {
                 this.safeSetBlock(access, section, pos,
-                        getStateFromEither(geodeBlockSettings.middleLayerProvider, geodeBlockSettings, random, pos)
-                );
+                        getStateFromEither(geodeBlockSettings.middleLayerProvider, geodeBlockSettings, random, pos));
                 continue;
             }
             if (filling < outerSize) continue;
 
             this.safeSetBlock(access, section, pos,
-                    getStateFromEither(geodeBlockSettings.outerLayerProvider, geodeBlockSettings, random, pos)
-            );
+                    getStateFromEither(geodeBlockSettings.outerLayerProvider, geodeBlockSettings, random, pos));
         }
 
         placementLoop:

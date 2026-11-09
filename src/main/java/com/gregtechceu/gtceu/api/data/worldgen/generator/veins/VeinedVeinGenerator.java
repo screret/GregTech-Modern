@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
-import com.google.common.collect.Lists;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
@@ -12,9 +11,6 @@ import com.gregtechceu.gtceu.common.data.worldgen.GTDensityFunctions;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import lombok.Getter;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.Registries;
@@ -35,10 +31,14 @@ import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguratio
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration.TargetBlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 
+import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -136,7 +136,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
         int sectionZ = SectionPos.blockToSectionCoord(origin.getZ());
 
         SectionPos.betweenClosedStream(sectionX - radius, sectionY - radius, sectionZ - radius,
-                        sectionX + radius, sectionY + radius, sectionZ + radius)
+                sectionX + radius, sectionY + radius, sectionZ + radius)
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
                     generatedBlocks.put(sectionPos.asLong(), (access, section) -> {
@@ -159,8 +159,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
         final TrimmedNoiseChunk noiseChunk = TrimmedNoiseChunk.forChunk(level, chunk, settings,
                 sampleOffsetX, sampleOffsetY, sampleOffsetZ);
 
-
-        Registry<DensityFunction> densityFunctions = level.registryAccess().registryOrThrow(Registries.DENSITY_FUNCTION);
+        Registry<DensityFunction> densityFunctions = level.registryAccess()
+                .registryOrThrow(Registries.DENSITY_FUNCTION);
         DensityFunction veinToggle = noiseChunk.wrap(densityFunctions.get(GTDensityFunctions.NEW_ORE_VEIN_TOGGLE));
         DensityFunction veinRidged = noiseChunk.wrap(densityFunctions.get(GTDensityFunctions.NEW_ORE_VEIN_RIDGED));
 
@@ -175,9 +175,9 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
-        for(int cellX = 0; cellX < xCells; ++cellX) {
+        for (int cellX = 0; cellX < xCells; ++cellX) {
             noiseChunk.advanceCellX(cellX);
-            for(int cellZ = 0; cellZ < zCells; ++cellZ) {
+            for (int cellZ = 0; cellZ < zCells; ++cellZ) {
                 for (int cellY = cellCountY - 1; cellY >= 0; --cellY) {
                     int cellEndBlockY = (minCellY + cellY) * cellHeight;
                     // TODO this could be optimized
@@ -252,7 +252,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
         BlockState current = section.getBlockState(sectionX, sectionY, sectionZ);
 
         if (chance > 0.0f && (chance >= 1.0f || random.nextFloat() < chance)) {
-            if (rareBlocks != null && !rareBlocks.isEmpty() && rareBlockChance > 0.0f && random.nextFloat() < rareBlockChance) {
+            if (rareBlocks != null && !rareBlocks.isEmpty() && rareBlockChance > 0.0f &&
+                    random.nextFloat() < rareBlockChance) {
                 VeinBlockDefinition ore = GTUtil.getRandomItem(random, rareBlocks);
                 if (ore == null) return;
                 placeOre(ore.block, current, access, section, random, sectionX, sectionY, sectionZ, worldPos, entry);
@@ -267,7 +268,6 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
             section.setBlockState(sectionX, sectionY, sectionZ, fillerBlock, false);
         }
-
     }
 
     protected static void placeOre(Either<List<TargetBlockState>, Material> block, BlockState current,
@@ -275,7 +275,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
                                    int sectionX, int sectionY, int sectionZ, BlockPos worldPos, GTOreDefinition entry) {
         block.ifLeft(blockStates -> {
             for (TargetBlockState targetState : blockStates) {
-                if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, random, entry, targetState, worldPos)) continue;
+                if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, random, entry, targetState, worldPos))
+                    continue;
                 if (targetState.state.isAir()) continue;
 
                 section.setBlockState(sectionX, sectionY, sectionZ, targetState.state, false);
@@ -393,7 +394,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
             }
 
             public void fillAllDirectly(double[] values, DensityFunction function) {
-                for(int cellY = 0; cellY < cellCountY + 1; ++cellY) {
+                for (int cellY = 0; cellY < cellCountY + 1; ++cellY) {
                     cellStartBlockY = (cellY + cellNoiseMinY) * cellHeight;
                     interpolationCounter++;
                     inCellY = 0;
@@ -500,19 +501,18 @@ public class VeinedVeinGenerator extends VeinGenerator {
         public void fillAllDirectly(double[] values, DensityFunction function) {
             this.arrayIndex = 0;
 
-            for(int y = this.cellHeight - 1; y >= 0; --y) {
+            for (int y = this.cellHeight - 1; y >= 0; --y) {
                 this.inCellY = y;
 
-                for(int x = 0; x < this.cellWidth; ++x) {
+                for (int x = 0; x < this.cellWidth; ++x) {
                     this.inCellX = x;
 
-                    for(int z = 0; z < this.cellWidth; ++z) {
+                    for (int z = 0; z < this.cellWidth; ++z) {
                         this.inCellZ = z;
                         values[this.arrayIndex++] = function.compute(this);
                     }
                 }
             }
-
         }
 
         public void selectCellYZ(int y, int z) {
@@ -522,7 +522,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
             this.cellStartBlockZ = (this.firstCellZ + z) * this.cellWidth;
             ++this.arrayInterpolationCounter;
 
-            for(CacheAllInCell cellCache : this.cellCaches) {
+            for (CacheAllInCell cellCache : this.cellCaches) {
                 cellCache.noiseFiller.fillArray(cellCache.values, this);
             }
 
@@ -564,6 +564,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
         private DensityFunction wrapNew(DensityFunction densityFunction) {
             return densityFunction.mapAll(new DensityFunction.Visitor() {
+
                 @Override
                 public DensityFunction apply(DensityFunction densityFunction) {
                     if (densityFunction instanceof DensityFunctions.Marker marker) {
@@ -591,6 +592,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
         }
 
         static class Cache2D implements DensityFunctions.MarkerOrMarked, NoiseChunkDensityFunction {
+
             private final DensityFunction function;
             private long lastPos2D = ChunkPos.INVALID_CHUNK_POS;
             private double lastValue;
@@ -627,6 +629,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
         }
 
         private class CacheAllInCell implements DensityFunctions.MarkerOrMarked, NoiseChunkDensityFunction {
+
             final DensityFunction noiseFiller;
             final double[] values;
 
@@ -667,6 +670,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
         }
 
         class CacheOnce implements DensityFunctions.MarkerOrMarked, NoiseChunkDensityFunction {
+
             private final DensityFunction function;
             private long lastCounter;
             private long lastArrayCounter;
@@ -718,6 +722,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
         }
 
         class FlatCache implements DensityFunctions.MarkerOrMarked, NoiseChunkDensityFunction {
+
             private final DensityFunction noiseFiller;
             final double[][] values;
 
@@ -726,18 +731,18 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
                 this.values = new double[noiseSizeXZ + 1][noiseSizeXZ + 1];
                 if (computeValues) {
-                    for(int xIdx = 0; xIdx <= noiseSizeXZ; ++xIdx) {
+                    for (int xIdx = 0; xIdx <= noiseSizeXZ; ++xIdx) {
                         int quartX = firstNoiseX + xIdx;
                         int blockX = QuartPos.toBlock(quartX);
 
-                        for(int zIdx = 0; zIdx <= noiseSizeXZ; ++zIdx) {
+                        for (int zIdx = 0; zIdx <= noiseSizeXZ; ++zIdx) {
                             int quartZ = firstNoiseZ + zIdx;
                             int blockZ = QuartPos.toBlock(quartZ);
-                            this.values[xIdx][zIdx] = noiseFiller.compute(new DensityFunction.SinglePointContext(blockX, 0, blockZ));
+                            this.values[xIdx][zIdx] = noiseFiller
+                                    .compute(new DensityFunction.SinglePointContext(blockX, 0, blockZ));
                         }
                     }
                 }
-
             }
 
             public double compute(DensityFunction.FunctionContext context) {
@@ -765,6 +770,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
         }
 
         interface NoiseChunkDensityFunction extends DensityFunction {
+
             DensityFunction wrapped();
 
             default double minValue() {
@@ -777,6 +783,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
         }
 
         public class NoiseInterpolator implements DensityFunctions.MarkerOrMarked, NoiseChunkDensityFunction {
+
             double[][] slice0;
             double[][] slice1;
             private final DensityFunction noiseFiller;
@@ -802,7 +809,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 int yMax = cellCountY + 1;
 
                 double[][] slice = new double[xzMax][yMax];
-                for(int xz = 0; xz < xzMax; ++xz) {
+                for (int xz = 0; xz < xzMax; ++xz) {
                     slice[xz] = new double[yMax];
                 }
 
@@ -877,5 +884,4 @@ public class VeinedVeinGenerator extends VeinGenerator {
             }
         }
     }
-
 }

@@ -47,7 +47,7 @@ public class OreGenCache {
 
     private final Cache<ChunkPos, List<GeneratedVein>> generatedVeinsByOrigin = CacheBuilder.newBuilder()
             // TODO figure out a better way to cache indicators and veins in the same object. it reduces memory usage
-            //  but increasing this makes the map way bigger than it actually has to be. I think.
+            // but increasing this makes the map way bigger than it actually has to be. I think.
             .maximumSize(veinMetadataCacheSize)
             .expireAfterAccess(30, TimeUnit.SECONDS)
             .softValues()

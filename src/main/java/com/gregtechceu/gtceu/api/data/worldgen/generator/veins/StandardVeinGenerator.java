@@ -7,10 +7,8 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-
 import com.gregtechceu.gtceu.utils.codec.GTCodecUtils;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -31,6 +29,8 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.*;
 import java.util.function.Function;
@@ -236,7 +236,7 @@ public class StandardVeinGenerator extends VeinGenerator {
         }
 
         SectionPos.betweenClosedStream(blockToSectionCoord(x0), blockToSectionCoord(y0), blockToSectionCoord(z0),
-                        blockToSectionCoord(x1), blockToSectionCoord(y1), blockToSectionCoord(z1))
+                blockToSectionCoord(x1), blockToSectionCoord(y1), blockToSectionCoord(z1))
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
                     generatedBlocks.put(sectionPos.asLong(), (access, section) -> {

@@ -2,19 +2,16 @@ package com.gregtechceu.gtceu.api.data.worldgen.ores;
 
 import com.gregtechceu.gtceu.api.data.worldgen.IWorldGenLayer;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.ChunkPos;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -72,6 +69,8 @@ public class GeneratedVein {
     @Override
     public String toString() {
         return "GeneratedVein[origin=" + origin + ", sections={" +
-                oresBySection.keySet().longStream().mapToObj(SectionPos::of).map(SectionPos::toString).collect(Collectors.joining(", ")) + "}]";
+                oresBySection.keySet().longStream().mapToObj(SectionPos::of).map(SectionPos::toString)
+                        .collect(Collectors.joining(", ")) +
+                "}]";
     }
 }

@@ -160,9 +160,11 @@ public class CuboidVeinGenerator extends VeinGenerator {
 
                     int localDensity = (int) Math.max(1, 8 * entry.density() / volume);
                     int weightX = Math.max(1,
-                            Math.max(Mth.abs(westBoundInSection - sX), Mth.abs(eastBoundInSection - sX)) / localDensity);
+                            Math.max(Mth.abs(westBoundInSection - sX), Mth.abs(eastBoundInSection - sX)) /
+                                    localDensity);
                     int weightZ = Math.max(1,
-                            Math.max(Mth.abs(southBoundInSection - sZ), Mth.abs(northBoundInSection - sZ)) / localDensity);
+                            Math.max(Mth.abs(southBoundInSection - sZ), Mth.abs(northBoundInSection - sZ)) /
+                                    localDensity);
 
                     pos.set(sX + sectionPos.minBlockX(), sY + sectionPos.minBlockY(), sZ + sectionPos.minBlockZ());
                     if (layerOffset <= bottomLayer) {

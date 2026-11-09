@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.data.worldgen.ores;
 
 import com.gregtechceu.gtceu.config.ConfigHolder;
-
 import com.gregtechceu.gtceu.core.mixins.BulkSectionAccessAccessor;
+
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.RandomSource;

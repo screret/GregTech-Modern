@@ -115,7 +115,6 @@ public class LayeredVeinGenerator extends VeinGenerator {
     private static void resolveLayers(int diameter, GTLayerPattern layerPattern,
                                       List<GTLayerPattern.Layer> resolvedLayers, FloatList layerDiameterOffsets,
                                       int layerCoordinate, int slantyCoordinate, float slope, RandomSource random) {
-
         int maxLayer = diameter;
         if (slantyCoordinate != layerCoordinate) {
             maxLayer += Mth.floor(diameter * slope);
