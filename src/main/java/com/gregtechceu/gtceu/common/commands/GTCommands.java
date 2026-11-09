@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.registry.GTRegistry;
 import com.gregtechceu.gtceu.common.commands.arguments.GTRegistryArgument;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SPacketStartProspectionShare;
+import com.gregtechceu.gtceu.core.util.extensions.ChunkGeneratorExt;
 import com.gregtechceu.gtceu.data.loader.BedrockFluidLoader;
 import com.gregtechceu.gtceu.data.loader.BedrockOreLoader;
 import com.gregtechceu.gtceu.data.loader.GTOreLoader;
@@ -33,6 +34,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 
@@ -326,21 +328,29 @@ public class GTCommands {
         ChunkPos chunkPos = new ChunkPos(sourcePos);
         ServerLevel level = context.getSource().getLevel();
 
+        final OrePlacer placer;
+        {
+            ChunkGenerator chunkGenerator = level.getChunkSource().getGenerator();
+            if (chunkGenerator instanceof ChunkGeneratorExt ext) {
+                placer = ext.gtceu$getOrePlacer();
+            } else {
+                // create a new OrePlacer object only if we need to; it has a relatively large amount of memory overhead
+                placer = new OrePlacer();
+            }
+        }
+        OreGenerator generator = placer.getOreGenCache().getOreGenerator();
+
         GeneratedVeinMetadata metadata = new GeneratedVeinMetadata(id, chunkPos, sourcePos, vein);
         RandomSource random = level.random;
 
-        OrePlacer placer = new OrePlacer();
-        OreGenerator generator = placer.getOreGenCache().getOreGenerator();
-
         try (BulkSectionAccess access = new BulkSectionAccess(level)) {
-            var generated = generator.generateOres(new OreGenerator.VeinConfiguration(metadata, random), level,
-                    chunkPos);
+            var generated = generator.generateOres(new OreGenerator.VeinConfiguration(metadata, random), level, chunkPos);
             if (generated.isEmpty()) {
                 throw new CommandRuntimeException(Component.translatable("command.gtceu.place_vein.failure",
                         id.toString(), sourcePos.toString()));
             }
             for (long sectionPos : generated.get().getGeneratedSections()) {
-                placer.placeVein(sectionPos, random, access, generated.get(), AlwaysTrueTest.INSTANCE);
+                placer.placeVein(sectionPos, random, level, access, generated.get(), AlwaysTrueTest.INSTANCE);
                 ChunkAccess chunk = level.getChunk(SectionPos.x(sectionPos), SectionPos.z(sectionPos), ChunkStatus.FULL, false);
                 if (chunk != null) {
                     chunk.setUnsaved(true);
