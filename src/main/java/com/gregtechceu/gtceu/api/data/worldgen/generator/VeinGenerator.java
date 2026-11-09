@@ -79,7 +79,7 @@ public abstract class VeinGenerator {
     }
 
     /**
-     * Generate a map of all ore placers (by block position), for each block in this ore vein.
+     * Generate a map of all ore placers (by section), for each section this ore vein should be placed in.
      *
      * <p>
      * Note that, if in any way possible, this is NOT supposed to directly place any of the vein's blocks, as their

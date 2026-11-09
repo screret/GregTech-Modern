@@ -2,12 +2,12 @@ package com.gregtechceu.gtceu.api.data.worldgen.ores;
 
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
+import com.gregtechceu.gtceu.core.mixins.BulkSectionAccessAccessor;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -18,8 +18,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import lombok.Getter;
 
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -48,18 +47,19 @@ public class OrePlacer {
     public void placeOres(WorldGenLevel level, ChunkGenerator chunkGenerator, ChunkAccess chunk) {
         if (!ConfigHolder.INSTANCE.dev.doSuperflatOres && chunkGenerator instanceof FlatLevelSource) return;
 
-        var random = new XoroshiroRandomSource(level.getSeed() ^ chunk.getPos().toLong());
-        var generatedVeins = oreGenCache.consumeChunkVeins(level, chunkGenerator, chunk);
-        var generatedIndicators = oreGenCache.consumeChunkIndicators(level, chunkGenerator, chunk);
+        final ChunkPos chunkPos = chunk.getPos();
+        RandomSource random = new XoroshiroRandomSource(level.getSeed() ^ chunkPos.toLong());
+        List<GeneratedVein> generatedVeins = oreGenCache.consumeChunkVeins(level, chunkGenerator, chunk);
 
+        final int minSection = level.getMinSection(), maxSection = level.getMaxSection();
         try (BulkSectionAccess access = new BulkSectionAccess(level)) {
-            generatedVeins.forEach(generatedVein -> {
-                long chunkPos = chunk.getPos().toLong();
-                for (int y = level.getMinSection(); y < level.getMaxSection(); y++) {
-                    placeVein(SectionPos.offset(chunkPos, 0, y, 0), random, access, generatedVein, null);
+            generatedVeins.forEach(vein -> {
+                for (int y = minSection; y < maxSection; y++) {
+                    long sectionPos = SectionPos.asLong(chunkPos.x, y, chunkPos.z);
+                    placeVein(sectionPos, random, access, vein, null);
                 }
+                placeIndicators(level, chunkPos, access, vein);
             });
-            generatedIndicators.forEach(generatedIndicator -> placeIndicators(level, chunk, access, generatedIndicator));
         }
     }
 
@@ -73,16 +73,20 @@ public class OrePlacer {
         RuleTest layerTarget = targetOverride != null ? targetOverride : generatedVein.getLayer().getTarget();
 
         OreBlockPlacer placer = generatedVein.consumeOres(sectionPos);
+        if (placer == null) return;
 
-        // if (layerTarget.test(blockState, random)) {}
+        // if (layerTarget.test(blockState, random)) {
         placer.placeBlocks(access, section);
+        // }
     }
 
-    private void placeIndicators(WorldGenLevel level, ChunkAccess chunk, BulkSectionAccess access,
-                                 GeneratedIndicators generatedVein) {
+    private void placeIndicators(WorldGenLevel level, ChunkPos chunkPos, BulkSectionAccess access,
+                                 GeneratedVein vein) {
         if (!ConfigHolder.INSTANCE.worldgen.oreVeins.oreIndicators) return;
-        generatedVein.consumeIndicators(chunk.getPos()).forEach(placer -> {
-            placer.placeIndicators(access, level);
-        });
+
+        OreIndicatorPlacer placer = vein.consumeIndicators(chunkPos);
+        if (placer == null) return;
+
+        placer.placeIndicators(access, level);
     }
 }

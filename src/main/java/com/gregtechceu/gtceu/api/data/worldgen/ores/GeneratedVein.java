@@ -10,11 +10,13 @@ import net.minecraft.world.level.ChunkPos;
 
 import lombok.Getter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -31,33 +33,45 @@ public class GeneratedVein {
     private final IWorldGenLayer layer;
 
     private final Long2ObjectMap<OreBlockPlacer> oresBySection;
+    private final Map<ChunkPos, OreIndicatorPlacer> generatedIndicators;
 
     /**
      * @param origin        The vein's origin chunk (NOT its actual center, which may be outside the origin chunk)
      * @param oresBySection The ore placers for each ore block position grouped by chunk.<br>
-     *                      Doesn't need to be ordered, grouping by chunks is done internally.
+     *                      Doesn't need to be ordered.
+     * @param indicators    The indicator placers for each chunk.
      */
     public GeneratedVein(ChunkPos origin, IWorldGenLayer layer,
-                         Long2ObjectMap<OreBlockPlacer> oresBySection) {
+                         Long2ObjectMap<OreBlockPlacer> oresBySection,
+                         Map<ChunkPos, OreIndicatorPlacer> indicators) {
         this.origin = origin;
         this.layer = layer;
+
         this.oresBySection = oresBySection;
+        this.generatedIndicators = indicators;
     }
 
     /**
      * Retrieve the ore placers for all blocks inside the specified chunk.
      */
-    public OreBlockPlacer consumeOres(long sectionPos) {
+    public @Nullable OreBlockPlacer consumeOres(long sectionPos) {
         return this.oresBySection.get(sectionPos);
     }
 
+    /**
+     * Retrieve the combined indicator placer for the specified chunk.
+     */
+    public @Nullable OreIndicatorPlacer consumeIndicators(ChunkPos chunk) {
+        return this.generatedIndicators.get(chunk);
+    }
+
     public LongSet getGeneratedSections() {
-        return oresBySection.keySet();
+        return this.oresBySection.keySet();
     }
 
     @Override
     public String toString() {
-        return "GeneratedVein[origin=" + origin + ", chunks={" +
-                oresBySection.keySet().stream().map(SectionPos::of).map(SectionPos::toString).collect(Collectors.joining(", ")) + "}]";
+        return "GeneratedVein[origin=" + origin + ", sections={" +
+                oresBySection.keySet().longStream().mapToObj(SectionPos::of).map(SectionPos::toString).collect(Collectors.joining(", ")) + "}]";
     }
 }
