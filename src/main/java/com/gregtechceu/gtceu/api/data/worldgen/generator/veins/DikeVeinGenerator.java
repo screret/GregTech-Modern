@@ -105,19 +105,28 @@ public class DikeVeinGenerator extends VeinGenerator {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
-        int sectionMinY = Math.min(sectionPos.maxBlockY(), Math.max(sectionPos.minBlockY(), minYLevel));
-        int sectionMaxY = Math.min(sectionPos.maxBlockY(), Math.max(sectionPos.minBlockY(), maxYLevel));
-        if (sectionMinY > sectionMaxY) return;
+        int sectionMinY = Mth.clamp(minYLevel, sectionPos.minBlockY(), sectionPos.maxBlockY());
+        int sectionMaxY = Mth.clamp(maxYLevel, sectionPos.minBlockY(), sectionPos.maxBlockY());
 
-        for (int dY = sectionMinY; dY <= sectionMaxY; dY++) {
-            for (int dX = -radius; dX <= radius; dX++) {
-                for (int dZ = -radius; dZ <= radius; dZ++) {
-                    float dist = (dX * dX) + (dZ * dZ);
+        for (int dy = sectionMinY; dy <= sectionMaxY; dy++) {
+            int inSectionY = dy - sectionPos.minBlockY();
+            // the Y coordinate is clamped to valid values only
+
+            for (int dx = -radius; dx <= radius; dx++) {
+                int inSectionX = globalX + dx - sectionPos.minBlockX();
+                if (inSectionX != sectionRelative(inSectionX)) continue;
+
+                for (int dz = -radius; dz <= radius; dz++) {
+                    int inSectionZ = globalZ + dz - sectionPos.minBlockZ();
+                    if (inSectionZ != sectionRelative(inSectionZ)) continue;
+
+                    float dist = (dx * dx) + (dz * dz);
                     if (dist > radius * 2) continue;
 
-                    pos.set(globalX + dX, dY, globalZ + dZ);
-                    if (normalNoise.getValue(dX, dY, dZ) >= 0.5 && random.nextFloat() <= entry.density()) {
-                        placeBlock(access, section, random, pos, entry, dX, sectionRelative(dY), dZ);
+
+                    pos.set(globalX + dx, dy, globalZ + dz);
+                    if (normalNoise.getValue(dx, dy, dz) >= 0.5 && random.nextFloat() <= entry.density()) {
+                        placeBlock(access, section, random, pos, entry, inSectionX, inSectionY, inSectionZ);
                     }
                 }
             }
@@ -125,7 +134,7 @@ public class DikeVeinGenerator extends VeinGenerator {
     }
 
     private void placeBlock(BulkSectionAccess access, LevelChunkSection section, RandomSource random, BlockPos pos,
-                            GTOreDefinition entry, int sectionX, int sectionY, int sectionZ) {
+                            GTOreDefinition entry, int inSectionX, int inSectionY, int inSectionZ) {
         DikeBlockDefinition blockDefinition = GTUtil.getRandomItem(random, this.blocks);
         if (blockDefinition == null) return;
         if (pos.getY() < blockDefinition.minY() || pos.getY() > blockDefinition.maxY()) return;
@@ -138,7 +147,7 @@ public class DikeVeinGenerator extends VeinGenerator {
                     continue;
                 if (targetState.state.isAir()) continue;
 
-                section.setBlockState(sectionX, sectionY, sectionZ, targetState.state, false);
+                section.setBlockState(inSectionX, inSectionY, inSectionZ, targetState.state, false);
                 break;
             }
         }).ifRight(material -> {
@@ -150,7 +159,7 @@ public class DikeVeinGenerator extends VeinGenerator {
             Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
             if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
 
-            section.setBlockState(sectionX, sectionY, sectionZ, toPlace.defaultBlockState(), false);
+            section.setBlockState(inSectionX, inSectionY, inSectionZ, toPlace.defaultBlockState(), false);
         });
     }
 

@@ -150,17 +150,23 @@ public class LayeredVeinGenerator extends VeinGenerator {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         for (int dx = 0; dx < size; dx++) {
+            if (blockToSectionCoord(xMin + dx) != sectionPos.x()) continue;
+
             float sizeFractionX = dx * 2f / size - 1;
             float xSizeSqr = sizeFractionX * sizeFractionX;
             if (xSizeSqr > 1) continue;
 
             for (int dy = 0; dy < size; dy++) {
+                if (blockToSectionCoord(yMin + dy) != sectionPos.y()) continue;
+
                 float sizeFractionY = dy * 2f / size - 1;
                 float ySizeSqr = sizeFractionY * sizeFractionY;
                 if (xSizeSqr + ySizeSqr > 1) continue;
                 if (level.isOutsideBuildHeight(yMin + dy)) continue;
 
                 for (int dz = 0; dz < size; dz++) {
+                    if (blockToSectionCoord(zMin + dz) != sectionPos.z()) continue;
+
                     float sizeFractionZ = dz * 2f / size - 1;
                     float zSizeSqr = sizeFractionZ * sizeFractionZ;
                     // OPTIMIZATION: all values in layerDiameterOffsets are in the [0,1] range, so

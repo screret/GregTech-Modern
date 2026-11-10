@@ -47,6 +47,8 @@ import java.util.*;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import static net.minecraft.core.SectionPos.blockToSectionCoord;
+
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 @AllArgsConstructor
@@ -72,6 +74,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
             Codec.FLOAT.fieldOf("rare_block_chance").orElse(0.02f).forGetter(it -> it.rareBlockChance)// ,
     ).apply(instance, VeinedVeinGenerator::new));
     // spotless:on
+
+    private static final NoiseSettings DEFAULT_NOISE_SETTINGS = new NoiseSettings(-64, 384, 1, 2);
 
     public List<VeinBlockDefinition> oreBlocks = new ArrayList<>();
     public List<VeinBlockDefinition> rareBlocks = new ArrayList<>();
@@ -124,24 +128,33 @@ public class VeinedVeinGenerator extends VeinGenerator {
         int randOffsetY = random.nextInt(16);
         int randOffsetZ = random.nextInt(16);
 
-        NoiseGeneratorSettings settings = level.registryAccess().lookupOrThrow(Registries.NOISE_SETTINGS)
-                .getOrThrow(NoiseGeneratorSettings.OVERWORLD).value();
-        NoiseSettings noiseSettings = settings.noiseSettings();
+        NoiseSettings _noiseSettings;
+        if (level.getLevel().getChunkSource().getGenerator() instanceof NoiseBasedChunkGenerator noiseGenerator) {
+            _noiseSettings = noiseGenerator.generatorSettings().value().noiseSettings();
+        } else {
+            // hardcode the default overworld noise cell height if we're in a weird dimension that doesn't use a
+            // noise-based chunk generator.
+            _noiseSettings = DEFAULT_NOISE_SETTINGS;
+        }
+        final NoiseSettings noiseSettings = _noiseSettings.clampToHeightAccessor(level);
+
         int minY = origin.getY() - radius;
         int minCellY = Mth.floorDiv(minY, noiseSettings.getCellHeight());
-        int cellCountY = Mth.floorDiv(noiseSettings.height(), noiseSettings.getCellHeight());
+        int cellCountY = Mth.floorDiv(level.getLevel().getHeight(), noiseSettings.getCellHeight());
 
-        int sectionX = SectionPos.blockToSectionCoord(origin.getX());
-        int sectionY = SectionPos.blockToSectionCoord(origin.getY());
-        int sectionZ = SectionPos.blockToSectionCoord(origin.getZ());
+        int sectionX0 = blockToSectionCoord(origin.getX() - radius);
+        int sectionX1 = blockToSectionCoord(origin.getX() + radius);
+        int sectionY0 = blockToSectionCoord(minY);
+        int sectionY1 = blockToSectionCoord(origin.getY() + radius);
+        int sectionZ0 = blockToSectionCoord(origin.getZ() - radius);
+        int sectionZ1 = blockToSectionCoord(origin.getZ() + radius);
 
-        SectionPos.betweenClosedStream(sectionX - radius, sectionY - radius, sectionZ - radius,
-                sectionX + radius, sectionY + radius, sectionZ + radius)
+        SectionPos.betweenClosedStream(sectionX0, sectionY0, sectionZ0, sectionX1, sectionY1, sectionZ1)
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
                     generatedBlocks.put(sectionPos.asLong(), (access, section) -> {
                         placeSection(level, access, section, entry, randomSeed, sectionPos,
-                                settings, minY, minCellY, cellCountY,
+                                noiseSettings, minY, minCellY, cellCountY,
                                 randOffsetX, randOffsetY, randOffsetZ);
                     });
                 });
@@ -150,13 +163,13 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
     private void placeSection(WorldGenLevel level, BulkSectionAccess access, LevelChunkSection section,
                               GTOreDefinition entry, long randomSeed, SectionPos sectionPos,
-                              NoiseGeneratorSettings settings, int minY, int minCellY, int cellCountY,
+                              NoiseSettings noiseSettings, int minY, int minCellY, int cellCountY,
                               int sampleOffsetX, int sampleOffsetY, int sampleOffsetZ) {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
 
         ChunkAccess chunk = level.getChunk(sectionPos.x(), sectionPos.z(), ChunkStatus.EMPTY, false);
         if (chunk == null) return;
-        final TrimmedNoiseChunk noiseChunk = TrimmedNoiseChunk.forChunk(level, chunk, settings,
+        final TrimmedNoiseChunk noiseChunk = TrimmedNoiseChunk.forChunk(level, chunk, noiseSettings,
                 sampleOffsetX, sampleOffsetY, sampleOffsetZ);
 
         Registry<DensityFunction> densityFunctions = level.registryAccess()
@@ -181,7 +194,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 for (int cellY = cellCountY - 1; cellY >= 0; --cellY) {
                     int cellEndBlockY = (minCellY + cellY) * cellHeight;
                     // TODO this could be optimized
-                    if (sectionPos.y() != SectionPos.blockToSectionCoord(cellEndBlockY)) continue;
+                    if (sectionPos.y() != blockToSectionCoord(cellEndBlockY)) continue;
                     if (cellEndBlockY < minY) continue;
 
                     noiseChunk.selectCellYZ(cellY, cellZ);
@@ -189,7 +202,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                     for (int inCellY = cellHeight - 1; inCellY >= 0; --inCellY) {
                         cellEndBlockY = (minCellY + cellY) * cellHeight + inCellY;
                         // same here
-                        if (sectionPos.y() != SectionPos.blockToSectionCoord(cellEndBlockY)) continue;
+                        if (sectionPos.y() != blockToSectionCoord(cellEndBlockY)) continue;
                         if (cellEndBlockY < minY) continue;
 
                         int minBlockY = cellEndBlockY - this.minYLevel;
@@ -405,12 +418,11 @@ public class VeinedVeinGenerator extends VeinGenerator {
         };
 
         public static TrimmedNoiseChunk forChunk(ServerLevelAccessor level, ChunkAccess chunk,
-                                                 NoiseGeneratorSettings noiseGeneratorSettings,
+                                                 NoiseSettings noiseSettings,
                                                  int sampleOffsetX, int sampleOffsetY, int sampleOffsetZ) {
-            NoiseSettings settings = noiseGeneratorSettings.noiseSettings().clampToHeightAccessor(chunk);
             ChunkPos chunkPos = chunk.getPos();
-            int cellCountXZ = 16 / settings.getCellWidth();
-            return new TrimmedNoiseChunk(cellCountXZ, chunkPos.getMinBlockX(), chunkPos.getMinBlockZ(), settings,
+            int cellCountXZ = 16 / noiseSettings.getCellWidth();
+            return new TrimmedNoiseChunk(cellCountXZ, chunkPos.getMinBlockX(), chunkPos.getMinBlockZ(), noiseSettings,
                     level.getLevel().getChunkSource().randomState(),
                     sampleOffsetX, sampleOffsetY, sampleOffsetZ);
         }
