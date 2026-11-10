@@ -815,17 +815,21 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
         public class NoiseInterpolator implements DensityFunctions.MarkerOrMarked, NoiseChunkDensityFunction {
 
-            double[][] slice0;
-            double[][] slice1;
+            private double[][] slice0;
+            private double[][] slice1;
             private final DensityFunction noiseFiller;
-            private double noise000, noise001;
-            private double noise010, noise011;
-            private double noise100, noise101;
-            private double noise110, noise111;
 
+            // 1st number = slice; 2nd = Y offset; 3rd = Z offset
+            private double noise000, noise001;
+            private double noise100, noise101;
+            private double noise010, noise011;
+            private double noise110, noise111;
+            // 1st number = slice; 2nd = Z offset
             private double valueXZ00, valueXZ01;
             private double valueXZ10, valueXZ11;
+            // number = Z offset
             private double valueZ0, valueZ1;
+
             private double value;
 
             NoiseInterpolator(DensityFunction noiseFilter) {
