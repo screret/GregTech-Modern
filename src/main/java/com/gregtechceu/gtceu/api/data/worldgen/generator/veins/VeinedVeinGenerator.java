@@ -450,14 +450,17 @@ public class VeinedVeinGenerator extends VeinGenerator {
             this.cellCaches = Lists.newArrayList();
         }
 
+        @Override
         public int blockX() {
             return this.cellStartBlockX + this.inCellX + this.sampleOffsetX;
         }
 
+        @Override
         public int blockY() {
             return this.cellStartBlockY + this.inCellY + this.sampleOffsetY;
         }
 
+        @Override
         public int blockZ() {
             return this.cellStartBlockZ + this.inCellZ + this.sampleOffsetZ;
         }
@@ -613,6 +616,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 this.function = function;
             }
 
+            @Override
             public double compute(DensityFunction.FunctionContext context) {
                 int x = context.blockX();
                 int z = context.blockZ();
@@ -627,14 +631,17 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 }
             }
 
+            @Override
             public void fillArray(double[] array, DensityFunction.ContextProvider contextProvider) {
                 this.function.fillArray(array, contextProvider);
             }
 
+            @Override
             public DensityFunction wrapped() {
                 return this.function;
             }
 
+            @Override
             public DensityFunctions.Marker.Type type() {
                 return DensityFunctions.Marker.Type.Cache2D;
             }
@@ -651,6 +658,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 cellCaches.add(this);
             }
 
+            @Override
             public double compute(DensityFunction.FunctionContext context) {
                 if (context != TrimmedNoiseChunk.this) {
                     return this.noiseFiller.compute(context);
@@ -668,14 +676,17 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 }
             }
 
+            @Override
             public void fillArray(double[] array, DensityFunction.ContextProvider contextProvider) {
                 contextProvider.fillAllDirectly(array, this);
             }
 
+            @Override
             public DensityFunction wrapped() {
                 return this.noiseFiller;
             }
 
+            @Override
             public DensityFunctions.Marker.Type type() {
                 return DensityFunctions.Marker.Type.CacheAllInCell;
             }
@@ -694,6 +705,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 this.function = function;
             }
 
+            @Override
             public double compute(DensityFunction.FunctionContext context) {
                 if (context != TrimmedNoiseChunk.this) {
                     return this.function.compute(context);
@@ -709,6 +721,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 }
             }
 
+            @Override
             public void fillArray(double[] array, DensityFunction.ContextProvider contextProvider) {
                 if (this.lastArray != null && this.lastArrayCounter == arrayInterpolationCounter) {
                     System.arraycopy(this.lastArray, 0, array, 0, array.length);
@@ -724,10 +737,12 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 }
             }
 
+            @Override
             public DensityFunction wrapped() {
                 return this.function;
             }
 
+            @Override
             public DensityFunctions.Marker.Type type() {
                 return DensityFunctions.Marker.Type.CacheOnce;
             }
@@ -757,6 +772,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 }
             }
 
+            @Override
             public double compute(DensityFunction.FunctionContext context) {
                 int quartX = QuartPos.fromBlock(context.blockX());
                 int quartZ = QuartPos.fromBlock(context.blockZ());
@@ -768,14 +784,17 @@ public class VeinedVeinGenerator extends VeinGenerator {
                         this.noiseFiller.compute(context);
             }
 
+            @Override
             public void fillArray(double[] array, DensityFunction.ContextProvider contextProvider) {
                 contextProvider.fillAllDirectly(array, this);
             }
 
+            @Override
             public DensityFunction wrapped() {
                 return this.noiseFiller;
             }
 
+            @Override
             public DensityFunctions.Marker.Type type() {
                 return DensityFunctions.Marker.Type.FlatCache;
             }
@@ -855,6 +874,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 this.value = Mth.lerp(z, this.valueZ0, this.valueZ1);
             }
 
+            @Override
             public double compute(DensityFunction.FunctionContext context) {
                 if (context != TrimmedNoiseChunk.this) {
                     return this.noiseFiller.compute(context);
@@ -873,6 +893,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 }
             }
 
+            @Override
             public void fillArray(double[] array, DensityFunction.ContextProvider contextProvider) {
                 if (fillingCell) {
                     contextProvider.fillAllDirectly(array, this);
@@ -881,6 +902,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 }
             }
 
+            @Override
             public DensityFunction wrapped() {
                 return this.noiseFiller;
             }
@@ -891,6 +913,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 this.slice1 = tmp;
             }
 
+            @Override
             public DensityFunctions.Marker.Type type() {
                 return DensityFunctions.Marker.Type.Interpolated;
             }
