@@ -81,7 +81,7 @@
         "LootPoolAccessor",
         "LootTableAccessor",
         "OreConfigurationMixin",
-        "OreVeinifierMixin",
+        "NoiseChunkMixin",
         "PotionBrewingAccessor",
         "PrimedTntAccessor",
         "RangedAttributeAccessor",
