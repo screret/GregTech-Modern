@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import static net.minecraft.core.SectionPos.blockToSectionCoord;
+import static net.minecraft.core.SectionPos.sectionRelative;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -210,20 +211,20 @@ public class VeinedVeinGenerator extends VeinGenerator {
                         if (minBlockY < 0 || maxBlockY < 0) continue;
                         int lowY = Math.min(minBlockY, maxBlockY);
 
-                        int inSectionY = cellEndBlockY & SectionPos.SECTION_MASK;
+                        int inSectionY = sectionRelative(cellEndBlockY);
                         double delta = (double) inCellY / (double) cellHeight;
                         noiseChunk.updateForY(cellEndBlockY, delta);
 
                         for (int inCellX = 0; inCellX < cellWidth; ++inCellX) {
                             int cellEndBlockX = chunkMinX + cellX * cellWidth + inCellX;
-                            int inSectionX = cellEndBlockX & SectionPos.SECTION_MASK;
+                            int inSectionX = sectionRelative(cellEndBlockX);
 
                             delta = (double) inCellX / (double) cellWidth;
                             noiseChunk.updateForX(cellEndBlockX, delta);
 
                             for (int inCellZ = 0; inCellZ < cellWidth; ++inCellZ) {
                                 int cellEndBlockZ = chunkMinZ + cellZ * cellWidth + inCellZ;
-                                int inSectionZ = cellEndBlockZ & SectionPos.SECTION_MASK;
+                                int inSectionZ = sectionRelative(cellEndBlockZ);
 
                                 delta = (double) inCellZ / (double) cellWidth;
                                 noiseChunk.updateForZ(cellEndBlockZ, delta);
@@ -265,8 +266,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
         BlockState current = section.getBlockState(sectionX, sectionY, sectionZ);
 
         if (chance > 0.0f && (chance >= 1.0f || random.nextFloat() < chance)) {
-            if (rareBlocks != null && !rareBlocks.isEmpty() && rareBlockChance > 0.0f &&
-                    random.nextFloat() < rareBlockChance) {
+            if ((rareBlocks != null && !rareBlocks.isEmpty()) && ((rareBlockChance > 0.0f &&
+                    random.nextFloat() < rareBlockChance))) {
                 VeinBlockDefinition ore = GTUtil.getRandomItem(random, rareBlocks);
                 if (ore == null) return;
                 placeOre(ore.block, current, access, section, random, sectionX, sectionY, sectionZ, worldPos, entry);
@@ -884,16 +885,16 @@ public class VeinedVeinGenerator extends VeinGenerator {
                     return this.noiseFiller.compute(context);
                 } else if (!interpolating) {
                     throw new IllegalStateException("Trying to sample interpolator outside the interpolation loop");
+                } else if (fillingCell) {
+                    return Mth.lerp3((double) inCellX / (double) cellWidth,
+                            (double) inCellY / (double) cellHeight,
+                            (double) inCellZ / (double) cellWidth,
+                            this.noise000, this.noise100,
+                            this.noise010, this.noise110,
+                            this.noise001, this.noise101,
+                            this.noise011, this.noise111);
                 } else {
-                    return fillingCell ?
-                            Mth.lerp3((double) inCellX / (double) cellWidth,
-                                    (double) inCellY / (double) cellHeight,
-                                    (double) inCellZ / (double) cellWidth,
-                                    this.noise000, this.noise100,
-                                    this.noise010, this.noise110,
-                                    this.noise001, this.noise101,
-                                    this.noise011, this.noise111) :
-                            this.value;
+                    return this.value;
                 }
             }
 
