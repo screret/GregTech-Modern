@@ -73,7 +73,7 @@ public class DikeVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                    BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        Long2ObjectMap<OreBlockPlacer> generatedSections = new Long2ObjectOpenHashMap<>();
 
         WorldgenRandom worldgenRandom = new WorldgenRandom(new LegacyRandomSource(level.getSeed()));
         NormalNoise normalNoise = NormalNoise.create(worldgenRandom, -2, 4.0D);
@@ -90,13 +90,13 @@ public class DikeVeinGenerator extends VeinGenerator {
                 sectionX + radius, blockToSectionCoord(maxYLevel), sectionZ + radius)
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedBlocks.put(sectionPos.asLong(), (access, section) -> {
+                    generatedSections.put(sectionPos.asLong(), (access, section) -> {
                         placeSection(access, section, sectionPos, randomSeed, entry, normalNoise, radius,
                                 xPos, zPos);
                     });
                 });
 
-        return generatedBlocks;
+        return generatedSections;
     }
 
     private void placeSection(BulkSectionAccess access, LevelChunkSection section, SectionPos sectionPos,

@@ -149,7 +149,7 @@ public class StandardVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                    BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        Long2ObjectMap<OreBlockPlacer> generatedSections = new Long2ObjectOpenHashMap<>();
 
         int size = entry.clusterSize().sample(random);
 
@@ -175,21 +175,21 @@ public class StandardVeinGenerator extends VeinGenerator {
                     continue;
                 }
 
-                this.doPlaceNormal(generatedBlocks, level, random, entry, size,
+                this.doPlaceNormal(generatedSections, level, random, entry, size,
                         x0, x1, z0, z1, y0, y1, xStart, yStart, zStart, sizeXZ, sizeY);
 
                 // Stop after first successful placement attempt
-                if (!generatedBlocks.isEmpty()) {
-                    return generatedBlocks;
+                if (!generatedSections.isEmpty()) {
+                    return generatedSections;
                 }
             }
         }
 
-        return generatedBlocks;
+        return generatedSections;
     }
 
     @SuppressWarnings("PointlessArithmeticExpression")
-    protected void doPlaceNormal(Long2ObjectMap<OreBlockPlacer> generatedBlocks,
+    protected void doPlaceNormal(Long2ObjectMap<OreBlockPlacer> generatedSections,
                                  WorldGenLevel level, RandomSource random, GTOreDefinition entry, int size,
                                  double x0, double x1, double z0, double z1, double y0, double y1,
                                  int xStart, int yStart, int zStart, int sizeXZ, int sizeY) {
@@ -239,7 +239,7 @@ public class StandardVeinGenerator extends VeinGenerator {
                 blockToSectionCoord(x1), blockToSectionCoord(y1), blockToSectionCoord(z1))
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedBlocks.put(sectionPos.asLong(), (access, section) -> {
+                    generatedSections.put(sectionPos.asLong(), (access, section) -> {
                         placeSection(level, access, section, sectionPos, entry, size, randomSeed, data,
                                 xStart, yStart, zStart, sizeXZ, sizeY, tested);
                     });

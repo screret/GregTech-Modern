@@ -90,7 +90,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                    BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        Long2ObjectMap<OreBlockPlacer> generatedSections = new Long2ObjectOpenHashMap<>();
 
         int size = entry.clusterSize().sample(random) / 2;
 
@@ -125,7 +125,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
                     }
                     final int totalLayers = _totalLayers;
                     final int layerOffset = _layerOffset;
-                    generatedBlocks.put(packedSectionPos, (access, section) -> {
+                    generatedSections.put(packedSectionPos, (access, section) -> {
                         SectionPos sectionPos = SectionPos.of(packedSectionPos);
                         placeSection(level, access, section, sectionPos, origin, randomSeed, entry,
                                 westBoundInSection, eastBoundInSection, northBoundInSection, southBoundInSection,
@@ -135,7 +135,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
             }
         }
 
-        return generatedBlocks;
+        return generatedSections;
     }
 
     private void placeSection(WorldGenLevel level, BulkSectionAccess access, LevelChunkSection section,

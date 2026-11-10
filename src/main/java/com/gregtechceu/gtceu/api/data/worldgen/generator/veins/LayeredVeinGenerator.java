@@ -72,9 +72,9 @@ public class LayeredVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                    BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        Long2ObjectMap<OreBlockPlacer> generatedSections = new Long2ObjectOpenHashMap<>();
         List<GTLayerPattern> patternPool = this.getLayerPatterns();
-        if (patternPool.isEmpty()) return generatedBlocks;
+        if (patternPool.isEmpty()) return generatedSections;
 
         // minor optimization, usually only one layer pool exists
         GTLayerPattern layerPattern = patternPool.size() == 1 ?
@@ -102,14 +102,14 @@ public class LayeredVeinGenerator extends VeinGenerator {
         SectionPos.betweenClosedStream(sectionX0, sectionY0, sectionZ0, sectionX1, sectionY1, sectionZ1)
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedBlocks.put(sectionPos.asLong(), (access, section) -> {
+                    generatedSections.put(sectionPos.asLong(), (access, section) -> {
                         placeSection(level, access, section, sectionPos, randomSeed, entry, size,
                                 resolvedLayers, layerDiameterOffsets, layerCoordinate, slantyCoordinate, slope,
                                 xMin, yMin, zMin);
                     });
                 });
 
-        return generatedBlocks;
+        return generatedSections;
     }
 
     private static void resolveLayers(int diameter, GTLayerPattern layerPattern,

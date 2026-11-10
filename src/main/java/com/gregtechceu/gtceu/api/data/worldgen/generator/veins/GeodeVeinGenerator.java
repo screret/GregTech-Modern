@@ -122,7 +122,7 @@ public class GeodeVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                    BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        Long2ObjectMap<OreBlockPlacer> generatedSections = new Long2ObjectOpenHashMap<>();
 
         int offset;
         int offset2;
@@ -173,13 +173,13 @@ public class GeodeVeinGenerator extends VeinGenerator {
                         origin.getX() + maxGenOffset, origin.getY() + maxGenOffset, origin.getZ() + maxGenOffset)
                 .forEach(sectionPos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedBlocks.put(sectionPos.asLong(), (access, section) -> {
+                    generatedSections.put(sectionPos.asLong(), (access, section) -> {
                         placeSection(level, access, section, origin, sectionPos, randomSeed, distributionSample,
                                 doCrack, points, normalNoise, offsets, positions, crackSize);
                     });
                 });
 
-        return generatedBlocks;
+        return generatedSections;
     }
 
     // TODO refactor this code it sucks
