@@ -250,14 +250,13 @@ public class VeinedVeinGenerator extends VeinGenerator {
                                     DensityFunction.FunctionContext functionContext,
                                     DensityFunction veinToggle, DensityFunction veinRidged,
                                     int lowY) {
-        if (random.nextFloat() > entry.density()) return;
+        if (entry.density() < 1.0f && random.nextFloat() > entry.density()) return;
 
         double toggleNoise = veinToggle.compute(functionContext);
         double absToggleNoise = Math.abs(toggleNoise);
 
         double edgeRoundoff = Mth.clampedMap(lowY, 0.0, edgeRoundoffBegin, -maxEdgeRoundoff, 0.0);
-        if (absToggleNoise + edgeRoundoff < veininessThreshold) return;
-        if (random.nextFloat() > entry.density()) return;
+        if ((absToggleNoise + edgeRoundoff) < veininessThreshold) return;
         if (veinRidged.compute(functionContext) >= 0.0) return;
 
         double chance = Mth.clampedMap(absToggleNoise, veininessThreshold, maxRichnessThreshold,
