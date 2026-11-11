@@ -113,13 +113,13 @@ public class LayeredVeinGenerator extends VeinGenerator {
         return generatedSections;
     }
 
-    private static void resolveLayers(int diameter, GTLayerPattern layerPattern,
+    private static void resolveLayers(int size, GTLayerPattern layerPattern,
                                       List<GTLayerPattern.Layer> resolvedLayers, FloatList layerDiameterOffsets,
                                       int layerCoordinate, int slantyCoordinate, float slope, RandomSource random) {
         // layers are resolved as if the vein is facing primarily up
-        int maxLayer = diameter;
+        int maxLayer = size;
         if (slantyCoordinate != layerCoordinate) {
-            maxLayer += Mth.floor(diameter * slope);
+            maxLayer += Mth.floor(size * slope);
         }
         while (maxLayer >= resolvedLayers.size()) {
             GTLayerPattern.Layer previous = resolvedLayers.isEmpty() ? null :
@@ -184,7 +184,7 @@ public class LayeredVeinGenerator extends VeinGenerator {
                     // veins that primarily face up
                     int layerIndex = layerCoordinate == 0 ? dz : layerCoordinate == 1 ? dx : dy;
                     if (slantyCoordinate != layerCoordinate) {
-                        layerIndex += Mth.floor(slantyCoordinate == 0 ? dz : slantyCoordinate == 1 ? dx : dy * slope);
+                        layerIndex += Mth.floor((slantyCoordinate == 0 ? dz : slantyCoordinate == 1 ? dx : dy) * slope);
                     }
 
                     if (distanceSquared > layerDiameterOffsets.getFloat(layerIndex)) continue;
