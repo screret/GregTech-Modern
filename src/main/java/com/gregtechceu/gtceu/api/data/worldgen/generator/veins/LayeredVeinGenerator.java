@@ -103,8 +103,8 @@ public class LayeredVeinGenerator extends VeinGenerator {
         SectionPos.betweenClosedStream(sectionX0, sectionY0, sectionZ0, sectionX1, sectionY1, sectionZ1)
                 .forEach(pos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedSections.put(pos.asLong(), (access, section, sectionPos) -> {
-                        placeSection(level, access, section, sectionPos, randomSeed, entry, size,
+                    generatedSections.put(pos.asLong(), (worldGenLevel, access, section, sectionPos) -> {
+                        placeSection(worldGenLevel, access, section, sectionPos, randomSeed, entry, size,
                                 resolvedLayers, layerDiameterOffsets, layerCoordinate, slantyCoordinate, slope,
                                 xMin, yMin, zMin);
                     });

@@ -173,8 +173,8 @@ public class GeodeVeinGenerator extends VeinGenerator {
                         origin.getX() + maxGenOffset, origin.getY() + maxGenOffset, origin.getZ() + maxGenOffset)
                 .forEach(pos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedSections.put(pos.asLong(), (access, section, sectionPos) -> {
-                        placeSection(level, access, section, origin, sectionPos, randomSeed, distributionSample,
+                    generatedSections.put(pos.asLong(), (worldGenLevel, access, section, sectionPos) -> {
+                        placeSection(worldGenLevel, access, section, origin, sectionPos, randomSeed, distributionSample,
                                 doCrack, points, normalNoise, offsets, positions, crackSize);
                     });
                 });

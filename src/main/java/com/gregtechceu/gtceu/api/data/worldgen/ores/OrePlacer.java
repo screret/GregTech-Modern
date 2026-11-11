@@ -75,7 +75,7 @@ public class OrePlacer {
         if (placer == null) return;
 
         // if (layerTarget.test(blockState, random)) {
-        placer.placeSectionBlocks(access, section, SectionPos.of(sectionPos));
+        placer.placeSectionBlocks(level, access, section, SectionPos.of(sectionPos));
         // }
     }
 

@@ -93,7 +93,7 @@ public class DikeVeinGenerator extends VeinGenerator {
                 sectionX + radius, blockToSectionCoord(maxYLevel), sectionZ + radius)
                 .forEach(pos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedSections.put(pos.asLong(), (access, section, sectionPos) -> {
+                    generatedSections.put(pos.asLong(), (worldGenLevel, access, section, sectionPos) -> {
                         placeSection(access, section, sectionPos, randomSeed, entry, normalNoise, radius,
                                 xPos, zPos);
                     });

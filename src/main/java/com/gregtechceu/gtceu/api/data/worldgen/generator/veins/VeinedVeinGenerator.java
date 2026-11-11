@@ -153,8 +153,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
         SectionPos.betweenClosedStream(sectionX0, sectionY0, sectionZ0, sectionX1, sectionY1, sectionZ1)
                 .forEach(pos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedSections.put(pos.asLong(), (access, section, sectionPos) -> {
-                        placeSection(level, access, section, entry, randomSeed, sectionPos,
+                    generatedSections.put(pos.asLong(), (worldGenLevel, access, section, sectionPos) -> {
+                        placeSection(worldGenLevel, access, section, entry, randomSeed, sectionPos,
                                 noiseSettings, minY, minCellY, cellCountY,
                                 randOffsetX, randOffsetY, randOffsetZ);
                     });

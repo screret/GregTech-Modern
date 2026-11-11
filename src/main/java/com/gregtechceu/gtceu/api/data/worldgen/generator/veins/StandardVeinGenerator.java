@@ -239,8 +239,8 @@ public class StandardVeinGenerator extends VeinGenerator {
                 blockToSectionCoord(x1), blockToSectionCoord(y1), blockToSectionCoord(z1))
                 .forEach(pos -> {
                     final long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedSections.put(pos.asLong(), (access, section, sectionPos) -> {
-                        placeSection(level, access, section, sectionPos, entry, size, randomSeed, data,
+                    generatedSections.put(pos.asLong(), (worldGenLevel, access, section, sectionPos) -> {
+                        placeSection(worldGenLevel, access, section, sectionPos, entry, size, randomSeed, data,
                                 xStart, yStart, zStart, sizeXZ, sizeY, tested);
                     });
                 });

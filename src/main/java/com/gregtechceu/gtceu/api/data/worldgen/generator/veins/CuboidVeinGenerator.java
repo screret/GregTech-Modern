@@ -128,8 +128,8 @@ public class CuboidVeinGenerator extends VeinGenerator {
                     }
                     final int totalLayers = _totalLayers;
                     final int layerOffset = _layerOffset;
-                    generatedSections.put(packedSectionPos, (access, section, sectionPos) -> {
-                        placeSection(level, access, section, sectionPos, origin, randomSeed, entry,
+                    generatedSections.put(packedSectionPos, (worldGenLevel, access, section, sectionPos) -> {
+                        placeSection(worldGenLevel, access, section, sectionPos, origin, randomSeed, entry,
                                 westBoundInSection, eastBoundInSection, northBoundInSection, southBoundInSection,
                                 startY, layerOffset, totalLayers);
                     });
