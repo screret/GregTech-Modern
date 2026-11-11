@@ -39,13 +39,16 @@ import static net.minecraft.core.SectionPos.*;
 @Accessors(fluent = true, chain = true)
 public class CuboidVeinGenerator extends VeinGenerator {
 
+    // spotless:off
     public static final Codec<CuboidVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ClassicVeinGenerator.Layer.CODEC.fieldOf("top").forGetter(val -> val.top),
             ClassicVeinGenerator.Layer.CODEC.fieldOf("middle").forGetter(val -> val.middle),
             ClassicVeinGenerator.Layer.CODEC.fieldOf("bottom").forGetter(val -> val.bottom),
             ClassicVeinGenerator.Layer.CODEC.fieldOf("spread").forGetter(val -> val.spread),
             Codec.INT.fieldOf("min_y").forGetter(val -> val.minY),
-            Codec.INT.fieldOf("max_y").forGetter(val -> val.maxY)).apply(instance, CuboidVeinGenerator::new));
+            Codec.INT.fieldOf("max_y").forGetter(val -> val.maxY)
+    ).apply(instance, CuboidVeinGenerator::new));
+    // spotless:on
 
     private ClassicVeinGenerator.Layer top;
     private ClassicVeinGenerator.Layer middle;

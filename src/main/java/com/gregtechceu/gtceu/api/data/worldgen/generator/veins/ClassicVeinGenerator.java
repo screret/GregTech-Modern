@@ -42,13 +42,15 @@ import java.util.function.Supplier;
 @Accessors(fluent = true, chain = true)
 public class ClassicVeinGenerator extends VeinGenerator {
 
+    // spotless:off
     public static final Codec<ClassicVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Layer.CODEC.fieldOf("primary").forGetter(val -> val.primary),
             Layer.CODEC.fieldOf("secondary").forGetter(val -> val.secondary),
             Layer.CODEC.fieldOf("between").forGetter(val -> val.between),
             Layer.CODEC.fieldOf("sporadic").forGetter(val -> val.sporadic),
-            ExtraCodecs.POSITIVE_INT.optionalFieldOf("y_radius", 3).forGetter(val -> val.yRadius))
-            .apply(instance, ClassicVeinGenerator::new));
+            ExtraCodecs.POSITIVE_INT.optionalFieldOf("y_radius", 3).forGetter(val -> val.yRadius)
+    ).apply(instance, ClassicVeinGenerator::new));
+    // spotless:on
 
     private Layer primary;
     private Layer secondary;

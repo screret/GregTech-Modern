@@ -46,10 +46,13 @@ import static net.minecraft.core.SectionPos.sectionRelative;
 @AllArgsConstructor
 public class DikeVeinGenerator extends VeinGenerator {
 
+    // spotless:off
     public static final Codec<DikeVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.list(DikeBlockDefinition.CODEC).fieldOf("blocks").forGetter(it -> it.blocks),
             Codec.INT.fieldOf("min_y").forGetter(it -> it.minYLevel),
-            Codec.INT.fieldOf("max_y").forGetter(it -> it.maxYLevel)).apply(instance, DikeVeinGenerator::new));
+            Codec.INT.fieldOf("max_y").forGetter(it -> it.maxYLevel)
+    ).apply(instance, DikeVeinGenerator::new));
+    // spotless:on
 
     public List<DikeBlockDefinition> blocks;
     @Setter

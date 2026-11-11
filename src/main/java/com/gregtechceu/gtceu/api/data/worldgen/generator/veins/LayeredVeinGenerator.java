@@ -40,10 +40,11 @@ import static net.minecraft.core.SectionPos.sectionRelative;
 
 public class LayeredVeinGenerator extends VeinGenerator {
 
+    // spotless:off
     public static final Codec<LayeredVeinGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            GTLayerPattern.CODEC.listOf().fieldOf("layer_patterns")
-                    .forGetter(LayeredVeinGenerator::getLayerPatterns))
-            .apply(instance, LayeredVeinGenerator::new));
+            GTLayerPattern.CODEC.listOf().fieldOf("layer_patterns").forGetter(LayeredVeinGenerator::getLayerPatterns)
+    ).apply(instance, LayeredVeinGenerator::new));
+    // spotless:on
 
     private final List<NonNullSupplier<GTLayerPattern>> bakingLayerPatterns = new ArrayList<>();
 
