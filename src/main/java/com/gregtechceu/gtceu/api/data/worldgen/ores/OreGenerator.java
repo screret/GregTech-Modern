@@ -18,6 +18,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.RandomSupport;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 
@@ -43,8 +44,8 @@ public class OreGenerator {
 
     public record VeinConfiguration(GeneratedVeinMetadata data, RandomSource random) {
 
-        public RandomSource newRandom() {
-            return new XoroshiroRandomSource(random.nextLong());
+        public RandomSource forkRandom() {
+            return random.fork();
         }
     }
 
@@ -86,7 +87,7 @@ public class OreGenerator {
     public Optional<GeneratedVein> generateOres(VeinConfiguration config, WorldGenLevel level, ChunkPos chunkPos) {
         GTOreDefinition definition = config.data.definition();
         Long2ObjectMap<OreBlockPlacer> oresBySection = definition.veinGenerator()
-                .generate(level, config.newRandom(), definition, config.data.center());
+                .generate(level, config.forkRandom(), definition, config.data.center());
 
         if (oresBySection.isEmpty()) {
             logEmptyVein(config);
@@ -95,7 +96,7 @@ public class OreGenerator {
 
         Map<ChunkPos, OreIndicatorPlacer> generatedIndicators = new HashMap<>();
         for (IndicatorGenerator gen : definition.indicatorGenerators()) {
-            Map<ChunkPos, OreIndicatorPlacer> generated = gen.generate(level, config.newRandom(), config.data);
+            Map<ChunkPos, OreIndicatorPlacer> generated = gen.generate(level, config.forkRandom(), config.data);
             for (var entry : generated.entrySet()) {
                 generatedIndicators.merge(entry.getKey(), entry.getValue(), (existing, added) -> {
                     return (a, l) -> {
@@ -144,14 +145,16 @@ public class OreGenerator {
     private static Optional<BlockPos> computeVeinOrigin(WorldGenLevel level, ChunkGenerator generator, ChunkPos pos,
                                                         RandomSource random, BlockPos veinCenter,
                                                         GTOreDefinition entry) {
-        int layerSeed = GTRegistries.WORLD_GEN_LAYERS.getKey(entry.layer()).hashCode();
+        String layerName = GTRegistries.WORLD_GEN_LAYERS.getKey(entry.layer()).toString();
+        RandomSupport.Seed128bit layerSeed = RandomSupport.seedFromHashOf(layerName);
 
-        var layeredRandom = new XoroshiroRandomSource(random.nextLong() ^ ((long) layerSeed));
+        RandomSource layeredRandom = new XoroshiroRandomSource(random.nextLong() ^ layerSeed.seedLo(),
+                random.nextLong() ^ layerSeed.seedHi());
 
         veinCenter = OreVeinUtil.getVeinCenter(pos, layeredRandom).orElse(veinCenter);
-        return entry.range().getPositions(
-                new PlacementContext(level, generator, Optional.empty()),
-                layeredRandom, veinCenter).findFirst();
+        PlacementContext placementContext = new PlacementContext(level, generator, Optional.empty());
+        return entry.range().getPositions(placementContext, layeredRandom, veinCenter)
+                .findFirst();
     }
 
     // /////////////////////////// //
