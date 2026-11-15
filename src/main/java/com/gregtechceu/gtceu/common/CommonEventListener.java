@@ -286,10 +286,14 @@ public class CommonEventListener {
 
     @SubscribeEvent
     public static void worldUnload(LevelEvent.Unload event) {
-        if (event.getLevel() instanceof ServerLevel serverLevel) {
+        LevelAccessor level = event.getLevel();
+
+        LevelAttached.invalidateLevel(level);
+
+        if (level instanceof ServerLevel serverLevel) {
             TaskHandler.onWorldUnLoad(serverLevel);
             ServerCache.instance.invalidateWorld(serverLevel);
-        } else if (event.getLevel().isClientSide()) {
+        } else if (level.isClientSide()) {
             ClientCacheManager.saveCaches();
         }
     }

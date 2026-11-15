@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.item.component.ISpoilableItem;
 import com.gregtechceu.gtceu.api.item.component.SpoilContext;
 import com.gregtechceu.gtceu.api.item.component.SpoilUtils;
 import com.gregtechceu.gtceu.common.item.SpoilableItemStack;
+import com.gregtechceu.gtceu.common.item.spoilage.BlockEntitySpoilTicker;
 import com.gregtechceu.gtceu.integration.kjs.GTCEuStartupEvents;
 import com.gregtechceu.gtceu.integration.kjs.events.RegisterSpoilablesEventJS;
 
@@ -19,6 +20,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoader;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,12 +43,14 @@ public class SpoilableBehavior {
     private final Function<ItemStack, Component> spoilsIntoTooltip;
     private final List<ItemLike> attachedTo = new ArrayList<>();
 
-    public static void init(IEventBus eventBus) {
+    public static void init(IEventBus modBus) {
         RegisterSpoilablesEvent event = new RegisterSpoilablesEvent(SpoilableBehavior::builder);
-        eventBus.post(event);
+        ModLoader.get().postEventWrapContainerInModOrder(event);
         if (GTCEu.Mods.isKubeJSLoaded()) {
             KJSCallWrapper.fireKJSEvent(event);
         }
+
+        BlockEntitySpoilTicker.registerEventListeners(modBus);
     }
 
     private static Builder builder() {
