@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * This object holds all spoilage-related data for specific item types,
@@ -100,7 +99,7 @@ public class SpoilableBehavior {
         }
 
         @Override
-        public ItemStack spoilResult(SpoilContext spoilContext, boolean simulate) {
+        public ItemStack getSpoilResult(SpoilContext spoilContext, boolean simulate) {
             return spoilResult.getSpoilResult(getStack(), spoilContext, simulate);
         }
 
@@ -172,21 +171,15 @@ public class SpoilableBehavior {
         }
 
         public Builder result(EntityType<? extends Mob> entityType) {
-            return result(() -> entityType);
-        }
-
-        public Builder result(Supplier<? extends EntityType<? extends Mob>> entityType) {
             SpoilResultProvider previousResult = result;
             Function<ItemStack, Component> previousTooltip = tooltip;
             return result((stack, spoilContext, simulate) -> {
                 if (!simulate) {
-                    EntityType<? extends Mob> type = entityType.get();
-                    SpoilUtils.spawnEntity(spoilContext, type, stack.getCount());
+                    SpoilUtils.spawnEntity(spoilContext, entityType, stack.getCount());
                 }
                 return previousResult.getSpoilResult(stack, spoilContext, simulate);
             }).tooltip(stack -> {
-                EntityType<? extends Mob> type = entityType.get();
-                MutableComponent component = type.getDescription().copy();
+                MutableComponent component = entityType.getDescription().copy();
                 Component previous = previousTooltip.apply(stack);
                 if (!previous.getString().isEmpty()) component.append(", ").append(previous);
                 return component;

@@ -54,7 +54,7 @@ public interface ISpoilableItem {
 
     /**
      * Checks if this stack is supposed to already be spoiled, and spoils it into the
-     * {@link ISpoilableItem#spoilResult}
+     * {@link ISpoilableItem#getSpoilResult}
      * 
      * @param createTag whether to start spoiling this stack if it didn't start spoiling yet (adds NBT)
      */
@@ -119,7 +119,7 @@ public interface ISpoilableItem {
      * 
      * @return the stack to replace the provided stack with when it spoils
      */
-    ItemStack spoilResult(SpoilContext spoilContext, boolean simulate);
+    ItemStack getSpoilResult(SpoilContext spoilContext, boolean simulate);
 
     /**
      * Note: returning {@code false} in this method won't stop the item from spoiling if the spoiling NBT has already

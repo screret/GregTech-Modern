@@ -28,10 +28,9 @@ public abstract class ItemStackMixin {
     // Injectors //
     // ********* //
 
-    @Inject(at = @At(value = "INVOKE",
-                     target = "Ljava/util/Objects;equals(Ljava/lang/Object;Ljava/lang/Object;)Z"),
-            method = "isSameItemSameTags")
-    private static void gtceu$beforeComparison(ItemStack stack, ItemStack other, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "isSameItemSameTags",
+            at = @At(value = "INVOKE", target = "Ljava/util/Objects;equals(Ljava/lang/Object;Ljava/lang/Object;)Z"))
+    private static void gtceu$mergeSpoilageDataBeforeComparison(ItemStack stack, ItemStack other, CallbackInfoReturnable<Boolean> cir) {
         SpoilUtils.mergeSpoilage(stack, other);
     }
 
@@ -39,9 +38,9 @@ public abstract class ItemStackMixin {
      * Allows {@link ISpoilableItem} subclasses that implement {@link IAddInformation} to
      * actually display the added tooltip.
      */
-    @Inject(at = @At(value = "INVOKE",
+    @Inject(method = "getTooltipLines",
+            at = @At(value = "INVOKE",
                      target = "Lnet/minecraft/world/item/Item;appendHoverText(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Ljava/util/List;Lnet/minecraft/world/item/TooltipFlag;)V"),
-            method = "getTooltipLines",
             locals = LocalCapture.CAPTURE_FAILSOFT)
     private void gtceu$spoilageTooltip(Player player, TooltipFlag isAdvanced,
                                        CallbackInfoReturnable<List<Component>> cir,
@@ -57,7 +56,7 @@ public abstract class ItemStackMixin {
      * Allows {@link ISpoilableItem} subclasses that implement {@link IDurabilityBar} to
      * actually display the bar.
      */
-    @Inject(at = @At("HEAD"), method = "isBarVisible", cancellable = true)
+    @Inject(method = "isBarVisible", at = @At("HEAD"), cancellable = true)
     private void gtceu$spoilageBarVisible(CallbackInfoReturnable<Boolean> cir) {
         ISpoilableItem spoilable = GTCapabilityHelper.getSpoilable(gtceu$self());
         if (spoilable instanceof IDurabilityBar durabilityBar) {
@@ -69,7 +68,7 @@ public abstract class ItemStackMixin {
      * Allows {@link ISpoilableItem} subclasses that implement {@link IDurabilityBar} to
      * actually display the bar.
      */
-    @Inject(at = @At("HEAD"), method = "getBarColor", cancellable = true)
+    @Inject(method = "getBarColor", at = @At("HEAD"), cancellable = true)
     private void gtceu$spoilageBarColor(CallbackInfoReturnable<Integer> cir) {
         ISpoilableItem spoilable = GTCapabilityHelper.getSpoilable(gtceu$self());
         if (spoilable instanceof IDurabilityBar durabilityBar) {
@@ -81,7 +80,7 @@ public abstract class ItemStackMixin {
      * Allows {@link ISpoilableItem} subclasses that implement {@link IDurabilityBar} to
      * actually display the bar.
      */
-    @Inject(at = @At("HEAD"), method = "getBarWidth", cancellable = true)
+    @Inject(method = "getBarWidth", at = @At("HEAD"), cancellable = true)
     private void gtceu$spoilageBarWidth(CallbackInfoReturnable<Integer> cir) {
         ISpoilableItem spoilable = GTCapabilityHelper.getSpoilable(gtceu$self());
         if (spoilable instanceof IDurabilityBar durabilityBar) {

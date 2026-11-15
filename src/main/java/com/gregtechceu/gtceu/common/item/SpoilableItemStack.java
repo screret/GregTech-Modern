@@ -30,7 +30,7 @@ import java.util.List;
  * This class is a basic implementation of the {@link ISpoilableItem} capability,
  * to be attached to an item in an {@link AttachCapabilitiesEvent<ItemStack>} listener.
  * It leaves some methods unimplemented, such as {@link ISpoilableItem#getSpoilTicks()} and
- * {@link ISpoilableItem#spoilResult(SpoilContext, boolean)}.
+ * {@link ISpoilableItem#getSpoilResult(SpoilContext, boolean)}.
  *
  * @see SpoilableBehavior
  * @see SpoilableBehavior#attachTo(ItemLike)
@@ -74,7 +74,7 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
 
     /**
      * Checks if this item should've already spoiled, and calls
-     * {@link ISpoilableItem#spoilResult(SpoilContext, boolean)}
+     * {@link ISpoilableItem#getSpoilResult(SpoilContext, boolean)}
      * and replaces this item with its return value if so.<br>
      * <br>
      * If {@code createTag = true} and the spoilage tag did not exist, creates
@@ -90,25 +90,27 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
      */
     public void updateFreshness(SpoilContext spoilContext, boolean createTag) {
         if (isFrozen()) return;
-        Level level = SpoilContext.getDefaultLevel();
-        if (level != null && createTag && getCreationTick() == 0) {
-            setCreationTick(level.getGameTime());
-        }
-        if (level != null && this.shouldSpoil()) {
-            long spoilTicks = this.getSpoilTicks();
-            long timeDifference = level.getGameTime() - getCreationTick() - spoilTicks;
-            if (timeDifference >= 0) {
-                ItemStack newStack = this.spoilResult(spoilContext, GTCEu.isClientThread());
-                spoilContext.setResultStack(newStack);
 
-                ISpoilableItem newSpoilable = GTCapabilityHelper.getSpoilable(newStack);
-                if (newSpoilable != null) {
-                    newSpoilable.setCreationTick(level.getGameTime() - timeDifference);
-                    try {
-                        newSpoilable.updateFreshness(spoilContext, false);
-                    } catch (StackOverflowError ignored) {
-                        // if items spoil in a giant chain or a loop
-                    }
+        Level level = spoilContext.level() != null ? spoilContext.level() : SpoilContext.getDefaultLevel();
+        if (level == null) return;
+
+        if (createTag && getCreationTick() == 0) setCreationTick(level.getGameTime());
+        if (!this.shouldSpoil()) return;
+
+        long spoilTicks = getSpoilTicks();
+        long timeDifference = level.getGameTime() - getCreationTick() - spoilTicks;
+        if (timeDifference >= 0) {
+            ItemStack newStack = this.getSpoilResult(spoilContext, GTCEu.isClientThread());
+            spoilContext.setResultStack(newStack);
+
+            ISpoilableItem newSpoilable = GTCapabilityHelper.getSpoilable(newStack);
+            if (newSpoilable != null) {
+                newSpoilable.setCreationTick(level.getGameTime() - timeDifference);
+                try {
+                    newSpoilable.updateFreshness(spoilContext, false);
+                } catch (StackOverflowError ignored) {
+                    // if items spoil in a giant chain or a loop
+                    // FIXME wtf no dont do this
                 }
             }
         }
@@ -117,29 +119,29 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
     @Override
     public long getTicksUntilSpoiled() {
         if (isFrozen()) return getFrozenTicks();
+
         Level level = SpoilContext.getDefaultLevel();
-        if (level != null) {
-            return this.getSpoilTicks() - level.getGameTime() +
-                    this.getCreationTick();
+        if (level == null) {
+            return this.getSpoilTicks();
         }
-        return this.getSpoilTicks();
+        return this.getSpoilTicks() - level.getGameTime() + this.getCreationTick();
     }
 
     @Override
     public void setTicksUntilSpoiled(long value) {
         Level level = SpoilContext.getDefaultLevel();
-        if (level != null) setCreationTick(level.getGameTime() - this.getSpoilTicks() + value);
+        if (level != null) {
+            setCreationTick(level.getGameTime() - this.getSpoilTicks() + value);
+        }
     }
 
     private void setFreezeSpoiling(boolean freeze) {
         if (freeze) {
             setFrozenTicks(getTicksUntilSpoiled());
             stack.getOrCreateTag().putBoolean(FROZEN_KEY, true);
-        } else {
-            if (isFrozen()) {
-                setTicksUntilSpoiled(getFrozenTicks());
-                stack.getOrCreateTag().putBoolean(FROZEN_KEY, false);
-            }
+        } else if (isFrozen()) {
+            setTicksUntilSpoiled(getFrozenTicks());
+            stack.getOrCreateTag().putBoolean(FROZEN_KEY, false);
         }
     }
 
@@ -161,25 +163,21 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                 TooltipFlag isAdvanced) {
-        tooltipComponents.add(Component.translatable(
-                "gtceu.tooltip.spoil_time_remaining",
+        tooltipComponents.add(Component.translatable("gtceu.tooltip.spoil_time_remaining",
                 Component.literal(FormattingUtil.formatTime(getTicksUntilSpoiled()))
                         .withStyle(ChatFormatting.DARK_AQUA)));
-        tooltipComponents.add(Component.translatable(
-                "gtceu.tooltip.spoils_into", getSpoilResultTooltip()));
+        tooltipComponents.add(Component.translatable("gtceu.tooltip.spoils_into", getSpoilResultTooltip()));
+
         if (isAdvanced.isAdvanced()) {
-            tooltipComponents.add(Component.translatable(
-                    "gtceu.tooltip.spoil_time_total",
-                    Component.literal(FormattingUtil.formatTime(getSpoilTicks()))
-                            .withStyle(ChatFormatting.GREEN)));
-            tooltipComponents.add(Component.translatable(
-                    "gtceu.tooltip.creation_tick",
+            tooltipComponents.add(Component.translatable("gtceu.tooltip.spoil_time_total",
+                    Component.literal(FormattingUtil.formatTime(getSpoilTicks())).withStyle(ChatFormatting.GREEN)));
+            tooltipComponents.add(Component.translatable("gtceu.tooltip.creation_tick",
                     getCreationTick()));
         }
     }
 
     protected Component getSpoilResultTooltip() {
-        return spoilResult(SpoilContext.EMPTY, false).getDisplayName();
+        return getSpoilResult(SpoilContext.EMPTY, false).getDisplayName();
     }
 
     @Override
@@ -209,20 +207,22 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
      * @implNote This implementation may lead to spoil progress averaging in situations other
      *           than stack merging, though I don't think this will lead to any big user-facing bugs.
      */
-    public void prepareForComparisonWith(SpoilableItemStack spoilable) {
-        if (isFrozen() || spoilable.isFrozen()) {
+    public void prepareForComparisonWith(SpoilableItemStack that) {
+        if (this.isFrozen() || that.isFrozen()) {
             return;
         }
-        long tick1 = getCreationTick();
-        long tick2 = spoilable.getCreationTick();
+        long tick1 = this.getCreationTick();
+        long tick2 = that.getCreationTick();
         if (tick1 != tick2) {
             long average;
-            if (!stack.isEmpty() && !spoilable.stack.isEmpty()) {
-                average = (tick1 * stack.getCount() + tick2 * spoilable.stack.getCount()) /
-                        (stack.getCount() + spoilable.stack.getCount());
-            } else average = tick1;
+            if (!this.stack.isEmpty() && !that.stack.isEmpty()) {
+                average = (tick1 * this.stack.getCount() + tick2 * that.stack.getCount()) /
+                        (this.stack.getCount() + that.stack.getCount());
+            } else {
+                average = tick1;
+            }
             this.setCreationTick(average);
-            spoilable.setCreationTick(average);
+            that.setCreationTick(average);
         }
     }
 
