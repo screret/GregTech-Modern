@@ -1,9 +1,13 @@
 package com.gregtechceu.gtceu.common.item.spoilage;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.events.RegisterSpoilablesEvent;
 import com.gregtechceu.gtceu.api.item.spoilage.ISpoilableItem;
 import com.gregtechceu.gtceu.api.item.spoilage.SpoilContext;
 import com.gregtechceu.gtceu.api.item.spoilage.SpoilableBehavior;
+import com.gregtechceu.gtceu.integration.kjs.GTCEuStartupEvents;
+import com.gregtechceu.gtceu.integration.kjs.events.RegisterSpoilablesEventJS;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,11 +20,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.items.IItemHandler;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 public class SpoilUtils {
+
+    private SpoilUtils() {}
 
     public static void mergeSpoilage(ItemStack stack, ItemStack other) {
         if (stack.isEmpty() || other.isEmpty() || !stack.hasTag() || !other.hasTag() ||
@@ -93,6 +101,23 @@ public class SpoilUtils {
                 }
                 for (int i = 0; i < count; i++) type.spawn(level, pos, MobSpawnType.SPAWN_EGG);
             }
+        }
+    }
+
+    @ApiStatus.Internal
+    public static void fireRegisterSpoilablesEvent() {
+        RegisterSpoilablesEvent event = new RegisterSpoilablesEvent(SpoilableBehavior::builder);
+        // post the event to all mods' event buses
+        ModLoader.get().postEventWrapContainerInModOrder(event);
+        if (GTCEu.Mods.isKubeJSLoaded()) {
+            KJSCallWrapper.fireKJSEvent(event);
+        }
+    }
+
+    private static class KJSCallWrapper {
+
+        public static void fireKJSEvent(RegisterSpoilablesEvent event) {
+            GTCEuStartupEvents.REGISTER_SPOILABLES.post(new RegisterSpoilablesEventJS(event));
         }
     }
 }

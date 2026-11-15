@@ -1,11 +1,8 @@
 package com.gregtechceu.gtceu.api.item.spoilage;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.events.RegisterSpoilablesEvent;
 import com.gregtechceu.gtceu.common.item.spoilage.SpoilUtils;
 import com.gregtechceu.gtceu.common.item.spoilage.SpoilableItemStack;
-import com.gregtechceu.gtceu.integration.kjs.GTCEuStartupEvents;
-import com.gregtechceu.gtceu.integration.kjs.events.RegisterSpoilablesEventJS;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -15,10 +12,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoader;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,16 +36,8 @@ public class SpoilableBehavior {
     private final Function<ItemStack, Component> spoilsIntoTooltip;
     private final List<ItemLike> attachedTo = new ArrayList<>();
 
-    public static void init() {
-        RegisterSpoilablesEvent event = new RegisterSpoilablesEvent(SpoilableBehavior::builder);
-        // post the event to all mods' event buses
-        ModLoader.get().postEventWrapContainerInModOrder(event);
-        if (GTCEu.Mods.isKubeJSLoaded()) {
-            KJSCallWrapper.fireKJSEvent(event);
-        }
-    }
-
-    private static Builder builder() {
+    @ApiStatus.Internal
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -212,13 +200,6 @@ public class SpoilableBehavior {
 
         public Builder tooltip(Component tooltip) {
             return tooltip(stack -> tooltip);
-        }
-    }
-
-    private static class KJSCallWrapper {
-
-        public static void fireKJSEvent(RegisterSpoilablesEvent event) {
-            GTCEuStartupEvents.REGISTER_SPOILABLES.post(new RegisterSpoilablesEventJS(event));
         }
     }
 }
