@@ -1,18 +1,36 @@
 package com.gregtechceu.gtceu.common.item.spoilage;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.item.component.IAddInformation;
+import com.gregtechceu.gtceu.api.item.component.ISpoilableItem;
 import com.gregtechceu.gtceu.api.item.component.SpoilUtils;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class SpoilEventListeners {
+
+    @SubscribeEvent
+    public static void addSpoilageTooltips(ItemTooltipEvent event) {
+        ItemStack stack = event.getItemStack();
+        Player player = event.getEntity();
+
+        ISpoilableItem spoilable = GTCapabilityHelper.getSpoilable(stack);
+        if (spoilable instanceof IAddInformation withTooltip) {
+            withTooltip.appendHoverText(stack, player == null ? null : player.level(), event.getToolTip(),
+                    event.getFlags());
+        }
+    }
 
     @SubscribeEvent
     public static void levelTick(TickEvent.LevelTickEvent event) {
