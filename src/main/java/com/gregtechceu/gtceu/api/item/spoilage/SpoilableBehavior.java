@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.ToLongFunction;
 
 /**
  * This object holds all spoilage-related data for specific item types,
@@ -31,7 +32,7 @@ import java.util.function.Supplier;
  */
 public class SpoilableBehavior {
 
-    private final Function<ItemStack, Long> ticks;
+    private final ToLongFunction<ItemStack> ticks;
     private final SpoilResultProvider spoilResult;
     private final Function<ItemStack, Component> spoilsIntoTooltip;
     private final List<ItemLike> attachedTo = new ArrayList<>();
@@ -41,7 +42,7 @@ public class SpoilableBehavior {
         return new Builder();
     }
 
-    private SpoilableBehavior(Function<ItemStack, Long> ticks, SpoilResultProvider spoilResult,
+    private SpoilableBehavior(ToLongFunction<ItemStack> ticks, SpoilResultProvider spoilResult,
                               Function<ItemStack, Component> spoilsIntoTooltip) {
         this.ticks = ticks;
         this.spoilResult = spoilResult;
@@ -105,7 +106,7 @@ public class SpoilableBehavior {
 
     public static class Builder {
 
-        private @Nullable Function<ItemStack, Long> ticks = null;
+        private ToLongFunction<ItemStack> ticks;
         private @Nullable SpoilResultProvider result = null;
         private @Nullable Function<ItemStack, Component> tooltip = null;
 
@@ -122,7 +123,7 @@ public class SpoilableBehavior {
             return new SpoilableBehavior(ticks, result, tooltip);
         }
 
-        public Builder ticks(Function<ItemStack, Long> ticks) {
+        public Builder ticks(ToLongFunction<ItemStack> ticks) {
             this.ticks = ticks;
             return this;
         }
