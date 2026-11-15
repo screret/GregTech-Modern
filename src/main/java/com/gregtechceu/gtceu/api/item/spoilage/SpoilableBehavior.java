@@ -8,19 +8,18 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
@@ -35,7 +34,7 @@ public class SpoilableBehavior {
     private final ToLongFunction<ItemStack> ticks;
     private final SpoilResultProvider spoilResult;
     private final Function<ItemStack, Component> spoilsIntoTooltip;
-    private final List<ItemLike> attachedTo = new ArrayList<>();
+    private final Set<Item> attachedTo = new ReferenceOpenHashSet<>();
 
     private SpoilableBehavior(ToLongFunction<ItemStack> ticks, SpoilResultProvider spoilResult,
                               Function<ItemStack, Component> spoilsIntoTooltip) {
@@ -55,14 +54,14 @@ public class SpoilableBehavior {
         if (attachedTo.isEmpty()) {
             MinecraftForge.EVENT_BUS.register(this);
         }
-        attachedTo.add(item);
+        attachedTo.add(item.asItem());
         return this;
     }
 
     @SubscribeEvent
     public void attachCapability(AttachCapabilitiesEvent<ItemStack> event) {
         ItemStack stack = event.getObject();
-        if (attachedTo.stream().map(ItemLike::asItem).anyMatch(stack::is)) {
+        if (attachedTo.contains(stack.getItem())) {
             event.addCapability(GTCEu.id("spoilable"), new SpoilableBehaviourStack(stack));
         }
     }
@@ -108,7 +107,8 @@ public class SpoilableBehavior {
         }
 
         public Builder result(ItemLike itemLike) {
-            return result(stack -> itemLike.asItem().getDefaultInstance().copyWithCount(stack.getCount()));
+            final Item item = itemLike.asItem();
+            return result(stack -> item.getDefaultInstance().copyWithCount(stack.getCount()));
         }
 
         public Builder result(ItemStack stack) {
