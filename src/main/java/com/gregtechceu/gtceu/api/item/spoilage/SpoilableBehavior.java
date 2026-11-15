@@ -41,9 +41,10 @@ public class SpoilableBehavior {
     private final Function<ItemStack, Component> spoilsIntoTooltip;
     private final List<ItemLike> attachedTo = new ArrayList<>();
 
-    public static void init(IEventBus eventBus) {
+    public static void init() {
         RegisterSpoilablesEvent event = new RegisterSpoilablesEvent(SpoilableBehavior::builder);
-        eventBus.post(event);
+        // post the event to all mods' event buses
+        ModLoader.get().postEventWrapContainerInModOrder(event);
         if (GTCEu.Mods.isKubeJSLoaded()) {
             KJSCallWrapper.fireKJSEvent(event);
         }
