@@ -1,10 +1,12 @@
-package com.gregtechceu.gtceu.common.item;
+package com.gregtechceu.gtceu.common.item.spoilage;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.item.component.*;
-import com.gregtechceu.gtceu.common.item.behavior.SpoilableBehavior;
+import com.gregtechceu.gtceu.api.item.spoilage.ISpoilableItem;
+import com.gregtechceu.gtceu.api.item.spoilage.SpoilContext;
+import com.gregtechceu.gtceu.api.item.spoilage.SpoilableBehavior;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.ChatFormatting;

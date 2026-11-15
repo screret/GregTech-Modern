@@ -1,11 +1,9 @@
-package com.gregtechceu.gtceu.common.item.behavior;
+package com.gregtechceu.gtceu.api.item.spoilage;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.events.RegisterSpoilablesEvent;
-import com.gregtechceu.gtceu.api.item.component.ISpoilableItem;
-import com.gregtechceu.gtceu.api.item.component.SpoilContext;
-import com.gregtechceu.gtceu.api.item.component.SpoilUtils;
-import com.gregtechceu.gtceu.common.item.SpoilableItemStack;
+import com.gregtechceu.gtceu.common.item.spoilage.SpoilUtils;
+import com.gregtechceu.gtceu.common.item.spoilage.SpoilableItemStack;
 import com.gregtechceu.gtceu.integration.kjs.GTCEuStartupEvents;
 import com.gregtechceu.gtceu.integration.kjs.events.RegisterSpoilablesEventJS;
 
@@ -19,6 +17,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoader;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

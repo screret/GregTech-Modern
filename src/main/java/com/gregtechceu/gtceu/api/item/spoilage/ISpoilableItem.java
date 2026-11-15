@@ -1,7 +1,7 @@
-package com.gregtechceu.gtceu.api.item.component;
+package com.gregtechceu.gtceu.api.item.spoilage;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.common.item.behavior.SpoilableBehavior;
+import com.gregtechceu.gtceu.common.item.spoilage.SpoilUtils;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;

@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.api.item.component;
+package com.gregtechceu.gtceu.api.item.spoilage;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
