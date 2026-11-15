@@ -52,7 +52,7 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
     }
 
     public long getCreationTick() {
-        if (stack.getTag() == null) return 0;
+        if (!stack.hasTag()) return 0L;
         return stack.getOrCreateTag().getLong(CREATION_TICK_KEY);
     }
 
@@ -61,12 +61,12 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
     }
 
     public boolean isFrozen() {
-        if (stack.getTag() == null) return false;
+        if (!stack.hasTag()) return false;
         return stack.getOrCreateTag().getBoolean(FROZEN_KEY);
     }
 
     public long getFrozenTicks() {
-        if (stack.getTag() == null) return 0;
+        if (!stack.hasTag()) return 0L;
         return stack.getOrCreateTag().getLong(FROZEN_TICKS_KEY);
     }
 
