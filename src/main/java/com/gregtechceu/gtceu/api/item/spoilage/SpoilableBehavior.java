@@ -80,8 +80,8 @@ public class SpoilableBehavior {
         private Function<ItemStack, Component> tooltip;
 
         private Builder() {
-            ticks(100);
-            result(ItemStack.EMPTY);
+            this.ticks(100);
+            this.result(ItemStack.EMPTY); // sets both result and tooltip
         }
 
         public SpoilableBehavior build() {
@@ -108,11 +108,11 @@ public class SpoilableBehavior {
 
         public Builder result(ItemLike itemLike) {
             final Item item = itemLike.asItem();
-            return result(stack -> item.getDefaultInstance().copyWithCount(stack.getCount()));
+            return result(oldStack -> item.getDefaultInstance().copyWithCount(oldStack.getCount()));
         }
 
         public Builder result(ItemStack stack) {
-            return result(stack1 -> stack.copyWithCount(stack1.getCount()));
+            return result(oldStack -> stack.copyWithCount(oldStack.getCount()));
         }
 
         public Builder result(Function<ItemStack, ItemStack> result) {
@@ -129,8 +129,9 @@ public class SpoilableBehavior {
         }
 
         public Builder result(Supplier<? extends EntityType<? extends Mob>> entityType) {
-            SpoilResultProvider previousResult = result;
-            Function<ItemStack, Component> previousTooltip = tooltip;
+            final SpoilResultProvider previousResult = result;
+            final Function<ItemStack, Component> previousTooltip = tooltip;
+
             return result((stack, spoilContext, simulate) -> {
                 if (!simulate) {
                     EntityType<? extends Mob> type = entityType.get();
@@ -146,21 +147,23 @@ public class SpoilableBehavior {
             });
         }
 
-        public Builder multiplyResult(int mult) {
-            SpoilResultProvider prevResult = result;
-            Function<ItemStack, Component> previousTooltip = tooltip;
+        public Builder multiplyResult(int multiplier) {
+            final SpoilResultProvider previousResult = result;
+            final Function<ItemStack, Component> previousTooltip = tooltip;
+
             return result((stack, spoilContext, simulate) -> {
-                ItemStack total = prevResult.getSpoilResult(stack, spoilContext, simulate);
-                for (int i = 1; i < mult; i++) {
-                    ItemStack temp = prevResult.getSpoilResult(stack, spoilContext, simulate);
-                    if (ItemStack.isSameItemSameTags(total, temp)) total.grow(temp.getCount());
+                ItemStack total = previousResult.getSpoilResult(stack, spoilContext, simulate);
+                for (int i = 1; i < multiplier; i++) {
+                    ItemStack temp = previousResult.getSpoilResult(stack, spoilContext, simulate);
+                    if (ItemStack.isSameItemSameTags(total, temp)) {
+                        total.grow(temp.getCount());
+                    }
                 }
                 return total;
             }).tooltip(stack -> {
-                MutableComponent component = Component.literal("(");
-                component.append(previousTooltip.apply(stack));
-                component.append(") x").append(Integer.toString(mult));
-                return component;
+                return Component.literal("(")
+                        .append(previousTooltip.apply(stack))
+                        .append(") x").append(Integer.toString(multiplier));
             });
         }
 

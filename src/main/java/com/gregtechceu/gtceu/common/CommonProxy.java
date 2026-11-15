@@ -240,6 +240,12 @@ public class CommonProxy {
 
     @SubscribeEvent
     public void registerSpoilables(RegisterSpoilablesEvent event) {
+        event.getBuilder()
+                .ticks(20 * 60 * 30)
+                .result(Items.GOLDEN_CARROT)
+                .build()
+                .attachTo(GTItems.MAGNETIC_GOLDEN_CARROT);
+
         if (GTCEu.isDev()) {
             event.getBuilder()
                     .ticks(10)
@@ -269,11 +275,6 @@ public class CommonProxy {
                     .build()
                     .attachTo(GTItems.ENTITY_SPOILABLE);
         }
-        event.getBuilder()
-                .ticks(20 * 60 * 30)
-                .result(Items.GOLDEN_CARROT)
-                .build()
-                .attachTo(GTItems.MAGNETIC_GOLDEN_CARROT);
     }
 
     @SubscribeEvent
