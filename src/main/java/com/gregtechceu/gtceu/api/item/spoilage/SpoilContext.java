@@ -24,13 +24,12 @@ import java.util.function.Consumer;
  * It must include a way to set the slot the itemstack is in.
  */
 @With
-@NotNullByDefault
 public record SpoilContext(@Nullable Level level,
                            @Nullable BlockPos pos,
                            @Nullable Entity entity,
                            Consumer<ItemStack> stackSetter) {
 
-    public static final SpoilContext EMPTY = new SpoilContext(null, null, null, null);
+    public static final SpoilContext EMPTY = new SpoilContext(null, null, null, stack -> {});
 
     /**
      * @return the {@link Level} used to determine time to calculate spoilage progress (using

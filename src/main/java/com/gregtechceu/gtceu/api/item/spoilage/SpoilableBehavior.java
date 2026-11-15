@@ -72,11 +72,13 @@ public class SpoilableBehavior {
         return new Builder();
     }
 
+    // they are initialized. just with builder functions instead of direct field assignment.
+    @SuppressWarnings("NotNullFieldNotInitialized")
     public static class Builder {
 
         private ToLongFunction<ItemStack> ticks;
-        private @Nullable SpoilResultProvider result = null;
-        private @Nullable Function<ItemStack, Component> tooltip = null;
+        private SpoilResultProvider result;
+        private Function<ItemStack, Component> tooltip;
 
         private Builder() {
             ticks(100);
