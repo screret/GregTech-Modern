@@ -4,11 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import lombok.With;
@@ -30,7 +31,7 @@ public record SpoilContext(@Nullable Level level,
                            @Nullable Entity entity,
                            Consumer<ItemStack> stackSetter) {
 
-    public static final SpoilContext EMPTY = new SpoilContext(null, null, null, null);
+    public static final SpoilContext EMPTY = new SpoilContext(null, null, null, stack -> {});
 
     /**
      * @return the {@link Level} used to determine time to calculate spoilage progress (using
@@ -47,8 +48,8 @@ public record SpoilContext(@Nullable Level level,
         this(level, pos, null, stackSetterForHandler(handler, slot));
     }
 
-    public SpoilContext(Player player, int slot) {
-        this(player.level(), player.blockPosition(), player, stackSetterForPlayerInv(player.getInventory(), slot));
+    public SpoilContext(Entity entity, IItemHandler handler, int slot) {
+        this(entity.level(), entity.blockPosition(), entity, stackSetterForHandler(handler, slot));
     }
 
     public SpoilContext(BlockEntity be, IItemHandler handler, int slot) {
@@ -60,7 +61,14 @@ public record SpoilContext(@Nullable Level level,
     }
 
     public static Consumer<ItemStack> stackSetterForHandler(IItemHandler handler, int slot) {
-        return stack -> handler.extractItem(slot, 64, false);
+        return stack -> {
+            if (handler instanceof IItemHandlerModifiable modifiable) {
+                modifiable.setStackInSlot(slot, stack);
+            } else {
+                handler.extractItem(slot, Item.MAX_STACK_SIZE, false);
+                handler.insertItem(slot, stack, false);
+            }
+        };
     }
 
     public static Consumer<ItemStack> stackSetterForPlayerInv(Inventory inv, int slot) {
