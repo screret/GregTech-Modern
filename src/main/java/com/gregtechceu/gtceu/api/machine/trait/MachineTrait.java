@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
+import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
@@ -34,7 +35,7 @@ import java.util.function.Predicate;
  * If a machine trait implements a capability interface, the trait will be returned by {@link MetaMachine#getCapability}
  * if the machine trait's capability validator prediate is true for that side.
  */
-public abstract class MachineTrait implements ISyncManaged {
+public abstract class MachineTrait implements ISyncManaged, ITickSubscription {
 
     @Getter
     protected final SyncDataHolder syncDataHolder = new SyncDataHolder(this);
@@ -88,10 +89,12 @@ public abstract class MachineTrait implements ISyncManaged {
         this.machine = machine;
     }
 
-    public @Nullable TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable) {
-        return getMachine().subscribeServerTick(last, runnable);
+    @Override
+    public @Nullable TickableSubscription subscribeServerTick(Runnable runnable) {
+        return getMachine().subscribeServerTick(runnable);
     }
 
+    @Override
     public void unsubscribe(@Nullable TickableSubscription current) {
         getMachine().unsubscribe(current);
     }

@@ -20,6 +20,6 @@ public class GTToolBarRenderer implements IItemDecorator {
             ToolChargeBarRenderer.renderBarsTool(guiGraphics, gtTool, stack, x, y);
             return true;
         }
-        return true;
+        return false;
     }
 }

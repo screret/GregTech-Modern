@@ -76,6 +76,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
@@ -85,6 +86,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -340,7 +342,7 @@ public class CommonEventListener {
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
-    public static void onEntityLivingFallEvent(LivingFallEvent event) {
+    public static void onLivingEntityFall(LivingFallEvent event) {
         LivingEntity entity = event.getEntity();
         if (entity.getItemBySlot(EquipmentSlot.FEET).getItem() instanceof ModularArmorItem armor &&
                 armor.protectsAgainstFalls()) {
@@ -398,19 +400,19 @@ public class CommonEventListener {
     }
 
     @SubscribeEvent
-    public static void playerTickEvent(TickEvent.PlayerTickEvent event) {
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         Player player = event.player;
         if (event.phase == TickEvent.Phase.START && !player.level().isClientSide) {
 
-            var speedAttrib = player.getAttribute(Attributes.MOVEMENT_SPEED);
-            if (speedAttrib == null) return;
-            var speedMod = speedAttrib.getModifier(GTAttributeModifierIds.BLOCK_SPEED_BOOST);
+            AttributeInstance speedAttribute = player.getAttribute(Attributes.MOVEMENT_SPEED);
+            if (speedAttribute == null) return;
+            AttributeModifier speedMod = speedAttribute.getModifier(GTAttributeModifierIds.BLOCK_SPEED_BOOST);
 
             float speedBoost = 0.0f;
             if (!player.onGround() || player.isInWater() || player.isCrouching()) {
                 speedBoost = 0.0f;
             } else {
-                var state = player.level().getBlockState(player.getOnPos());
+                BlockState state = player.level().getBlockState(player.getOnPos());
                 if (state.is(CustomTags.VERY_FAST_WALKABLE_BLOCKS)) {
                     speedBoost = 0.6f; // value that is added to the base MC speed
                 } else if (state.is(CustomTags.FAST_WALKABLE_BLOCKS)) {
@@ -423,15 +425,14 @@ public class CommonEventListener {
                 if (speedBoost == speedMod.getAmount()) {
                     return;
                 } else {
-                    speedAttrib.removeModifier(GTAttributeModifierIds.BLOCK_SPEED_BOOST);
+                    speedAttribute.removeModifier(GTAttributeModifierIds.BLOCK_SPEED_BOOST);
                 }
             } else {
                 if (speedBoost == 0.0f) return;
             }
             if (speedBoost != 0.0f) {
-                speedAttrib.addTransientModifier(
-                        new AttributeModifier(GTAttributeModifierIds.BLOCK_SPEED_BOOST, "GT Block Speed Boost",
-                                speedBoost, AttributeModifier.Operation.MULTIPLY_BASE));
+                speedAttribute.addTransientModifier(new AttributeModifier(GTAttributeModifierIds.BLOCK_SPEED_BOOST,
+                        "GT Block Speed Boost", speedBoost, AttributeModifier.Operation.MULTIPLY_BASE));
             }
         }
     }

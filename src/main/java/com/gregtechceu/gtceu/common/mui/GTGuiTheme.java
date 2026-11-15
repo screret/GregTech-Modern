@@ -80,7 +80,7 @@ public class GTGuiTheme {
     private final List<Consumer<JsonBuilder>> elementBuilder;
     private final JsonBuilder jsonBuilder;
 
-    private Supplier<UITexture> logo;
+    private @Nullable Supplier<@Nullable UITexture> logo;
 
     private GTGuiTheme(String themeId) {
         this.themeId = themeId;
