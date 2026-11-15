@@ -37,11 +37,6 @@ public class SpoilableBehavior {
     private final Function<ItemStack, Component> spoilsIntoTooltip;
     private final List<ItemLike> attachedTo = new ArrayList<>();
 
-    @ApiStatus.Internal
-    public static Builder builder() {
-        return new Builder();
-    }
-
     private SpoilableBehavior(ToLongFunction<ItemStack> ticks, SpoilResultProvider spoilResult,
                               Function<ItemStack, Component> spoilsIntoTooltip) {
         this.ticks = ticks;
@@ -72,36 +67,9 @@ public class SpoilableBehavior {
         }
     }
 
-    /**
-     * An implementation of {@link ISpoilableItem} which returns spoil information from its'
-     * {@code SpoilableBehavior} object.
-     */
-    public class SpoilableBehaviourStack extends SpoilableItemStack {
-
-        private SpoilableBehaviourStack(ItemStack stack) {
-            super(stack);
-        }
-
-        @Override
-        public long getSpoilTicks() {
-            return ticks.apply(getStack());
-        }
-
-        @Override
-        public ItemStack spoilResult(SpoilContext spoilContext, boolean simulate) {
-            return spoilResult.getSpoilResult(getStack(), spoilContext, simulate);
-        }
-
-        @Override
-        protected Component getSpoilResultTooltip() {
-            return spoilsIntoTooltip.apply(getStack());
-        }
-    }
-
-    @FunctionalInterface
-    public interface SpoilResultProvider {
-
-        ItemStack getSpoilResult(@NotNull ItemStack stack, @NotNull SpoilContext spoilContext, boolean simulate);
+    @ApiStatus.Internal
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static class Builder {
@@ -128,18 +96,13 @@ public class SpoilableBehavior {
             return this;
         }
 
+        public Builder ticks(long ticks) {
+            return ticks(stack -> ticks);
+        }
+
         public Builder result(SpoilResultProvider result) {
             this.result = result;
             return this;
-        }
-
-        public Builder tooltip(Function<ItemStack, Component> tooltip) {
-            this.tooltip = tooltip;
-            return this;
-        }
-
-        public Builder ticks(long ticks) {
-            return ticks(stack -> ticks);
         }
 
         public Builder result(ItemLike itemLike) {
@@ -199,8 +162,45 @@ public class SpoilableBehavior {
             });
         }
 
+        public Builder tooltip(Function<ItemStack, Component> tooltip) {
+            this.tooltip = tooltip;
+            return this;
+        }
+
         public Builder tooltip(Component tooltip) {
             return tooltip(stack -> tooltip);
         }
+    }
+
+    /**
+     * An implementation of {@link ISpoilableItem} which returns spoil information from its'
+     * {@code SpoilableBehavior} object.
+     */
+    public class SpoilableBehaviourStack extends SpoilableItemStack {
+
+        private SpoilableBehaviourStack(ItemStack stack) {
+            super(stack);
+        }
+
+        @Override
+        public long getSpoilTicks() {
+            return SpoilableBehavior.this.ticks.applyAsLong(getStack());
+        }
+
+        @Override
+        public ItemStack spoilResult(SpoilContext spoilContext, boolean simulate) {
+            return SpoilableBehavior.this.spoilResult.getSpoilResult(getStack(), spoilContext, simulate);
+        }
+
+        @Override
+        protected Component getSpoilResultTooltip() {
+            return SpoilableBehavior.this.spoilsIntoTooltip.apply(getStack());
+        }
+    }
+
+    @FunctionalInterface
+    public interface SpoilResultProvider {
+
+        ItemStack getSpoilResult(ItemStack stack, SpoilContext spoilContext, boolean simulate);
     }
 }
