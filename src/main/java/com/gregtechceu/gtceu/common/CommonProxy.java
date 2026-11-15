@@ -178,7 +178,6 @@ public class CommonProxy {
         CustomBlockRotations.init();
         SyncedKeyMappings.init();
         MachineOwner.init();
-        SpoilUtils.fireRegisterSpoilablesEvent();
 
         FusionReactorMachine.registerFusionTier(GTValues.LuV, " (MKI)");
         FusionReactorMachine.registerFusionTier(GTValues.ZPM, " (MKII)");
@@ -330,6 +329,8 @@ public class CommonProxy {
                 AEItemCompat.init();
             }
         });
+
+        event.enqueueWork(SpoilUtils::fireRegisterSpoilablesEvent);
     }
 
     @SubscribeEvent
