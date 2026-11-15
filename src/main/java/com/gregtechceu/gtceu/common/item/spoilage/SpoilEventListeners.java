@@ -34,18 +34,19 @@ public class SpoilEventListeners {
 
     @SubscribeEvent
     public static void levelTick(TickEvent.LevelTickEvent event) {
-        if (!(event.level instanceof ServerLevel serverLevel)) return;
+        if (event.phase != TickEvent.Phase.START) return;
+        if (!(event.level instanceof ServerLevel level)) return;
 
-        if (event.phase == TickEvent.Phase.START) {
-            for (Entity entity : serverLevel.getAllEntities()) {
-                // process spoilage updates for all loaded entities
-                SpoilUtils.updateEntity(entity);
-            }
+        BlockEntitySpoilTicker.get(level).tick();
+
+        for (Entity entity : level.getAllEntities()) {
+            // process spoilage updates for all loaded entities
+            SpoilUtils.updateEntity(entity);
         }
     }
 
     @SubscribeEvent
-    public void onChunkLoad(ChunkEvent.Load event) {
+    public void chunkLoaded(ChunkEvent.Load event) {
         if (!(event.getChunk() instanceof LevelChunk chunk)) {
             // the event is only given level chunks by forge, so something's gone funny
             return;
@@ -56,18 +57,10 @@ public class SpoilEventListeners {
     }
 
     @SubscribeEvent
-    public void onChunkUnload(ChunkEvent.Unload event) {
+    public void chunkUnloaded(ChunkEvent.Unload event) {
         if (!(event.getChunk() instanceof LevelChunk chunk)) return;
         if (!(chunk.getLevel() instanceof ServerLevel level)) return;
 
         BlockEntitySpoilTicker.get(level).chunkUnloaded(chunk);
-    }
-
-    @SubscribeEvent
-    public void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-        if (!(event.level instanceof ServerLevel level)) return;
-
-        BlockEntitySpoilTicker.get(level).tick();
     }
 }
