@@ -19,10 +19,7 @@ import com.gregtechceu.gtceu.client.particle.HazardParticle;
 import com.gregtechceu.gtceu.client.particle.MufflerParticle;
 import com.gregtechceu.gtceu.client.renderer.entity.GTBoatRenderer;
 import com.gregtechceu.gtceu.client.renderer.entity.GTExplosiveRenderer;
-import com.gregtechceu.gtceu.client.renderer.item.decorator.GTComponentItemDecorator;
-import com.gregtechceu.gtceu.client.renderer.item.decorator.GTLampItemOverlayRenderer;
-import com.gregtechceu.gtceu.client.renderer.item.decorator.GTTankItemFluidPreview;
-import com.gregtechceu.gtceu.client.renderer.item.decorator.GTToolBarRenderer;
+import com.gregtechceu.gtceu.client.renderer.item.decorator.*;
 import com.gregtechceu.gtceu.client.renderer.machine.DynamicRenderManager;
 import com.gregtechceu.gtceu.client.renderer.machine.impl.*;
 import com.gregtechceu.gtceu.client.renderer.machine.impl.BoilerMultiPartRender;
@@ -58,6 +55,7 @@ import net.minecraft.client.model.ChestBoatModel;
 import net.minecraft.client.renderer.blockentity.HangingSignRenderer;
 import net.minecraft.client.renderer.blockentity.SignRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.client.event.*;
@@ -66,7 +64,6 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -130,7 +127,7 @@ public class ClientProxy extends CommonProxy {
 
     @SubscribeEvent
     public void onRegisterItemDecorations(RegisterItemDecorationsEvent event) {
-        for (Item item : ForgeRegistries.ITEMS) {
+        for (Item item : BuiltInRegistries.ITEM) {
             if (item instanceof IComponentItem) {
                 event.register(item, GTComponentItemDecorator.INSTANCE);
             }
@@ -146,6 +143,10 @@ public class ClientProxy extends CommonProxy {
             if (item instanceof QuantumTankMachineItem) {
                 event.register(item, GTTankItemFluidPreview.QUANTUM_TANK);
             }
+
+            // register the spoilable item decorator for every item because at this point, we cannot know whether any
+            // specific item is spoilable or not
+            event.register(item, SpoilProgressBarDecorator.INSTANCE);
         }
     }
 
