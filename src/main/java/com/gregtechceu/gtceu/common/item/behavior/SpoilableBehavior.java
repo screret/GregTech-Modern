@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.item.component.ISpoilableItem;
 import com.gregtechceu.gtceu.api.item.component.SpoilContext;
 import com.gregtechceu.gtceu.api.item.component.SpoilUtils;
 import com.gregtechceu.gtceu.common.item.SpoilableItemStack;
-import com.gregtechceu.gtceu.common.item.spoilage.BlockEntitySpoilTicker;
 import com.gregtechceu.gtceu.integration.kjs.GTCEuStartupEvents;
 import com.gregtechceu.gtceu.integration.kjs.events.RegisterSpoilablesEventJS;
 
@@ -49,8 +48,6 @@ public class SpoilableBehavior {
         if (GTCEu.Mods.isKubeJSLoaded()) {
             KJSCallWrapper.fireKJSEvent(event);
         }
-
-        BlockEntitySpoilTicker.registerEventListeners(modBus);
     }
 
     private static Builder builder() {
