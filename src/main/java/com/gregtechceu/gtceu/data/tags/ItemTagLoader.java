@@ -192,9 +192,6 @@ public class ItemTagLoader {
                 .addOptional(GTItems.SENSOR_UXV.getId())
                 .addOptional(GTItems.SENSOR_OpV.getId());
 
-        provider.addTag(CustomTags.TOOLS_IGNITER)
-                .addTag(ItemTags.CREEPER_IGNITERS);
-
         // Add sodalite and lazurite as enchanting fuels
         provider.addTag(Tags.Items.ENCHANTING_FUELS)
                 .add(ChemicalHelper.getItemOrThrow(gem, Lazurite))

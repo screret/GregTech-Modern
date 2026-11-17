@@ -47,6 +47,7 @@ public class GTToolType {
     // FIXME the speed and breakability values are all broken. refer to (vanilla?) for correct-er values.
     public static final GTToolType SWORD = GTToolType.builder("sword")
             .toolTag(ToolItemTagType.MATCH, ItemTags.SWORDS)
+            .toolTag(Tags.Items.MELEE_WEAPON_TOOLS)
             .definition(b -> b.tool(new Tool(List.of(
                     Tool.Rule.overrideSpeed(BlockTags.SWORD_EFFICIENT, 1.5F),
                     Tool.Rule.minesAndDrops(List.of(Blocks.COBWEB), 15.0F)),
@@ -58,6 +59,7 @@ public class GTToolType {
             .build();
     public static final GTToolType PICKAXE = GTToolType.builder("pickaxe")
             .toolTag(ToolItemTagType.MATCH, ItemTags.PICKAXES)
+            .toolTag(Tags.Items.MINING_TOOL_TOOLS)
             .toolTag(ItemTags.CLUSTER_MAX_HARVESTABLES)
             .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE)
             .definition(b -> b.blockBreaking().attackDamage(1.0F).attackSpeed(-2.8F)
@@ -77,6 +79,7 @@ public class GTToolType {
             .build();
     public static final GTToolType AXE = GTToolType.builder("axe")
             .toolTag(ToolItemTagType.MATCH, ItemTags.AXES)
+            .toolTag(Tags.Items.MELEE_WEAPON_TOOLS)
             .harvestTag(BlockTags.MINEABLE_WITH_AXE)
             .definition(b -> b.blockBreaking()
                     .attackDamage(5.0F).baseEfficiency(2.0F).attackSpeed(-3.2F)
@@ -97,6 +100,7 @@ public class GTToolType {
 
     public static final GTToolType MINING_HAMMER = GTToolType.builder("mining_hammer")
             .toolTag(ToolItemTagType.MATCH, CustomTags.TOOLS_MINING_HAMMER)
+            .toolTag(Tags.Items.MINING_TOOL_TOOLS)
             .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE)
             .definition(b -> b.blockBreaking().aoe(1, 1, 0)
                     .efficiencyMultiplier(0.4F).attackDamage(1.5F).durabilityMultiplier(3.0F).attackSpeed(-3.2F)
@@ -170,7 +174,7 @@ public class GTToolType {
     public static final GTToolType WRENCH = GTToolType.builder("wrench")
             .toolTag(ToolItemTagType.CRAFTING, CustomTags.CRAFTING_WRENCHES)
             .toolTag(Tags.Items.TOOLS_WRENCH)
-            .toolTag(ToolItemTagType.MATCH, CustomTags.TOOLS_WRENCH)
+            .toolTag(ToolItemTagType.MATCH, Tags.Items.TOOLS_WRENCH)
             .harvestTag(CustomTags.MINEABLE_WITH_WRENCH)
             .definition(b -> b.blockBreaking().crafting().sneakBypassUse()
                     .attackDamage(1.0F).attackSpeed(-2.8F)
@@ -247,6 +251,7 @@ public class GTToolType {
             .build();
     public static final GTToolType BUTCHERY_KNIFE = GTToolType.builder("butchery_knife")
             .toolTag(ToolItemTagType.MATCH, CustomTags.TOOLS_BUTCHERY_KNIFE)
+            .toolTag(Tags.Items.MELEE_WEAPON_TOOLS)
             .definition(b -> b.attacking()
                     .attackDamage(1.5F).attackSpeed(-1.3F)
                     .defaultEnchantment(Enchantments.LOOTING, 3))
@@ -272,6 +277,7 @@ public class GTToolType {
             .toolTag(ItemTags.SHOVELS)
             .toolTag(ItemTags.HOES)
             .toolTag(ItemTags.CLUSTER_MAX_HARVESTABLES)
+            .toolTag(Tags.Items.MINING_TOOL_TOOLS)
             .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE)
             .harvestTag(BlockTags.MINEABLE_WITH_SHOVEL)
             .harvestTag(BlockTags.MINEABLE_WITH_HOE)
@@ -291,6 +297,7 @@ public class GTToolType {
             .toolTag(ItemTags.SHOVELS)
             .toolTag(ItemTags.HOES)
             .toolTag(ItemTags.CLUSTER_MAX_HARVESTABLES)
+            .toolTag(Tags.Items.MINING_TOOL_TOOLS)
             .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE)
             .harvestTag(BlockTags.MINEABLE_WITH_SHOVEL)
             .harvestTag(BlockTags.MINEABLE_WITH_HOE)
@@ -310,6 +317,7 @@ public class GTToolType {
             .toolTag(ItemTags.SHOVELS)
             .toolTag(ItemTags.HOES)
             .toolTag(ItemTags.CLUSTER_MAX_HARVESTABLES)
+            .toolTag(Tags.Items.MINING_TOOL_TOOLS)
             .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE)
             .harvestTag(BlockTags.MINEABLE_WITH_SHOVEL)
             .harvestTag(BlockTags.MINEABLE_WITH_HOE)
@@ -329,6 +337,7 @@ public class GTToolType {
             .toolTag(ItemTags.SHOVELS)
             .toolTag(ItemTags.HOES)
             .toolTag(ItemTags.CLUSTER_MAX_HARVESTABLES)
+            .toolTag(Tags.Items.MINING_TOOL_TOOLS)
             .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE)
             .harvestTag(BlockTags.MINEABLE_WITH_SHOVEL)
             .harvestTag(BlockTags.MINEABLE_WITH_HOE)
@@ -348,6 +357,7 @@ public class GTToolType {
             .toolTag(ItemTags.SHOVELS)
             .toolTag(ItemTags.HOES)
             .toolTag(ItemTags.CLUSTER_MAX_HARVESTABLES)
+            .toolTag(Tags.Items.MINING_TOOL_TOOLS)
             .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE)
             .harvestTag(BlockTags.MINEABLE_WITH_SHOVEL)
             .harvestTag(BlockTags.MINEABLE_WITH_HOE)
