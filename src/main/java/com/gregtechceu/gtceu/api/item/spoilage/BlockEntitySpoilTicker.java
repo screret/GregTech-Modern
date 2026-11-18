@@ -1,16 +1,15 @@
 package com.gregtechceu.gtceu.api.item.spoilage;
 
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.LevelAttached;
 
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.ticks.*;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -25,7 +24,9 @@ import java.util.Set;
 /**
  * Handles spoilage updates for block entities that aren't GT machines.<br>
  */
-public class BlockEntitySpoilTicker extends SavedData {
+public class BlockEntitySpoilTicker {
+
+    private static final LevelAttached<BlockEntitySpoilTicker> TICKERS = new LevelAttached<>(BlockEntitySpoilTicker::new);
 
     public static int MAX_TICKS_PER_UPDATE = ServerLevel.MAX_SCHEDULED_TICKS_PER_TICK;
     public static final long UPDATE_FREQUENCY = 2;
@@ -33,8 +34,7 @@ public class BlockEntitySpoilTicker extends SavedData {
     public static final Set<Class<? extends BlockEntity>> BLACKLISTED_BLOCK_ENTITIES = new ObjectOpenHashSet<>();
 
     public static BlockEntitySpoilTicker get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent((tag) -> new BlockEntitySpoilTicker(level),
-                () -> new BlockEntitySpoilTicker(level), "gtceu:block_entity_spoil_ticker");
+        return TICKERS.get(level);
     }
 
     private final ServerLevel level;
@@ -47,8 +47,7 @@ public class BlockEntitySpoilTicker extends SavedData {
         }
 
         this.level = sLvl;
-        this.blockEntityTicks = new LevelTicks<>(this::isPositionTickingWithEntitiesLoaded,
-                level.getProfilerSupplier());
+        this.blockEntityTicks = new LevelTicks<>(this::isPositionTickingWithEntitiesLoaded, sLvl.getProfilerSupplier());
     }
 
     private ScheduledTick<BlockEntityType<?>> createTick(BlockEntity be, long delay, TickPriority priority) {
@@ -114,10 +113,5 @@ public class BlockEntitySpoilTicker extends SavedData {
 
     private boolean isPositionTickingWithEntitiesLoaded(long chunkPos) {
         return level.areEntitiesLoaded(chunkPos) && level.getChunkSource().isPositionTicking(chunkPos);
-    }
-
-    @Override
-    public CompoundTag save(CompoundTag compoundTag) {
-        return compoundTag;
     }
 }
