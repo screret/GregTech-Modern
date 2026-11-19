@@ -26,7 +26,8 @@ import java.util.Set;
  */
 public class BlockEntitySpoilTicker {
 
-    private static final LevelAttached<BlockEntitySpoilTicker> TICKERS = new LevelAttached<>(BlockEntitySpoilTicker::new);
+    private static final LevelAttached<BlockEntitySpoilTicker> TICKERS = new LevelAttached<>(
+            BlockEntitySpoilTicker::new);
 
     public static int MAX_TICKS_PER_UPDATE = ServerLevel.MAX_SCHEDULED_TICKS_PER_TICK;
     public static final long UPDATE_FREQUENCY = 2;

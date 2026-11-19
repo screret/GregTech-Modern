@@ -4,7 +4,6 @@
  *
  * MIT license
  */
-
 package com.gregtechceu.gtceu.utils;
 
 import net.minecraft.world.level.LevelAccessor;
@@ -27,6 +26,7 @@ import java.util.function.Function;
  * from Flywheel</a> with the same name.
  */
 public final class LevelAttached<T> {
+
     private static final ConcurrentLinkedDeque<WeakReference<LevelAttached<?>>> ALL = new ConcurrentLinkedDeque<>();
     private static final Cleaner CLEANER = Cleaner.create();
 
@@ -42,6 +42,7 @@ public final class LevelAttached<T> {
                 .weakKeys()
                 .<LevelAccessor, T>removalListener(n -> finalizer.accept(n.getValue()))
                 .build(new CacheLoader<>() {
+
                     @Override
                     public @NotNull T load(@NotNull LevelAccessor key) {
                         return factory.apply(key);
@@ -85,6 +86,7 @@ public final class LevelAttached<T> {
     }
 
     private static class CleaningAction implements Runnable {
+
         private final WeakReference<LevelAttached<?>> ref;
         private final LoadingCache<?, ?> cache;
 
