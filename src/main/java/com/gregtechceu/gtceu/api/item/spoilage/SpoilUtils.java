@@ -61,9 +61,9 @@ public class SpoilUtils {
 
     public static void updateBlock(BlockEntity blockEntity, @Nullable Direction side) {
         blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side)
-                .resolve()
-                .ifPresent(
-                        handler -> updateBlockItemHandler(handler, blockEntity.getLevel(), blockEntity.getBlockPos()));
+                .ifPresent(handler -> {
+                    updateBlockItemHandler(handler, blockEntity.getLevel(), blockEntity.getBlockPos());
+                });
     }
 
     public static void updateBlockItemHandler(IItemHandler handler, @Nullable Level level, @Nullable BlockPos pos) {

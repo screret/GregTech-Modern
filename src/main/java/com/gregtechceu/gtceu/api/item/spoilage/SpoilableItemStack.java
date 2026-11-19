@@ -90,26 +90,28 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
      */
     public void updateFreshness(SpoilContext spoilContext, boolean createTag) {
         if (isFrozen()) return;
-        Level level = SpoilContext.getDefaultLevel();
-        if (level != null && createTag && getCreationTick() == 0) {
+        Level level = spoilContext.level() != null ? spoilContext.level() : SpoilContext.getDefaultLevel();
+        if (level == null) return;
+
+        if (createTag && getCreationTick() == 0) {
             setCreationTick(level.getGameTime());
         }
-        if (level != null && this.shouldSpoil()) {
-            long spoilTicks = this.getSpoilTicks();
-            long timeDifference = level.getGameTime() - getCreationTick() - spoilTicks;
-            if (timeDifference >= 0) {
-                ItemStack newStack = this.getSpoilResult(spoilContext, timeDifference, GTCEu.isClientThread());
-                spoilContext.setResultStack(newStack);
+        if (!this.shouldSpoil()) return;
 
-                ISpoilableItem newSpoilable = GTCapabilityHelper.getSpoilable(newStack);
-                if (newSpoilable != null) {
-                    newSpoilable.setCreationTick(level.getGameTime() - timeDifference);
-                    try {
-                        newSpoilable.updateFreshness(spoilContext, false);
-                    } catch (StackOverflowError ignored) {
-                        // if items spoil in a giant chain or a loop
-                    }
-                }
+        long spoilTicks = this.getSpoilTicks();
+        long timeDifference = level.getGameTime() - getCreationTick() - spoilTicks;
+        if (timeDifference < 0) return;
+
+        ItemStack newStack = this.getSpoilResult(spoilContext, timeDifference, GTCEu.isClientThread());
+        spoilContext.setResultStack(newStack);
+
+        ISpoilableItem newSpoilable = GTCapabilityHelper.getSpoilable(newStack);
+        if (newSpoilable != null) {
+            newSpoilable.setCreationTick(level.getGameTime() - timeDifference);
+            try {
+                newSpoilable.updateFreshness(spoilContext, false);
+            } catch (StackOverflowError ignored) {
+                // if items spoil in a giant chain or a loop
             }
         }
     }
@@ -134,10 +136,10 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
     }
 
     private void setFreezeSpoiling(boolean freeze) {
-        if (freeze) {
+        if (freeze && !isFrozen()) {
             setFrozenTicks(getTicksUntilSpoiled());
             stack.getOrCreateTag().putBoolean(FROZEN_KEY, true);
-        } else if (isFrozen()) {
+        } else if (!freeze && isFrozen()) {
             setTicksUntilSpoiled(getFrozenTicks());
             stack.getOrCreateTag().putBoolean(FROZEN_KEY, false);
         }
